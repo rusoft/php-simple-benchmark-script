@@ -6,9 +6,11 @@
 #                         © 2015 Rusoft                                  #
 #                                                                        #
 #  Author      : Alessandro Torrisi                                      #
+#  Author      : Sergey Dryabzhinsky                                     #
 #  Company     : Code24 BV, The Netherlands                              #
-#  Date        : July 31, 2010                                           #
-#  version     : 1.0                                                     #
+#  Company     : Rusoft Ltd, Russia                                      #
+#  Date        : July 1, 2015                                            #
+#  version     : 1.01                                                    #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
@@ -24,6 +26,13 @@ function get_microtime()
     }
     return $time;
 }
+
+function convert($size)
+{
+    $unit=array('b','kb','mb','gb','tb','pb');
+    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+}
+
 
 	function test_Math($count = 1400000) {
 		$time_start = get_microtime();
@@ -45,7 +54,7 @@ function get_microtime()
 		foreach ($stringFunctions as $key => $function) {
 			if (!function_exists($function)) unset($stringFunctions[$key]);
 		}
-		$string = "the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat lorem ipsum volar morgulis";
+		$string = "the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum volar morgulis";
 		for ($i=0; $i < $count; $i++) {
 			foreach ($stringFunctions as $function) {
 				$r = call_user_func_array($function, array($string));
@@ -73,7 +82,7 @@ function get_microtime()
             }
 		}
 		return number_format(get_microtime() - $time_start, 3);
-	}	
+	}
 	
 	
 	$total = 0;
@@ -84,9 +93,12 @@ function get_microtime()
 		if (preg_match('/^test_/', $user)) {
 			$result = $user();
 			$total += $result;
-            echo str_pad($user, 25) . " : " . $result ." sec.\n";
-        }
+			echo str_pad($user, 25) . " : " . $result ." sec.\n";
+		}
 	}
-	echo str_pad("-", 38, "-") . "\n" . str_pad("Total time:", 25) . " : " . $total ." sec.\n</pre>\n";
-	
+	echo str_pad("-", 38, "-") . "\n"
+	. str_pad("Total time:", 25) . " : " . $total ." sec.\n"
+	. str_pad("Current memory usage:", 25) . " : " . convert(memory_get_usage()) .".\n"
+	. (function_exists('memory_get_peak_usage') ? str_pad("Peak memory usage:", 25) . " : " . convert(memory_get_peak_usage())  .".\n" : '')
+	. "</pre>\n";
 ?>
