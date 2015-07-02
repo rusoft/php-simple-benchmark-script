@@ -10,14 +10,14 @@
 #  Company     : Code24 BV, The Netherlands                              #
 #  Company     : Rusoft Ltd, Russia                                      #
 #  Date        : July 1, 2015                                            #
-#  version     : 1.0.2                                                   #
+#  version     : 1.0.3                                                   #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
 ##########################################################################
 */
 
-$scriptVersion = '1.0.2';
+$scriptVersion = '1.0.3';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum valar morgulis  \n\rабыр\nвалар дохаэрис         ";
 
