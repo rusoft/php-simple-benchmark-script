@@ -9,15 +9,15 @@
 #  Author      : Sergey Dryabzhinsky                                     #
 #  Company     : Code24 BV, The Netherlands                              #
 #  Company     : Rusoft Ltd, Russia                                      #
-#  Date        : July 1, 2015                                            #
-#  version     : 1.0.4                                                   #
+#  Date        : July 2, 2015                                            #
+#  version     : 1.0.5                                                   #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
 ##########################################################################
 */
 
-$scriptVersion = '1.0.4';
+$scriptVersion = '1.0.5';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  \n\rабыр\nвалар дохаэрис         ";
 
@@ -26,6 +26,11 @@ $doTestArrays = true;
 
 set_time_limit(0);
 ini_set('memory_limit', '2048M');
+
+$line = str_pad("-",78,"-");
+$padHeader = 76;
+$padInfo = 20;
+$padLabel = 62;
 
 function get_microtime()
 {
@@ -57,7 +62,16 @@ function convert($size)
 		return number_format(get_microtime() - $time_start, 3);
 	}
 
-	function test_String_Simple($count = 1300000) {
+	function test_String_Concat($count = 14000000) {
+		$time_start = get_microtime();
+		$s = '';
+		for($i = 0; $i < $count; ++$i) {
+			$s .= "- Valar moghulis\n";
+		}
+		return number_format(get_microtime() - $time_start, 3);
+	}
+
+	function test_String_Simple_Functions($count = 1300000) {
 		global $stringTest;
 		$time_start = get_microtime();
 		$stringFunctions = array("strtoupper", "strtolower", "strrev", "strlen", "str_rot13", "ord", "trim");
@@ -233,24 +247,25 @@ function convert($size)
 
 	$total = 0;
 	$functions = get_defined_functions();
-	$line = str_pad("-",38,"-");
-	echo "<pre>\n$line\n|".str_pad("PHP BENCHMARK SCRIPT",36," ",STR_PAD_BOTH)
-		."|\n$line\nStart : ".date("Y-m-d H:i:s")
-		."\nServer : ".php_uname()
-		."\nPHP version : ".PHP_VERSION
-		."\nBenchmark version : ".$scriptVersion
-		."\nPlatform : ".PHP_OS
-		. "\n$line\n";
+	echo "<pre>\n$line\n|"
+		.str_pad("PHP BENCHMARK SCRIPT", $padHeader," ",STR_PAD_BOTH)
+		."|\n$line\n"
+		.str_pad("Start:", $padInfo) . " : ". date("Y-m-d H:i:s") . "\n"
+		.str_pad("Server:", $padInfo) . " : ".php_uname() . "\n"
+		.str_pad("PHP version:", $padInfo) . " : " .PHP_VERSION . "\n"
+		.str_pad("Benchmark version:", $padInfo) . " : ".$scriptVersion . "\n"
+		.str_pad("Platform:", $padInfo) . " : " .PHP_OS . "\n"
+		."$line\n";
 	foreach ($functions['user'] as $user) {
 		if (preg_match('/^test_/', $user)) {
 			$result = $user();
 			$total += $result;
-			echo str_pad($user, 25) . " : " . $result ." sec.\n";
+			echo str_pad($user, $padLabel) . " : " . $result ." sec.\n";
 		}
 	}
-	echo str_pad("-", 38, "-") . "\n"
-	. str_pad("Total time:", 25) . " : " . $total ." sec.\n"
-	. str_pad("Current memory usage:", 25) . " : " . convert(memory_get_usage()) .".\n"
-	. (function_exists('memory_get_peak_usage') ? str_pad("Peak memory usage:", 25) . " : " . convert(memory_get_peak_usage())  .".\n" : '')
+	echo $line . "\n"
+	. str_pad("Total time:", $padLabel) . " : " . $total ." sec.\n"
+	. str_pad("Current memory usage:", $padLabel) . " : " . convert(memory_get_usage()) .".\n"
+	. (function_exists('memory_get_peak_usage') ? str_pad("Peak memory usage:", $padLabel) . " : " . convert(memory_get_peak_usage())  .".\n" : '')
 	. "</pre>\n";
 ?>
