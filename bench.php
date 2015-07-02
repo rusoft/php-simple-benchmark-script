@@ -22,7 +22,7 @@ $scriptVersion = '1.0.2';
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum valar morgulis  \n\rабыр\nвалар дохаэрис         ";
 
 // Need alot of memory - more 1Gb
-$doTestArrays = false;
+$doTestArrays = true;
 
 function get_microtime()
 {
@@ -71,6 +71,9 @@ function convert($size)
 
 	function test_String_Multibyte($count = 130000) {
 		global $stringTest;
+
+		if (!function_exists('mb_strlen')) return '-.---';
+
 		$time_start = get_microtime();
 		$stringFunctions = array("mb_strtoupper", "mb_strtolower", "mb_strlen", "mb_strwidth");
 		foreach ($stringFunctions as $key => $function) {
@@ -116,11 +119,10 @@ function convert($size)
 
 	function test_Json_Encode($count = 1300000) {
 		global $stringTest;
+
+		if (!function_exists('json_encode')) return '-.---';
+
 		$time_start = get_microtime();
-		$stringFunctions = array("json_encode",);
-		foreach ($stringFunctions as $key => $function) {
-			if (!function_exists($function)) unset($stringFunctions[$key]);
-		}
 		$data = array(
 			$stringTest,
 			123456,
@@ -129,11 +131,9 @@ function convert($size)
 			null,
 			false,
 		);
-		foreach ($stringFunctions as $function) {
-			for ($i=0; $i < $count; $i++) {
-				foreach ($data as $value) {
-					$r = call_user_func_array($function, array($value));
-				}
+		for ($i=0; $i < $count; $i++) {
+			foreach ($data as $value) {
+				$r = json_encode($value);
 			}
 		}
 		return number_format(get_microtime() - $time_start, 3);
@@ -141,11 +141,10 @@ function convert($size)
 
 	function test_Json_Decode($count = 1300000) {
 		global $stringTest;
+
+		if (!function_exists('json_decode')) return '-.---';
+
 		$time_start = get_microtime();
-		$stringFunctions = array("json_decode",);
-		foreach ($stringFunctions as $key => $function) {
-			if (!function_exists($function)) unset($stringFunctions[$key]);
-		}
 		$data = array(
 			$stringTest,
 			123456,
@@ -157,11 +156,9 @@ function convert($size)
 		foreach ($data as $key => $value) {
 			$data[ $key ] = json_encode($value);
 		}
-		foreach ($stringFunctions as $function) {
-			for ($i=0; $i < $count; $i++) {
-				foreach ($data as $value) {
-					$r = call_user_func_array($function, array($value));
-				}
+		for ($i=0; $i < $count; $i++) {
+			foreach ($data as $value) {
+				$r = json_decode($value);
 			}
 		}
 		return number_format(get_microtime() - $time_start, 3);
