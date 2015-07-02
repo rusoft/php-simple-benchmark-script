@@ -10,19 +10,22 @@
 #  Company     : Code24 BV, The Netherlands                              #
 #  Company     : Rusoft Ltd, Russia                                      #
 #  Date        : July 1, 2015                                            #
-#  version     : 1.0.3                                                   #
+#  version     : 1.0.4                                                   #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
 ##########################################################################
 */
 
-$scriptVersion = '1.0.3';
+$scriptVersion = '1.0.4';
 
-$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum valar morgulis  \n\rабыр\nвалар дохаэрис         ";
+$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  \n\rабыр\nвалар дохаэрис         ";
 
 // Need alot of memory - more 1Gb
 $doTestArrays = true;
+
+set_time_limit(0);
+ini_set('memory_limit', '2048M');
 
 function get_microtime()
 {
