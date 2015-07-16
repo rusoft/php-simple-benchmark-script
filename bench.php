@@ -10,16 +10,17 @@
 #  Company     : Code24 BV, The Netherlands                              #
 #  Company     : Rusoft Ltd, Russia                                      #
 #  Date        : July 2, 2015                                            #
-#  version     : 1.0.5                                                   #
+#  version     : 1.0.6                                                   #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
 ##########################################################################
 */
 
-$scriptVersion = '1.0.5';
+$scriptVersion = '1.0.6';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  \n\rабыр\nвалар дохаэрис         ";
+$regexPattern = "/[\s,]+/";
 
 // Need alot of memory - more 1Gb
 $doTestArrays = true;
@@ -119,6 +120,21 @@ function convert($size)
 		return number_format(get_microtime() - $time_start, 3);
 	}
 
+	function test_Regex($count = 1300000) {
+		global $stringTest, $regexPattern;
+		$time_start = get_microtime();
+		$stringFunctions = array("preg_match", "preg_split");
+		foreach ($stringFunctions as $key => $function) {
+			if (!function_exists($function)) unset($stringFunctions[$key]);
+		}
+		for ($i=0; $i < $count; $i++) {
+			foreach ($stringFunctions as $function) {
+				$r = call_user_func_array($function, array($regexPattern, $stringTest));
+			}
+		}
+		return number_format(get_microtime() - $time_start, 3);
+	}
+
 	function test_Hashing($count = 1300000) {
 		global $stringTest;
 		$time_start = get_microtime();
@@ -176,6 +192,53 @@ function convert($size)
 		for ($i=0; $i < $count; $i++) {
 			foreach ($data as $value) {
 				$r = json_decode($value);
+			}
+		}
+		return number_format(get_microtime() - $time_start, 3);
+	}
+
+	function test_Serialize($count = 1300000) {
+		global $stringTest;
+
+		if (!function_exists('serialize')) return '-.---';
+
+		$time_start = get_microtime();
+		$data = array(
+			$stringTest,
+			123456,
+			123.456,
+			array(123456),
+			null,
+			false,
+		);
+		for ($i=0; $i < $count; $i++) {
+			foreach ($data as $value) {
+				$r = serialize($value);
+			}
+		}
+		return number_format(get_microtime() - $time_start, 3);
+	}
+
+	function test_Unserialize($count = 1300000) {
+		global $stringTest;
+
+		if (!function_exists('unserialize')) return '-.---';
+
+		$time_start = get_microtime();
+		$data = array(
+			$stringTest,
+			123456,
+			123.456,
+			array(123456),
+			null,
+			false,
+		);
+		foreach ($data as $key => $value) {
+			$data[ $key ] = serialize($value);
+		}
+		for ($i=0; $i < $count; $i++) {
+			foreach ($data as $value) {
+				$r = unserialize($value);
 			}
 		}
 		return number_format(get_microtime() - $time_start, 3);
