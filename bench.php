@@ -10,14 +10,14 @@
 #  Company     : Code24 BV, The Netherlands                              #
 #  Company     : Rusoft Ltd, Russia                                      #
 #  Date        : Apr 6, 2017                                             #
-#  version     : 1.0.8                                                   #
+#  version     : 1.0.9                                                   #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
 ##########################################################################
 */
 
-$scriptVersion = '1.0.8';
+$scriptVersion = '1.0.9';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  \n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
@@ -53,7 +53,7 @@ function convert($size)
 
 function prefix_si($size)
 {
-	$unit=array('','k','M','G','T','P','E');
+	$unit=array(' ','k','M','G','T','P','E');
 	$i=floor(log($size,1000));
 	return $unit[$i];
 }
@@ -301,7 +301,7 @@ function test_12_Array_Fill($count = 300) {
 			}
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, pow($count,3));
 }
 
 function test_13_Array_Unset($count = 300) {
@@ -322,14 +322,14 @@ function test_13_Array_Unset($count = 300) {
 			unset($X[ $i ]);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, pow($count,3));
 }
 
 function test_14_Loops($count = 190000000) {
 	$time_start = get_microtime();
 	for($i = 0; $i < $count; ++$i);
 	$i = 0; while($i++ < $count);
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count*2);
 }
 
 function test_15_Loop_IfElse($count = 90000000) {
