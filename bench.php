@@ -10,14 +10,14 @@
 #  Company     : Code24 BV, The Netherlands                              #
 #  Company     : Rusoft Ltd, Russia                                      #
 #  Date        : Apr 6, 2017                                             #
-#  version     : 1.0.7                                                   #
+#  version     : 1.0.8                                                   #
 #  License     : Creative Commons CC-BY license                          #
 #  Website     : http://www.php-benchmark-script.com                     #
 #                                                                        #
 ##########################################################################
 */
 
-$scriptVersion = '1.0.7';
+$scriptVersion = '1.0.8';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  \n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
@@ -26,7 +26,7 @@ $regexPattern = '/[\s,]+/';
 $doTestArrays = true;
 
 set_time_limit(0);
-ini_set('memory_limit', '2048M');
+ini_set('memory_limit', '512M');
 
 $line = str_pad("-",78,"-");
 $padHeader = 76;
@@ -378,15 +378,9 @@ function test_17_2_Loop_Undefined_Access($count = 20000000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_18_Loop_ExceptionTryCatch($count = 4000000) {
-	$time_start = get_microtime();
-	for ($i=0; $i < $count; $i++) {
-		try {
-			throw new Exception($i);
-		} catch (Exception $e) {
-		}
-	}
-	return format_result_test(get_microtime() - $time_start, $count);
+$version = explode('.', PHP_VERSION);
+if ((int)$version[0] >= 5) {
+	include_once 'php5.inc';
 }
 
 $total = 0;
