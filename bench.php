@@ -10,14 +10,14 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Apr 20, 2017                                                  #
-#  version     : 1.0.12                                                        #
+#  version     : 1.0.12.1                                                      #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
 #                                                                              #
 ################################################################################
 */
 
-$scriptVersion = '1.0.12';
+$scriptVersion = '1.0.12.1';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
@@ -55,7 +55,7 @@ function prefix_si($size)
 	if ($i < 0) {
 		if ($i <= -6) {
 			$i = -6;
-		elseif ($i <= -3) {
+		} elseif ($i <= -3) {
 			$i = -3;
 		} else {
 			$i=0;
@@ -70,7 +70,7 @@ function convert_si($size)
 	if ($i < 0) {
 		if ($i <= -6) {
 			$i = -6;
-		elseif ($i <= -3) {
+		} elseif ($i <= -3) {
 			$i = -3;
 		} else {
 			$i=0;
