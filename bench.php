@@ -10,14 +10,14 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Apr 20, 2017                                                  #
-#  version     : 1.0.10                                                        #
+#  version     : 1.0.11                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
 #                                                                              #
 ################################################################################
 */
 
-$scriptVersion = '1.0.10';
+$scriptVersion = '1.0.11';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
@@ -64,7 +64,7 @@ function convert_si($size)
 /**
  * Read /proc/cpuinfo, fetch some data
  */
-function getCpuInfo()
+function getCpuInfo($fireUpCpu=false)
 {
 	$cpu = array(
 		'model' => '',
@@ -81,9 +81,11 @@ function getCpuInfo()
 	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
 	// Adopted
 
-	// Fire up CPU
-	$i = 100000000;
-	while ($i--);
+	if ($fireUpCpu) {
+		// Fire up CPU
+		$i = 100000000;
+		while ($i--);
+	}
 
 	$cpuData = explode("\n", file_get_contents('/proc/cpuinfo'));
 
@@ -129,16 +131,17 @@ function getCpuInfo()
 		}
 	}
 
-	// CPU throttling?
-	if (abs($cpu['mips'] - $cpu['mhz']) > 400) {
-		print('<<< WARNING >>> CPU is in powersaving mode? Set CPU governor to "performance"!' . PHP_EOL);
-	}
-
 	return $cpu;
 }
 
 
 $cpuInfo = getCpuInfo();
+// CPU throttling?
+if (abs($cpu['mips'] - $cpu['mhz']) > 400) {
+	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\nFire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+	$cpuInfo = getCpuInfo(true);
+}
+
 
 
 /**
