@@ -10,14 +10,14 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Apr 20, 2017                                                  #
-#  version     : 1.0.11                                                        #
+#  version     : 1.0.12                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
 #                                                                              #
 ################################################################################
 */
 
-$scriptVersion = '1.0.11';
+$scriptVersion = '1.0.12';
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
@@ -28,7 +28,7 @@ ini_set('memory_limit', '512M');
 $line = str_pad("-",78,"-");
 $padHeader = 76;
 $padInfo = 18;
-$padLabel = 32;
+$padLabel = 31;
 
 $emptyResult = array(0, '-.---', '-.--', '-.--');
 
@@ -50,14 +50,32 @@ function convert($size)
 
 function prefix_si($size)
 {
-	$unit=array(' ','k','M','G','T','P','E');
+	$unit=array(' ', 'k', 'M', 'G', 'T', 'P', 'E', -3 => 'm', -6 => 'u');
 	$i=floor(log($size,1000));
+	if ($i < 0) {
+		if ($i <= -6) {
+			$i = -6;
+		elseif ($i <= -3) {
+			$i = -3;
+		} else {
+			$i=0;
+		}
+	}
 	return $unit[$i];
 }
 
 function convert_si($size)
 {
 	$i=floor(log($size,1000));
+	if ($i < 0) {
+		if ($i <= -6) {
+			$i = -6;
+		elseif ($i <= -3) {
+			$i = -3;
+		} else {
+			$i=0;
+		}
+	}
 	return @round($size/pow(1000, $i),2);
 }
 
@@ -157,7 +175,7 @@ function format_result_test($diffSeconds, $opCount)
 
 		$opmhz = 0;
 		if (!empty($cpuInfo['mhz'])) {
-			$opmhz = $opCount / $cpuInfo['mhz'];
+			$opmhz = $ops / $cpuInfo['mhz'];
 		}
 		$opmhz_v = convert_si($opmhz);
 		$opmhz_u = prefix_si($opmhz);
@@ -167,7 +185,7 @@ function format_result_test($diffSeconds, $opCount)
 			number_format($opmhz_v, 2, '.', '') . ' '.$opmhz_u,
 			);
 	} else {
-		return array(0, '0.000', 'x.xx ', 'x.xx');
+		return array(0, '0.000', 'x.xx ', 'x.xx ');
 	}
 }
 
@@ -506,7 +524,11 @@ echo "<pre>\n$line\n|"
 	.str_pad("PHP version:", $padInfo) . " : " .PHP_VERSION . "\n"
 	.str_pad("Benchmark version:", $padInfo) . " : ".$scriptVersion . "\n"
 	.str_pad("Platform:", $padInfo) . " : " .PHP_OS . "\n"
-	."$line\n";
+	."$line\n"
+	.str_pad('TEST NAME', $padLabel) . " :"
+	.str_pad('SECONDS', 8+4, ' ', STR_PAD_LEFT)." |".str_pad('OP/SEC', 9+4, ' ', STR_PAD_LEFT)." |".str_pad('OP/SEC/MHz', 9+7, ' ', STR_PAD_LEFT)."\n"
+	."$line\n"
+	;
 
 foreach ($functions['user'] as $user) {
 	if (preg_match('/^test_/', $user)) {
@@ -514,7 +536,7 @@ foreach ($functions['user'] as $user) {
 		echo str_pad($testName, $padLabel) . " :";
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz) = $user();
 		$total += $resultSec;
-		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT)." sec |".str_pad($resultOps, 9, ' ', STR_PAD_LEFT)."Op/s |".str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT)."Op/Mhz"."\n";
+		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT)." sec |".str_pad($resultOps, 9, ' ', STR_PAD_LEFT)."Op/s |".str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT)."Ops/MHz"."\n";
 	}
 }
 
