@@ -1,29 +1,26 @@
 <?php
 /*
-##########################################################################
-#                      PHP Benchmark Performance Script                  #
-#                           2010 Code24 BV                               #
-#                           2015 Rusoft                                  #
-#                                                                        #
-#  Author      : Alessandro Torrisi                                      #
-#  Author      : Sergey Dryabzhinsky                                     #
-#  Company     : Code24 BV, The Netherlands                              #
-#  Company     : Rusoft Ltd, Russia                                      #
-#  Date        : Apr 6, 2017                                             #
-#  version     : 1.0.9                                                   #
-#  License     : Creative Commons CC-BY license                          #
-#  Website     : http://www.php-benchmark-script.com                     #
-#                                                                        #
-##########################################################################
+################################################################################
+#                      PHP Benchmark Performance Script                        #
+#                           2010      Code24 BV                                #
+#                           2015-2017 Rusoft                                   #
+#                                                                              #
+#  Author      : Alessandro Torrisi                                            #
+#  Company     : Code24 BV, The Netherlands                                    #
+#  Author      : Sergey Dryabzhinsky                                           #
+#  Company     : Rusoft Ltd, Russia                                            #
+#  Date        : Apr 20, 2017                                                  #
+#  version     : 1.0.10                                                        #
+#  License     : Creative Commons CC-BY license                                #
+#  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
+#                                                                              #
+################################################################################
 */
 
-$scriptVersion = '1.0.9';
+$scriptVersion = '1.0.10';
 
-$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  \n\rабыр\nвалар дохаэрис         ";
+$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
-
-// Need alot of memory - more 1Gb
-$doTestArrays = true;
 
 set_time_limit(0);
 ini_set('memory_limit', '512M');
@@ -31,9 +28,9 @@ ini_set('memory_limit', '512M');
 $line = str_pad("-",78,"-");
 $padHeader = 76;
 $padInfo = 18;
-$padLabel = 49;
+$padLabel = 32;
 
-$emptyResult = array(0, '-.---', '-.---');
+$emptyResult = array(0, '-.---', '-.--', '-.--');
 
 function get_microtime()
 {
@@ -65,21 +62,114 @@ function convert_si($size)
 }
 
 /**
- * @return array((str)seconds, (str)operations/sec)
+ * Read /proc/cpuinfo, fetch some data
+ */
+function getCpuInfo()
+{
+	$cpu = array(
+		'model' => '',
+		'cores' => 0,
+		'mhz'   => 0.0,
+		'mips'  => 0.0
+	);
+	if (!is_readable('/proc/cpuinfo')) {
+		$cpu['model'] = 'Unknown';
+		$cpu['cores'] = 1;
+		return $cpu;
+	}
+
+	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
+	// Adopted
+
+	// Fire up CPU
+	$i = 100000000;
+	while ($i--);
+
+	$cpuData = explode("\n", file_get_contents('/proc/cpuinfo'));
+
+	foreach ($cpuData as $line) {
+
+		$line = explode(':', $line, 2);
+
+		if (!array_key_exists(1, $line)) {
+			continue;
+		}
+		$key = trim($line[0]);
+		$value = trim($line[1]);
+
+		// What we want are bogomips, MHz, processor, and Model.
+		switch ($key) {
+			// CPU model
+			case 'model name':
+			case 'cpu':
+			case 'Processor':
+				if (empty($cpu['model']))
+					$cpu['model'] = $value;
+				break;
+			// Speed in MHz
+			case 'cpu MHz':
+				if (empty($cpu['mhz']) || $cpu['mhz'] < (float)$value)
+					$cpu['mhz'] = (float)$value;
+				break;
+			case 'Cpu0ClkTck': // Old sun boxes
+				if (empty($cpu['mhz']))
+					$cpu['mhz'] = (int)hexdec($value) / 1000000.0;
+				break;
+			case 'bogomips': // twice of MHz usualy
+				if (empty($cpu['mhz']))
+					$cpu['mhz'] = (float)$value / 2.0;
+				if (empty($cpu['mips']))
+					$cpu['mips'] = (float)$value / 2.0;
+				break;
+			// cores
+			case 'cpu cores':
+				if (empty($cpu['cores']))
+					$cpu['cores'] = (int)$value;
+				break;
+		}
+	}
+
+	// CPU throttling?
+	if (abs($cpu['mips'] - $cpu['mhz']) > 400) {
+		print('<<< WARNING >>> CPU is in powersaving mode? Set CPU governor to "performance"!' . PHP_EOL);
+	}
+
+	return $cpu;
+}
+
+
+$cpuInfo = getCpuInfo();
+
+
+/**
+ * @return array((int)seconds, (str)seconds, (str)operations/sec), (str)opterations/MHz)
  */
 function format_result_test($diffSeconds, $opCount)
 {
+	global $cpuInfo;
 	if ($diffSeconds) {
 		$ops = $opCount / $diffSeconds;
-		$s = convert_si($ops);
-		$u = prefix_si($ops);
-		return array($diffSeconds, number_format($diffSeconds, 3, '.', ''), number_format($s, 2, '.', '') . ' '.$u);
+		$ops_v = convert_si($ops);
+		$ops_u = prefix_si($ops);
+
+		$opmhz = 0;
+		if (!empty($cpuInfo['mhz'])) {
+			$opmhz = $opCount / $cpuInfo['mhz'];
+		}
+		$opmhz_v = convert_si($opmhz);
+		$opmhz_u = prefix_si($opmhz);
+
+		return array($diffSeconds, number_format($diffSeconds, 3, '.', ''),
+			number_format($ops_v, 2, '.', '') . ' '.$ops_u,
+			number_format($opmhz_v, 2, '.', '') . ' '.$opmhz_u,
+			);
 	} else {
-		return array(0, '0.000', 'x.xxx ');
+		return array(0, '0.000', 'x.xx ', 'x.xx');
 	}
 }
 
-function test_01_Math($count = 1400000) {
+function test_01_Math($count = 1400000)
+{
 	$time_start = get_microtime();
 	$mathFunctions = array('abs', 'acos', 'asin', 'atan', 'decbin', 'dechex', 'decoct', 'floor', 'exp', 'log1p', 'sin', 'tan', 'pi', 'is_finite', 'is_nan', 'sqrt', 'rad2deg');
 	foreach ($mathFunctions as $key => $function) {
@@ -93,7 +183,8 @@ function test_01_Math($count = 1400000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_02_String_Concat($count = 14000000) {
+function test_02_String_Concat($count = 14000000)
+{
 	$time_start = get_microtime();
 	$s = '';
 	for($i = 0; $i < $count; ++$i) {
@@ -102,7 +193,8 @@ function test_02_String_Concat($count = 14000000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_03_String_Simple_Functions($count = 1300000) {
+function test_03_String_Simple_Functions($count = 1300000)
+{
 	global $stringTest;
 	$time_start = get_microtime();
 	$stringFunctions = array('strtoupper', 'strtolower', 'strrev', 'strlen', 'str_rot13', 'ord', 'trim');
@@ -117,7 +209,8 @@ function test_03_String_Simple_Functions($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_04_String_Multibyte($count = 130000) {
+function test_04_String_Multibyte($count = 130000)
+{
 	global $stringTest;
 
 	if (!function_exists('mb_strlen')) return $emptyResult;
@@ -135,7 +228,8 @@ function test_04_String_Multibyte($count = 130000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_05_String_Manipulation($count = 1300000) {
+function test_05_String_Manipulation($count = 1300000)
+{
 	global $stringTest;
 	$time_start = get_microtime();
 	$stringFunctions = array('addslashes', 'chunk_split', 'metaphone', 'strip_tags', 'soundex', 'wordwrap');
@@ -150,7 +244,8 @@ function test_05_String_Manipulation($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_06_Regex($count = 1300000) {
+function test_06_Regex($count = 1300000)
+{
 	global $stringTest, $regexPattern;
 	$time_start = get_microtime();
 	$stringFunctions = array('preg_match', 'preg_split');
@@ -165,7 +260,8 @@ function test_06_Regex($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_07_1_Hashing($count = 1300000) {
+function test_07_1_Hashing($count = 1300000)
+{
 	global $stringTest;
 	$time_start = get_microtime();
 	$stringFunctions = array('crc32', 'md5', 'sha1');
@@ -180,7 +276,8 @@ function test_07_1_Hashing($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_07_2_Crypt($count = 10000) {
+function test_07_2_Crypt($count = 10000)
+{
 	global $stringTest;
 	$time_start = get_microtime();
 	$stringFunctions = array('crypt');
@@ -195,7 +292,8 @@ function test_07_2_Crypt($count = 10000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_08_Json_Encode($count = 1300000) {
+function test_08_Json_Encode($count = 1300000)
+{
 	global $stringTest;
 
 	if (!function_exists('json_encode')) return $emptyResult;
@@ -217,7 +315,8 @@ function test_08_Json_Encode($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_09_Json_Decode($count = 1300000) {
+function test_09_Json_Decode($count = 1300000)
+{
 	global $stringTest;
 
 	if (!function_exists('json_decode')) return $emptyResult;
@@ -242,7 +341,8 @@ function test_09_Json_Decode($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_10_Serialize($count = 1300000) {
+function test_10_Serialize($count = 1300000)
+{
 	global $stringTest;
 
 	if (!function_exists('serialize')) return $emptyResult;
@@ -264,7 +364,8 @@ function test_10_Serialize($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_11_Unserialize($count = 1300000) {
+function test_11_Unserialize($count = 1300000)
+{
 	global $stringTest;
 
 	if (!function_exists('unserialize')) return $emptyResult;
@@ -289,10 +390,8 @@ function test_11_Unserialize($count = 1300000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_12_Array_Fill($count = 300) {
-	global $doTestArrays;
-	if (!$doTestArrays) return $emptyResult;
-
+function test_12_Array_Fill($count = 300)
+{
 	$time_start = get_microtime();
 	for($n = 0; $n < $count; ++$n) {
 		for($i = 0; $i < $count; ++$i) {
@@ -304,10 +403,8 @@ function test_12_Array_Fill($count = 300) {
 	return format_result_test(get_microtime() - $time_start, pow($count,3));
 }
 
-function test_13_Array_Unset($count = 300) {
-	global $doTestArrays;
-	if (!$doTestArrays) return $emptyResult;
-
+function test_13_Array_Unset($count = 300)
+{
 	$time_start = get_microtime();
 	for($n = 0; $n < $count; ++$n) {
 
@@ -325,14 +422,16 @@ function test_13_Array_Unset($count = 300) {
 	return format_result_test(get_microtime() - $time_start, pow($count,3));
 }
 
-function test_14_Loops($count = 190000000) {
+function test_14_Loops($count = 190000000)
+{
 	$time_start = get_microtime();
 	for($i = 0; $i < $count; ++$i);
 	$i = 0; while($i++ < $count);
 	return format_result_test(get_microtime() - $time_start, $count*2);
 }
 
-function test_15_Loop_IfElse($count = 90000000) {
+function test_15_Loop_IfElse($count = 90000000)
+{
 	$time_start = get_microtime();
 	for ($i=0; $i < $count; $i++) {
 		if ($i == -1) {
@@ -344,7 +443,8 @@ function test_15_Loop_IfElse($count = 90000000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_16_Loop_Ternary($count = 90000000) {
+function test_16_Loop_Ternary($count = 90000000)
+{
 	$time_start = get_microtime();
 	for ($i=0; $i < $count; $i++) {
 		$r = ($i % 2 == 1)
@@ -358,7 +458,8 @@ function test_16_Loop_Ternary($count = 90000000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_17_1_Loop_Defined_Access($count = 20000000) {
+function test_17_1_Loop_Defined_Access($count = 20000000)
+{
 	$time_start = get_microtime();
 	$a = array(0 => 1, 1 => 0);
 	$r = 0;
@@ -368,7 +469,8 @@ function test_17_1_Loop_Defined_Access($count = 20000000) {
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_17_2_Loop_Undefined_Access($count = 20000000) {
+function test_17_2_Loop_Undefined_Access($count = 20000000)
+{
 	$time_start = get_microtime();
 	$a = array();
 	$r = 0;
@@ -383,27 +485,36 @@ if ((int)$version[0] >= 5) {
 	include_once 'php5.inc';
 }
 
+
+
 $total = 0;
 $functions = get_defined_functions();
 sort($functions['user']);
+
 echo "<pre>\n$line\n|"
 	.str_pad("PHP BENCHMARK SCRIPT", $padHeader," ",STR_PAD_BOTH)
 	."|\n$line\n"
 	.str_pad("Start:", $padInfo) . " : ". date("Y-m-d H:i:s") . "\n"
-	.str_pad("Server:", $padInfo) . " : ".php_uname() . "\n"
+	.str_pad("Server:", $padInfo) . " : ".php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+	.str_pad("CPU:", $padInfo) . " :\n"
+	.str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : ". $cpuInfo['model'] . "\n"
+	.str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : ". $cpuInfo['cores'] . "\n"
+	.str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : ". $cpuInfo['mhz'] . 'MHz' . "\n"
 	.str_pad("PHP version:", $padInfo) . " : " .PHP_VERSION . "\n"
 	.str_pad("Benchmark version:", $padInfo) . " : ".$scriptVersion . "\n"
 	.str_pad("Platform:", $padInfo) . " : " .PHP_OS . "\n"
 	."$line\n";
+
 foreach ($functions['user'] as $user) {
 	if (preg_match('/^test_/', $user)) {
 		$testName = str_replace('test_','',$user);
 		echo str_pad($testName, $padLabel) . " :";
-		list($resultSec, $resultSecFmt, $resultOps) = $user();
+		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz) = $user();
 		$total += $resultSec;
-		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT)." sec |".str_pad($resultOps, 9, ' ', STR_PAD_LEFT)."Op/s\n";
+		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT)." sec |".str_pad($resultOps, 9, ' ', STR_PAD_LEFT)."Op/s |".str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT)."Op/Mhz"."\n";
 	}
 }
+
 echo $line . "\n"
 . str_pad("Total time:", $padLabel) . " : " . number_format($total, 3) ." sec.\n"
 . str_pad("Current memory usage:", $padLabel) . " : " . convert(memory_get_usage()) .".\n"
