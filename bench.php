@@ -10,16 +10,17 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Apr 20, 2017                                                  #
-#  version     : 1.0.12.1                                                      #
+#  version     : 1.0.13                                                        #
 #  License     : Creative Commons CC-BY license                                #
+#  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
 #                                                                              #
 ################################################################################
 */
 
-$scriptVersion = '1.0.12.1';
+$scriptVersion = '1.0.13';
 
-$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
+$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
 
 set_time_limit(0);
@@ -347,6 +348,7 @@ function test_08_Json_Encode($count = 1300000)
 		array(123456),
 		null,
 		false,
+		new stdClass(),
 	);
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($data as $value) {
@@ -372,6 +374,7 @@ function test_09_Json_Decode($count = 1300000)
 		array(123456),
 		null,
 		false,
+		new stdClass(),
 	);
 	foreach ($data as $key => $value) {
 		$data[$key] = json_encode($value);
@@ -400,6 +403,7 @@ function test_10_Serialize($count = 1300000)
 		array(123456),
 		null,
 		false,
+		new stdClass(),
 	);
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($data as $value) {
@@ -425,6 +429,7 @@ function test_11_Unserialize($count = 1300000)
 		array(123456),
 		null,
 		false,
+		new stdClass(),
 	);
 	foreach ($data as $key => $value) {
 		$data[$key] = serialize($value);
@@ -567,5 +572,6 @@ foreach ($functions['user'] as $user) {
 echo $line . "\n"
 	. str_pad("Total time:", $padLabel) . " : " . number_format($total, 3) . " sec.\n"
 	. str_pad("Current memory usage:", $padLabel) . " : " . convert(memory_get_usage()) . ".\n"
+	// Hi from php-4
 	. (function_exists('memory_get_peak_usage') ? str_pad("Peak memory usage:", $padLabel) . " : " . convert(memory_get_peak_usage()) . ".\n" : '')
 	. "</pre>\n";

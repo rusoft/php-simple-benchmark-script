@@ -4,6 +4,11 @@
 
 ## ChangeLog
 
+@ 2017-05-06, v1.0.13
+
+ * Поправили немного code-style (@ryr)
+ * Добавили больше данных в тесты сериализации
+
 @ 2017-04-21, v1.0.12
 
  * Правильная конвертация значений в единицы SI.
@@ -70,42 +75,49 @@
 
 ```
 <pre>
+<<< WARNING >>>
+CPU is in powersaving mode? Set CPU governor to 'performance'!
+Fire up CPU and recalculate MHz!
+</pre>
+<pre>
 ------------------------------------------------------------------------------
 |                            PHP BENCHMARK SCRIPT                            |
 ------------------------------------------------------------------------------
-Start:             : 2017-04-20 20:56:47
-Server:            : Linux/4.4.0-73-generic x86_64
+Start:             : 2017-05-06 19:15:49
+Server:            : Linux/4.4.0-78-generic x86_64
 CPU:               :
              model : Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
              cores : 4
-               MHz : 3758.535MHz
+               MHz : 3805.976MHz
 PHP version:       : 7.0.14-Ubuntu/16.04-SergeyD/9.3.1
-Benchmark version: : 1.0.10
+Benchmark version: : 1.0.13
 Platform:          : Linux
 ------------------------------------------------------------------------------
-01_math                          :   3.112 sec | 449.91 kOp/s | 372.49  Op/Mhz
-02_string_concat                 :   0.417 sec |  33.53 MOp/s |   3.72 kOp/Mhz
-03_string_simple_functions       :   1.734 sec | 749.74 kOp/s | 345.88  Op/Mhz
-04_string_multibyte              :   3.912 sec |  33.23 kOp/s |  34.59  Op/Mhz
-05_string_manipulation           :   2.355 sec | 551.93 kOp/s | 345.88  Op/Mhz
-06_regex                         :   1.889 sec | 688.21 kOp/s | 345.88  Op/Mhz
-07_1_hashing                     :   2.025 sec | 641.83 kOp/s | 345.88  Op/Mhz
-07_2_crypt                       :   5.792 sec |   1.73 kOp/s |   2.66  Op/Mhz
-08_json_encode                   :   1.447 sec | 898.25 kOp/s | 345.88  Op/Mhz
-09_json_decode                   :   1.692 sec | 768.44 kOp/s | 345.88  Op/Mhz
-10_serialize                     :   1.027 sec |   1.27 MOp/s | 345.88  Op/Mhz
-11_unserialize                   :   1.192 sec |   1.09 MOp/s | 345.88  Op/Mhz
-12_array_fill                    :   0.529 sec |  51.00 MOp/s |   7.18 kOp/Mhz
-13_array_unset                   :   0.743 sec |  36.34 MOp/s |   7.18 kOp/Mhz
-14_loops                         :   1.800 sec | 211.06 MOp/s | 101.10 kOp/Mhz
-15_loop_ifelse                   :   1.297 sec |  69.41 MOp/s |  23.95 kOp/Mhz
-16_loop_ternary                  :   3.105 sec |  28.99 MOp/s |  23.95 kOp/Mhz
-17_1_loop_defined_access         :   0.667 sec |  29.98 MOp/s |   5.32 kOp/Mhz
-17_2_loop_undefined_access       :   3.761 sec |   5.32 MOp/s |   5.32 kOp/Mhz
-18_loop_exceptiontrycatch        :   2.111 sec |   1.89 MOp/s |   1.06 kOp/Mhz
+TEST NAME                       :     SECONDS |       OP/SEC |      OP/SEC/MHz
 ------------------------------------------------------------------------------
-Total time:                      : 40.609 sec.
-Current memory usage:            : 474.19 kb.
-Peak memory usage:               : 227.44 Mb.
+01_math                         :   3.144 sec | 445.33 kOp/s | 117.01  Ops/MHz
+02_string_concat                :   0.395 sec |  35.45 MOp/s |   9.31 kOps/MHz
+03_string_simple_functions      :   1.747 sec | 744.18 kOp/s | 195.53  Ops/MHz
+04_string_multibyte             :   3.956 sec |  32.86 kOp/s |   8.63  Ops/MHz
+05_string_manipulation          :   2.314 sec | 561.89 kOp/s | 147.63  Ops/MHz
+06_regex                        :   1.903 sec | 683.00 kOp/s | 179.45  Ops/MHz
+07_1_hashing                    :   2.014 sec | 645.40 kOp/s | 169.58  Ops/MHz
+07_2_crypt                      :   1.030 sec |   9.71 kOp/s |   2.55  Ops/MHz
+08_json_encode                  :   1.534 sec | 847.26 kOp/s | 222.61  Ops/MHz
+09_json_decode                  :   1.904 sec | 682.91 kOp/s | 179.43  Ops/MHz
+10_serialize                    :   1.173 sec |   1.11 MOp/s | 291.12  Ops/MHz
+11_unserialize                  :   1.682 sec | 772.75 kOp/s | 203.03  Ops/MHz
+12_array_fill                   :   0.524 sec |  51.51 MOp/s |  13.54 kOps/MHz
+13_array_unset                  :   0.707 sec |  38.21 MOp/s |  10.04 kOps/MHz
+14_loops                        :   1.761 sec | 215.81 MOp/s |  56.70 kOps/MHz
+15_loop_ifelse                  :   1.266 sec |  71.09 MOp/s |  18.68 kOps/MHz
+16_loop_ternary                 :   3.041 sec |  29.60 MOp/s |   7.78 kOps/MHz
+17_1_loop_defined_access        :   0.563 sec |  35.51 MOp/s |   9.33 kOps/MHz
+17_2_loop_undefined_access      :   3.848 sec |   5.20 MOp/s |   1.37 kOps/MHz
+18_loop_exceptiontrycatch       :   2.176 sec |   1.84 MOp/s | 483.03  Ops/MHz
+------------------------------------------------------------------------------
+Total time:                     : 36.682 sec.
+Current memory usage:           : 476.8 kb.
+Peak memory usage:              : 227.44 Mb.
 </pre>
 ```
