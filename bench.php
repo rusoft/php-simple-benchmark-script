@@ -24,7 +24,7 @@ $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and
 $regexPattern = '/[\s,]+/';
 
 set_time_limit(0);
-ini_set('memory_limit', '512M');
+@ini_set('memory_limit', '256M');
 
 $line = str_pad("-", 78, "-");
 $padHeader = 76;
@@ -32,6 +32,15 @@ $padInfo = 18;
 $padLabel = 31;
 
 $emptyResult = array(0, '-.---', '-.--', '-.--');
+
+// That gives around 256Mb memory use and reasonable test time
+// Arrays are matrix [$dimention] x [$dimention]
+$arrayTestMemoryMinimum = 256*1024*1024;
+$arrayTestLoopLimit = 300;
+$arrayDimensionLimit = 300;
+// That limit gives around 256Mb too
+$stringConcatLoopRepeat = 1;
+$stringConcatLoopLimit = 14000000;
 
 function get_microtime()
 {
@@ -78,6 +87,60 @@ function convert_si($size)
 		}
 	}
 	return @round($size / pow(1000, $i), 2);
+}
+
+
+/**
+ * Return memory_limit in bytes
+ */
+function getPhpMemoryLimitBytes()
+{
+	// http://stackoverflow.com/a/10209530
+	$memory_limit = strtolower(ini_get('memory_limit'));
+	if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+		if ($matches[2] == 'g') {
+			$memory_limit = intval($matches[1]) * 1024 * 1024 * 1024; // nnnG -> nnn GB
+		} else if ($matches[2] == 'm') {
+			$memory_limit = intval($matches[1]) * 1024 * 1024; // nnnM -> nnn MB
+		} else if ($matches[2] == 'k') {
+			$memory_limit = intval($matches[1]) * 1024; // nnnK -> nnn KB
+		} else {
+			$memory_limit = intval($matches[1]); // nnn -> nnn B
+		}
+	}
+	return $memory_limit;
+}
+
+/**
+ * Return array (dict) with system memory info
+ * http://stackoverflow.com/a/1455610
+ */
+function getSystemMemInfo()
+{
+	$data = explode("\n", file_get_contents("/proc/meminfo"));
+	$meminfo = array();
+	foreach ($data as $line) {
+		list($key, $val) = explode(":", $line);
+		$_val = explode(" ", strtolower(trim($val)));
+		$val = intval($_val[0]);
+		if (isset($_val[1]) && $_val[1] == 'kb') {
+			$val *= 1024;
+		}
+		$meminfo[$key] = trim($val);
+	}
+	return $meminfo;
+}
+
+/**
+ * Return system memory FREE+CACHED+BUFFERS bytes (may be free)
+ */
+function getSystemMemoryFreeLimitBytes()
+{
+	$info = getSystemMemInfo();
+	if (isset($info['MemAvailable'])) {
+		return $info['MemAvailable'];
+	}
+	return $info['MemFree'] + $info['Cached'] + $info['Buffers'];
 }
 
 /**
@@ -165,6 +228,28 @@ if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
 	$cpuInfo = getCpuInfo(true);
 }
 
+$memoryLimit = min(getPhpMemoryLimitBytes(), getSystemMemoryFreeLimitBytes());
+$memoryLimitMb = number_format($memoryLimit/1024.0/1024.0, 1, '.', '');
+
+// Adjust array tests limits
+if ($memoryLimit < $arrayTestMemoryMinimum) {
+
+	print("<pre>\n<<< WARNING >>>\nAvailable memory for tests: ".$memoryLimitMb
+		." MB is less than minimum required: ".number_format($arrayTestMemoryMinimum/1024.0/1024.0, 1, '.', '')
+		." MB.\n Recalculate tests parameters to fit in memory limits."
+		."\n</pre>" . PHP_EOL);
+
+	$factor = 1.0 * ($arrayTestMemoryMinimum - $memoryLimit) / $arrayTestMemoryMinimum;
+	$diff = (int)($factor * $arrayDimensionLimit);
+	$arrayTestLoopLimit += (int)(1.0 * pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit / pow($arrayDimensionLimit - $diff, 2));
+	$arrayDimensionLimit -= $diff;
+
+	$diff = (int)($factor * $stringConcatLoopLimit);
+	$stringConcatLoopRepeat = (int)(1.0 * ($stringConcatLoopLimit * $stringConcatLoopRepeat) / ($stringConcatLoopLimit - $diff));
+	$stringConcatLoopLimit -= $diff;
+}
+
+
 /**
  * @return array((int)seconds, (str)seconds, (str)operations/sec), (str)opterations/MHz)
  */
@@ -209,14 +294,18 @@ function test_01_Math($count = 1400000)
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_02_String_Concat($count = 14000000)
+function test_02_String_Concat()
 {
+	global $stringConcatLoopLimit, $stringConcatLoopRepeat;
+
 	$time_start = get_microtime();
-	$s = '';
-	for ($i = 0; $i < $count; ++$i) {
-		$s .= '- Valar moghulis' . PHP_EOL;
+	for ($r = 0; $r < $stringConcatLoopRepeat; ++$r) {
+		$s = '';
+		for ($i = 0; $i < $stringConcatLoopLimit; ++$i) {
+			$s .= '- Valar moghulis' . PHP_EOL;
+		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $stringConcatLoopLimit*$stringConcatLoopRepeat);
 }
 
 function test_03_String_Simple_Functions($count = 1300000)
@@ -442,36 +531,40 @@ function test_11_Unserialize($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count);
 }
 
-function test_12_Array_Fill($count = 300)
+function test_12_Array_Fill()
 {
+	global $arrayTestLoopLimit, $arrayDimensionLimit;
+
 	$time_start = get_microtime();
-	for ($n = 0; $n < $count; ++$n) {
-		for ($i = 0; $i < $count; ++$i) {
-			for ($j = 0; $j < $count; ++$j) {
+	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
+		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
+			for ($j = 0; $j < $arrayDimensionLimit; ++$j) {
 				$X[$i][$j] = $i * $j;
 			}
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, pow($count, 3));
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit);
 }
 
-function test_13_Array_Unset($count = 300)
+function test_13_Array_Unset()
 {
-	$time_start = get_microtime();
-	for ($n = 0; $n < $count; ++$n) {
+	global $arrayTestLoopLimit, $arrayDimensionLimit;
 
-		$X = range(0, $count);
-		for ($i = 0; $i < $count; ++$i) {
-			$X[$i] = range(0, $count);
+	$time_start = get_microtime();
+	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
+
+		$X = range(0, $arrayDimensionLimit);
+		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
+			$X[$i] = range(0, $arrayDimensionLimit);
 		}
-		for ($i = $count - 1; $i >= 0; $i--) {
-			for ($j = 0; $j < $count; ++$j) {
+		for ($i = $arrayDimensionLimit - 1; $i >= 0; $i--) {
+			for ($j = 0; $j < $arrayDimensionLimit; ++$j) {
 				unset($X[$i][$j]);
 			}
 			unset($X[$i]);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, pow($count, 3));
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit);
 }
 
 function test_14_Loops($count = 190000000)
@@ -551,6 +644,7 @@ echo "<pre>\n$line\n|"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
 	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
+	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . 'MB available' . "\n"
 	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
 	. str_pad("Benchmark version:", $padInfo) . " : " . $scriptVersion . "\n"
 	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
