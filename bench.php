@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 15, 2017                                                  #
-#  version     : 1.0.14                                                        #
+#  version     : 1.0.15                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,12 +18,15 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.14';
+$scriptVersion = '1.0.15';
+
+// Used in hacks/fixes checks
+$phpversion = explode('.', PHP_VERSION);
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
 
-set_time_limit(0);
+set_time_limit(600);
 @ini_set('memory_limit', '256M');
 
 $line = str_pad("-", 91, "-");
@@ -31,16 +34,17 @@ $padHeader = 89;
 $padInfo = 18;
 $padLabel = 31;
 
-$emptyResult = array(0, '-.---', '-.--', '-.--');
+$emptyResult = array(0, '-.---', '-.--', '-.--', 0);
 
 // That gives around 256Mb memory use and reasonable test time
+$testMemoryFull = 256*1024*1024;
 // Arrays are matrix [$dimention] x [$dimention]
-$arrayTestMemoryMinimum = 256*1024*1024;
 $arrayTestLoopLimit = 300;
 $arrayDimensionLimit = 300;
 // That limit gives around 256Mb too
 $stringConcatLoopRepeat = 1;
-$stringConcatLoopLimit = 7760000;
+// Nice dice roll
+$stringConcatLoopLimit = 7700000;
 
 function get_microtime()
 {
@@ -233,22 +237,28 @@ if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
 }
 
 $memoryLimit = min(getPhpMemoryLimitBytes(), getSystemMemoryFreeLimitBytes());
-$memoryLimitMb = number_format($memoryLimit/1024.0/1024.0, 1, '.', '');
+$memoryLimitMb = convert($memoryLimit);
 
 // Adjust array tests limits
-if ($memoryLimit < $arrayTestMemoryMinimum) {
+if ($memoryLimit < $testMemoryFull) {
 
 	print("<pre>\n<<< WARNING >>>\nAvailable memory for tests: ".$memoryLimitMb
-		." MB is less than minimum required: ".number_format($arrayTestMemoryMinimum/1024.0/1024.0, 1, '.', '')
-		." MB.\n Recalculate tests parameters to fit in memory limits."
+		." is less than minimum required: ".convert($testMemoryFull)
+		.".\n Recalculate tests parameters to fit in memory limits."
 		."\n</pre>" . PHP_EOL);
 
-	$factor = 1.0 * ($arrayTestMemoryMinimum - $memoryLimit) / $arrayTestMemoryMinimum;
+	$factor = 1.0 * ($testMemoryFull - $memoryLimit) / $testMemoryFull;
 	$diff = (int)($factor * $arrayDimensionLimit);
 	$arrayTestLoopLimit += (int)(1.0 * pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit / pow($arrayDimensionLimit - $diff, 2));
 	$arrayDimensionLimit -= $diff;
 
 	$diff = (int)($factor * $stringConcatLoopLimit);
+
+	// Special hack for php-7.x
+	// New string classes, new memory allocator
+	// Consumes more, allocate huge blocks
+	if ((int)$phpversion[0] >= 7) $diff = (int)($diff * 1.1);
+
 	$stringConcatLoopRepeat = (int)(1.0 * ($stringConcatLoopLimit * $stringConcatLoopRepeat) / ($stringConcatLoopLimit - $diff));
 	$stringConcatLoopLimit -= $diff;
 }
@@ -631,8 +641,7 @@ function test_17_2_Loop_Undefined_Access($count = 20000000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-$version = explode('.', PHP_VERSION);
-if ((int)$version[0] >= 5) {
+if ((int)$phpversion[0] >= 5) {
 	include_once 'php5.inc';
 }
 
@@ -649,7 +658,7 @@ echo "<pre>\n$line\n|"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
 	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
-	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . 'MB available' . "\n"
+	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
 	. str_pad("Benchmark version:", $padInfo) . " : " . $scriptVersion . "\n"
 	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
