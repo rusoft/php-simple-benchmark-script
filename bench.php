@@ -26,8 +26,8 @@ $regexPattern = '/[\s,]+/';
 set_time_limit(0);
 @ini_set('memory_limit', '256M');
 
-$line = str_pad("-", 78, "-");
-$padHeader = 76;
+$line = str_pad("-", 91, "-");
+$padHeader = 89;
 $padInfo = 18;
 $padLabel = 31;
 
@@ -40,7 +40,7 @@ $arrayTestLoopLimit = 300;
 $arrayDimensionLimit = 300;
 // That limit gives around 256Mb too
 $stringConcatLoopRepeat = 1;
-$stringConcatLoopLimit = 14000000;
+$stringConcatLoopLimit = 7760000;
 
 function get_microtime()
 {
@@ -120,6 +120,10 @@ function getSystemMemInfo()
 	$data = explode("\n", file_get_contents("/proc/meminfo"));
 	$meminfo = array();
 	foreach ($data as $line) {
+		if (empty($line)) {
+			continue;
+		}
+
 		list($key, $val) = explode(":", $line);
 		$_val = explode(" ", strtolower(trim($val)));
 		$val = intval($_val[0]);
@@ -253,7 +257,7 @@ if ($memoryLimit < $arrayTestMemoryMinimum) {
 /**
  * @return array((int)seconds, (str)seconds, (str)operations/sec), (str)opterations/MHz)
  */
-function format_result_test($diffSeconds, $opCount)
+function format_result_test($diffSeconds, $opCount, $memory = 0)
 {
 	global $cpuInfo;
 	if ($diffSeconds) {
@@ -271,9 +275,10 @@ function format_result_test($diffSeconds, $opCount)
 		return array($diffSeconds, number_format($diffSeconds, 3, '.', ''),
 			number_format($ops_v, 2, '.', '') . ' ' . $ops_u,
 			number_format($opmhz_v, 2, '.', '') . ' ' . $opmhz_u,
+			convert($memory)
 		);
 	} else {
-		return array(0, '0.000', 'x.xx ', 'x.xx ');
+		return array(0, '0.000', 'x.xx ', 'x.xx ', 0);
 	}
 }
 
@@ -291,7 +296,7 @@ function test_01_Math($count = 1400000)
 			$r = call_user_func_array($function, array($i));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_02_String_Concat()
@@ -302,10 +307,10 @@ function test_02_String_Concat()
 	for ($r = 0; $r < $stringConcatLoopRepeat; ++$r) {
 		$s = '';
 		for ($i = 0; $i < $stringConcatLoopLimit; ++$i) {
-			$s .= '- Valar moghulis' . PHP_EOL;
+			$s .= '- Valar dohaeris' . PHP_EOL;
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $stringConcatLoopLimit*$stringConcatLoopRepeat);
+	return format_result_test(get_microtime() - $time_start, $stringConcatLoopLimit*$stringConcatLoopRepeat, memory_get_usage(true));
 }
 
 function test_03_String_Simple_Functions($count = 1300000)
@@ -323,7 +328,7 @@ function test_03_String_Simple_Functions($count = 1300000)
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_04_String_Multibyte($count = 130000)
@@ -346,7 +351,7 @@ function test_04_String_Multibyte($count = 130000)
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_05_String_Manipulation($count = 1300000)
@@ -364,7 +369,7 @@ function test_05_String_Manipulation($count = 1300000)
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_06_Regex($count = 1300000)
@@ -382,7 +387,7 @@ function test_06_Regex($count = 1300000)
 			$r = call_user_func_array($function, array($regexPattern, $stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_07_1_Hashing($count = 1300000)
@@ -400,7 +405,7 @@ function test_07_1_Hashing($count = 1300000)
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_07_2_Crypt($count = 10000)
@@ -418,7 +423,7 @@ function test_07_2_Crypt($count = 10000)
 			$r = call_user_func_array($function, array($stringTest, '_J9..rasm'));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_08_Json_Encode($count = 1300000)
@@ -444,7 +449,7 @@ function test_08_Json_Encode($count = 1300000)
 			$r = json_encode($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_09_Json_Decode($count = 1300000)
@@ -473,7 +478,7 @@ function test_09_Json_Decode($count = 1300000)
 			$r = json_decode($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_10_Serialize($count = 1300000)
@@ -499,7 +504,7 @@ function test_10_Serialize($count = 1300000)
 			$r = serialize($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_11_Unserialize($count = 1300000)
@@ -528,7 +533,7 @@ function test_11_Unserialize($count = 1300000)
 			$r = unserialize($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_12_Array_Fill()
@@ -543,7 +548,7 @@ function test_12_Array_Fill()
 			}
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit);
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit, memory_get_usage(true));
 }
 
 function test_13_Array_Unset()
@@ -564,7 +569,7 @@ function test_13_Array_Unset()
 			unset($X[$i]);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit);
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit, memory_get_usage(true));
 }
 
 function test_14_Loops($count = 190000000)
@@ -573,7 +578,7 @@ function test_14_Loops($count = 190000000)
 	for ($i = 0; $i < $count; ++$i) ;
 	$i = 0;
 	while ($i++ < $count) ;
-	return format_result_test(get_microtime() - $time_start, $count * 2);
+	return format_result_test(get_microtime() - $time_start, $count * 2, memory_get_usage(true));
 }
 
 function test_15_Loop_IfElse($count = 90000000)
@@ -586,7 +591,7 @@ function test_15_Loop_IfElse($count = 90000000)
 		} else {
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_16_Loop_Ternary($count = 90000000)
@@ -601,7 +606,7 @@ function test_16_Loop_Ternary($count = 90000000)
 				: 1)
 			: 0;
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_17_1_Loop_Defined_Access($count = 20000000)
@@ -612,7 +617,7 @@ function test_17_1_Loop_Defined_Access($count = 20000000)
 	for ($i = 0; $i < $count; $i++) {
 		$r += $a[$i % 2];
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 function test_17_2_Loop_Undefined_Access($count = 20000000)
@@ -623,7 +628,7 @@ function test_17_2_Loop_Undefined_Access($count = 20000000)
 	for ($i = 0; $i < $count; $i++) {
 		$r += @$a[$i % 2] ? 0 : 1;
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
 $version = explode('.', PHP_VERSION);
@@ -650,16 +655,16 @@ echo "<pre>\n$line\n|"
 	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
 	. "$line\n"
 	. str_pad('TEST NAME', $padLabel) . " :"
-	. str_pad('SECONDS', 8 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad('SECONDS', 8 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
 	. "$line\n";
 
 foreach ($functions['user'] as $user) {
 	if (preg_match('/^test_/', $user)) {
 		$testName = str_replace('test_', '', $user);
 		echo str_pad($testName, $padLabel) . " :";
-		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz) = $user();
+		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 		$total += $resultSec;
-		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz" . "\n";
+		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
 	}
 }
 

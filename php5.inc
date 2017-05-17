@@ -9,5 +9,5 @@ function test_18_Loop_ExceptionTryCatch($count = 4000000)
 		} catch (Exception $e) {
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count);
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
