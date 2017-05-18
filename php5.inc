@@ -1,7 +1,10 @@
 <?php
 
-function test_18_Loop_ExceptionTryCatch($count = 4000000)
+function test_18_Loop_ExceptionTryCatch()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['18_loop_except'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		try {
