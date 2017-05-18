@@ -62,13 +62,13 @@ $loopMaxPhpTimes = array(
 	'7' => 45,
 );
 $dumbTestMaxPhpTimes = array(
-	'4.4' => 0.088,
-	'5.2' => 0.059,
-	'5.3' => 0.057,
+	'4.4' => 0.894,
+	'5.2' => 0.596,
+	'5.3' => 0.566,
 	// 5.4, 5.5, 5.6
-	'5' => 0.57,
+	'5' => 0.578,
 	// 7.0, 7.1
-	'7' => 0.029,
+	'7' => 0.289,
 );
 $testsLoopLimits = array(
 	'01_math'			=> 1400000,
@@ -284,7 +284,7 @@ function dumb_test_Functions()
 {
 	global $stringTest;
 
-	$count = 10000;
+	$count = 100000;
 	$time_start = get_microtime();
 	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode');
 	foreach ($stringFunctions as $key => $function) {
@@ -410,6 +410,8 @@ if ($factor < 1.0) {
 	}
 
 	$dumbTestTime = dumb_test_Functions();
+//	Debug
+//	print($dumbTestTime);
 	if ($dumbTestTime > $dumbTestTimeMax) {
 		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
 	}
