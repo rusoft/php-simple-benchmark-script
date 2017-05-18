@@ -23,6 +23,18 @@ $scriptVersion = '1.0.17';
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
 
+$dropDead = false;
+if ((int)$phpversion[0] < 4) {
+	$dropDead = true;
+}
+if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
+	$dropDead = true;
+}
+if ($dropDead) {
+	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is '.PHP_VERSION.'</pre>');
+	exit(1);
+}
+
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
