@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 18, 2017                                                  #
-#  version     : 1.0.17                                                        #
+#  version     : 1.0.18                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.17';
+$scriptVersion = '1.0.18';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);

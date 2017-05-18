@@ -56,6 +56,12 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 
 ## ChangeLog
 
+@ 2017-05-18, v1.0.18
+
+ * Проверка на совместимую версию ph
+ * Получение значений для настроек php - `max_execution_time` и `memory_limit` - из
+   GET / getenv / getopt.
+
 @ 2017-05-18, v1.0.17
 
  * Попытка укладываться в max_execution_time
