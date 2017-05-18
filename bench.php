@@ -23,11 +23,93 @@ $scriptVersion = '1.0.17';
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
 
+
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
 
-set_time_limit(600);
-@ini_set('memory_limit', '256M');
+/** ------------------------------- Main Defaults ------------------------------- */
+
+/* Default execution time limit in seconds */
+$defaultTimeLimit = 600;
+/* Default PHP memory limit in Mb */
+$defaultMemoryLimit = 256;
+
+if ((int)getenv('PHP_TIME_LIMIT')) {
+	$defaultTimeLimit = (int)getenv('PHP_TIME_LIMIT');
+}
+if (isset($_GET['time_limit']) && (int)$_GET['time_limit']) {
+	$defaultTimeLimit = (int)$_GET['time_limit'];
+}
+
+if ((int)getenv('PHP_MEMORY_LIMIT')) {
+	$defaultMemoryLimit = (int)getenv('PHP_MEMORY_LIMIT');
+}
+if (isset($_GET['memory_limit']) && (int)$_GET['memory_limit']) {
+	$defaultMemoryLimit = (int)$_GET['memory_limit'];
+}
+
+// http://php.net/manual/ru/function.getopt.php example #2
+$shortopts  = "h";
+$shortopts .= "m::"; // Необязательное значение
+$shortopts .= "t::"; // Необязательное значение
+
+$longopts  = array(
+	"help",
+	"memory-limit::",    // Необязательное значение
+	"time-limit::",    // Необязательное значение
+);
+$options = getopt($shortopts, $longopts);
+
+if ($options) {
+
+	foreach ($options as $okey => $oval) {
+
+		switch ($okey) {
+
+			case 'h':
+			case 'help':
+				print(
+					'<pre>'.PHP_EOL
+					.'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
+					. PHP_EOL
+					.'Usage: '.basename(__FILE__).' [-h|--help] [-m|--memory-limit=256] [-t|--time-limit=600]'.PHP_EOL
+					.PHP_EOL
+					.'	-h|--help		- print this help and exit'.PHP_EOL
+					.'	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)'.PHP_EOL
+					.'	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)'.PHP_EOL
+					.PHP_EOL
+					.'Example: php '.basename(__FILE__).' -m=64 -t=30'.PHP_EOL
+					.'</pre>'.PHP_EOL
+				);
+				exit(0);
+				break;
+
+			case 'm':
+			case 'memory-limit':
+				if ((int)$oval) {
+					$defaultMemoryLimit = (int)$oval;
+				}
+				break;
+
+			case 't':
+			case 'time-limit':
+				if ((int)$oval) {
+					$defaultTimeLimit = (int)$oval;
+				}
+				break;
+
+			default:
+				print("Unknown option '$okey'!".PHP_EOL);
+		}
+
+	}
+
+}
+
+set_time_limit($defaultTimeLimit);
+@ini_set('memory_limit', $defaultMemoryLimit . 'M');
+
+/** ------------------------------- Main Constants ------------------------------- */
 
 $line = str_pad("-", 91, "-");
 $padHeader = 89;
@@ -383,7 +465,7 @@ if ($memoryLimit < $testMemoryFull) {
 
 /** Recalc loop limits if max_execution_time less than needed */
 $maxTime = ini_get('max_execution_time');
-$needTime = 600;
+$needTime = $defaultTimeLimit;
 $pv = $phpversion[0] . '.' . $phpversion[1];
 if (isset($loopMaxPhpTimes[$pv])) {
 	$needTime = $loopMaxPhpTimes[$pv];
