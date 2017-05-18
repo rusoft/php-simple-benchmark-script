@@ -237,7 +237,7 @@ function getCpuInfo($fireUpCpu = false)
 
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
-// Search most advanced algo for SALT
+// Search most common available algo for SALT
 // http://php.net/manual/ru/function.crypt.php example #3
 $cryptSalt = null;
 if (defined('CRYPT_STD_DES') && CRYPT_STD_DES == 1) {
@@ -252,6 +252,13 @@ if (defined('CRYPT_MD5') && CRYPT_MD5 == 1) {
 	$cryptSalt = '$1$rasmusle$';
 	$cryptAlgoName = 'MD5';
 }
+
+/**
+ * These are available since 5.3+
+ * MD5 should be available to all versions.
+ */
+
+/*
 if (defined('CRYPT_BLOWFISH') && CRYPT_BLOWFISH == 1) {
 	$cryptSalt = '$2a$07$usesomesillystringforsalt$';
 	$cryptAlgoName = 'BlowFish';
@@ -264,12 +271,17 @@ if (defined('CRYPT_SHA512') && CRYPT_SHA512 == 1) {
 	$cryptSalt = '$6$rounds=5000$usesomesillystringforsalt$';
 	$cryptAlgoName = 'Sha512';
 }
+*/
+
+if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
+	print("<pre>\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n</pre>" . PHP_EOL);
+}
 
 
 $cpuInfo = getCpuInfo();
 // CPU throttling?
 if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
-	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\nFire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
 	$cpuInfo = getCpuInfo(true);
 }
 
