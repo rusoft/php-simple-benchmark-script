@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : May 15, 2017                                                  #
-#  version     : 1.0.15                                                        #
+#  Date        : May 18, 2017                                                  #
+#  version     : 1.0.16                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.15';
+$scriptVersion = '1.0.16';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
