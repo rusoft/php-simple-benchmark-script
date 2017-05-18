@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Special test only for php 5+.
+ * php 4.x can't compile try construction.
+ */
 function test_18_Loop_ExceptionTryCatch()
 {
 	global $testsLoopLimits;

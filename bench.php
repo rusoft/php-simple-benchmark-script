@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 18, 2017                                                  #
-#  version     : 1.0.18                                                        #
+#  version     : 1.0.19                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.18';
+$scriptVersion = '1.0.19';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -124,6 +124,14 @@ if ($options) {
 
 set_time_limit($defaultTimeLimit);
 @ini_set('memory_limit', $defaultMemoryLimit . 'M');
+
+// Force output flushing, like in CLI
+// May help with proxy-pass apache-nginx
+@ini_set('output_buffering', 0);
+@ini_set('implicit_flush', 1);
+ob_implicit_flush(1);
+// Special for nginx
+header('X-Accel-Buffering: no');
 
 /** ------------------------------- Main Constants ------------------------------- */
 
@@ -938,7 +946,11 @@ function test_17_2_Loop_Undefined_Access()
 }
 
 if ((int)$phpversion[0] >= 5) {
-	include_once 'php5.inc';
+	if (is_file('php5.inc')) {
+		include_once 'php5.inc';
+	} else {
+		print("<pre>\n<<< WARNING >>>\nMissing file 'php5.inc' with try/Exception/catch loop test!\n It matters only for php version 5+.\n</pre>");
+	}
 }
 
 /** ---------------------------------- Common code -------------------------------------------- */
