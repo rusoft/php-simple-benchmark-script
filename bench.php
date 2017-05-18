@@ -26,7 +26,7 @@ $phpversion = explode('.', PHP_VERSION);
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
 
-set_time_limit(600);
+set_time_limit(30);
 @ini_set('memory_limit', '256M');
 
 $line = str_pad("-", 91, "-");
@@ -47,10 +47,10 @@ $arrayDimensionLimit = 400;
 // That limit gives around 256Mb too
 $stringConcatLoopRepeat = 1;
 
-
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
+$dumbTestTimeMax = 0.091;
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
@@ -212,14 +212,14 @@ function getCpuInfo($fireUpCpu = false)
 		return $cpu;
 	}
 
-	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
-	// Adopted
 	if ($fireUpCpu) {
-		// Fire up CPU
-		$i = 100000000;
+		// Fire up CPU, Don't waste much time here
+		$i = 10000000;
 		while ($i--) ;
 	}
 
+	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
+	// Adopted
 	$cpuData = explode("\n", file_get_contents('/proc/cpuinfo'));
 	foreach ($cpuData as $line) {
 		$line = explode(':', $line, 2);
@@ -271,6 +271,28 @@ function getCpuInfo($fireUpCpu = false)
 
 	return $cpu;
 }
+
+function dumb_test_Functions()
+{
+	global $stringTest;
+
+	$count = 10000;
+	$time_start = get_microtime();
+	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode');
+	foreach ($stringFunctions as $key => $function) {
+		if (!function_exists($function)) {
+			unset($stringFunctions[$key]);
+		}
+	}
+	for ($i = 0; $i < $count; $i++) {
+		foreach ($stringFunctions as $function) {
+			$r = call_user_func_array($function, array($stringTest));
+		}
+	}
+	return get_microtime() - $time_start;
+}
+
+
 
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
@@ -371,6 +393,11 @@ if ($factor < 1.0) {
 	// Adjust more only if maxTime too small
 	if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
 		$factor *= 1.0 * $cpuInfo['mhz'] / $loopMaxPhpTimesMHz;
+	}
+
+	$dumbTestTime = dumb_test_Functions();
+	if ($dumbTestTime > $dumbTestTimeMax) {
+		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
 	}
 
 	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\n Will try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
