@@ -31,7 +31,7 @@ set_time_limit(600);
 
 $line = str_pad("-", 91, "-");
 $padHeader = 89;
-$padInfo = 18;
+$padInfo = 19;
 $padLabel = 31;
 
 $emptyResult = array(0, '-.---', '-.--', '-.--', 0);
@@ -42,13 +42,58 @@ $cryptAlgoName = 'default';
 // That gives around 256Mb memory use and reasonable test time
 $testMemoryFull = 256*1024*1024;
 // Arrays are matrix [$dimention] x [$dimention]
-$arrayTestLoopLimit = 300;
-$arrayDimensionLimit = 300;
+$arrayDimensionLimit = 400;
+
 // That limit gives around 256Mb too
 $stringConcatLoopRepeat = 1;
-// Nice dice roll
-$stringConcatLoopLimit = 7700000;
 
+/** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
+
+// Gathered on this machine
+$loopMaxPhpTimesMHz = 3800;
+// How much time needed for tests on this machine
+$loopMaxPhpTimes = array(
+	'4.4' => 190,
+	'5.2' => 120,
+	'5.3' => 105,
+	// 5.4, 5.5, 5.6
+	'5' => 90,
+	// 7.0, 7.1
+	'7' => 45,
+);
+$dumbTestMaxPhpTimes = array(
+	'4.4' => 0.894,
+	'5.2' => 0.596,
+	'5.3' => 0.566,
+	// 5.4, 5.5, 5.6
+	'5' => 0.578,
+	// 7.0, 7.1
+	'7' => 0.289,
+);
+$testsLoopLimits = array(
+	'01_math'			=> 1400000,
+	// Nice dice roll
+	// That limit gives around 256Mb too
+	'02_string_concat'	=> 7700000,
+	'03_string_simple'	=> 1300000,
+	'04_string_mb'		=> 130000,
+	'05_string_manip'	=> 1300000,
+	'06_regex'			=> 1300000,
+	'07_1_hashing'		=> 1300000,
+	'07_2_crypt'		=> 10000,
+	'08_json_encode'	=> 1300000,
+	'09_json_decode'	=> 1300000,
+	'10_serialize'		=> 1300000,
+	'11_unserialize'	=> 1300000,
+	// 13 too
+	'12_array_loop'		=> 300,
+	'14_loops'			=> 190000000,
+	'15_loop_ifelse'	=> 90000000,
+	'16_loop_ternary'	=> 90000000,
+	'17_1_loop_def'		=> 20000000,
+	'17_2_loop_undef'	=> 20000000,
+	'18_loop_except'	=> 4000000,
+);
 
 /** ---------------------------------- Common functions -------------------------------------------- */
 
@@ -175,14 +220,14 @@ function getCpuInfo($fireUpCpu = false)
 		return $cpu;
 	}
 
-	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
-	// Adopted
 	if ($fireUpCpu) {
-		// Fire up CPU
-		$i = 100000000;
+		// Fire up CPU, Don't waste much time here
+		$i = 10000000;
 		while ($i--) ;
 	}
 
+	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
+	// Adopted
 	$cpuData = explode("\n", file_get_contents('/proc/cpuinfo'));
 	foreach ($cpuData as $line) {
 		$line = explode(':', $line, 2);
@@ -235,6 +280,28 @@ function getCpuInfo($fireUpCpu = false)
 	return $cpu;
 }
 
+function dumb_test_Functions()
+{
+	global $stringTest;
+
+	$count = 100000;
+	$time_start = get_microtime();
+	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode');
+	foreach ($stringFunctions as $key => $function) {
+		if (!function_exists($function)) {
+			unset($stringFunctions[$key]);
+		}
+	}
+	for ($i = 0; $i < $count; $i++) {
+		foreach ($stringFunctions as $function) {
+			$r = call_user_func_array($function, array($stringTest));
+		}
+	}
+	return get_microtime() - $time_start;
+}
+
+
+
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
 // Search most common available algo for SALT
@@ -282,6 +349,7 @@ $cpuInfo = getCpuInfo();
 // CPU throttling?
 if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
 	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+	// TIME WASTED HERE
 	$cpuInfo = getCpuInfo(true);
 }
 
@@ -297,21 +365,64 @@ if ($memoryLimit < $testMemoryFull) {
 		."\n</pre>" . PHP_EOL);
 
 	$factor = 1.0 * ($testMemoryFull - $memoryLimit) / $testMemoryFull;
+
 	$diff = (int)($factor * $arrayDimensionLimit);
-	$arrayTestLoopLimit += (int)(1.0 * pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit / pow($arrayDimensionLimit - $diff, 2));
+	$testsLoopLimits['12_array_loop'] += (int)(1.0 * pow($arrayDimensionLimit, 2) * $testsLoopLimits['12_array_loop'] / pow($arrayDimensionLimit - $diff, 2));
 	$arrayDimensionLimit -= $diff;
 
-	$diff = (int)($factor * $stringConcatLoopLimit);
+	$diff = (int)($factor * $testsLoopLimits['02_string_concat']);
 
 	// Special hack for php-7.x
 	// New string classes, new memory allocator
 	// Consumes more, allocate huge blocks
 	if ((int)$phpversion[0] >= 7) $diff = (int)($diff * 1.1);
 
-	$stringConcatLoopRepeat = (int)(1.0 * ($stringConcatLoopLimit * $stringConcatLoopRepeat) / ($stringConcatLoopLimit - $diff));
-	$stringConcatLoopLimit -= $diff;
+	$stringConcatLoopRepeat = (int)(1.0 * ($testsLoopLimits['02_string_concat'] * $stringConcatLoopRepeat) / ($testsLoopLimits['02_string_concat'] - $diff));
+	$testsLoopLimits['02_string_concat'] -= $diff;
 }
 
+/** Recalc loop limits if max_execution_time less than needed */
+$maxTime = ini_get('max_execution_time');
+$needTime = 600;
+$pv = $phpversion[0] . '.' . $phpversion[1];
+if (isset($loopMaxPhpTimes[$pv])) {
+	$needTime = $loopMaxPhpTimes[$pv];
+} elseif (isset($loopMaxPhpTimes[$phpversion[0]])) {
+	$needTime = $loopMaxPhpTimes[$phpversion[0]];
+}
+
+if (isset($dumbTestMaxPhpTimes[$pv])) {
+	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$pv];
+} elseif (isset($dumbTestMaxPhpTimes[$phpversion[0]])) {
+	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$phpversion[0]];
+}
+
+$factor = 1.0;
+// Don't bother if time is unlimited
+if ($maxTime) {
+	if ($needTime > ($maxTime - 1)) {
+		$factor = 1.0 * ($maxTime-1) / $needTime;
+	}
+}
+if ($factor < 1.0) {
+	// Adjust more only if maxTime too small
+	if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
+		$factor *= 1.0 * $cpuInfo['mhz'] / $loopMaxPhpTimesMHz;
+	}
+
+	// TIME WASTED HERE
+	$dumbTestTime = dumb_test_Functions();
+//	Debug
+//	print($dumbTestTime);
+	if ($dumbTestTime > $dumbTestTimeMax) {
+		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
+	}
+
+	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\n Will try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
+	foreach ($testsLoopLimits as $tst => $loops) {
+		$testsLoopLimits[ $tst ] = (int)($loops * $factor);
+	}
+}
 
 /** ---------------------------------- Common functions for tests -------------------------------------------- */
 
@@ -347,8 +458,11 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 /** ---------------------------------- Tests functions -------------------------------------------- */
 
 
-function test_01_Math($count = 1400000)
+function test_01_Math()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['01_math'];
 	$time_start = get_microtime();
 	$mathFunctions = array('abs', 'acos', 'asin', 'atan', 'decbin', 'dechex', 'decoct', 'floor', 'exp', 'log1p', 'sin', 'tan', 'pi', 'is_finite', 'is_nan', 'sqrt', 'rad2deg');
 	foreach ($mathFunctions as $key => $function) {
@@ -366,21 +480,24 @@ function test_01_Math($count = 1400000)
 
 function test_02_String_Concat()
 {
-	global $stringConcatLoopLimit, $stringConcatLoopRepeat;
+	global $testsLoopLimits, $stringConcatLoopRepeat;
 
+	$count = $testsLoopLimits['02_string_concat'];
 	$time_start = get_microtime();
 	for ($r = 0; $r < $stringConcatLoopRepeat; ++$r) {
 		$s = '';
-		for ($i = 0; $i < $stringConcatLoopLimit; ++$i) {
+		for ($i = 0; $i < $count; ++$i) {
 			$s .= '- Valar dohaeris' . PHP_EOL;
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $stringConcatLoopLimit*$stringConcatLoopRepeat, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count*$stringConcatLoopRepeat, memory_get_usage(true));
 }
 
-function test_03_String_Simple_Functions($count = 1300000)
+function test_03_String_Simple_Functions()
 {
-	global $stringTest;
+	global $stringTest, $testsLoopLimits;
+
+	$count = $testsLoopLimits['03_string_simple'];
 	$time_start = get_microtime();
 	$stringFunctions = array('strtoupper', 'strtolower', 'strrev', 'strlen', 'str_rot13', 'ord', 'trim');
 	foreach ($stringFunctions as $key => $function) {
@@ -396,14 +513,15 @@ function test_03_String_Simple_Functions($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_04_String_Multibyte($count = 130000)
+function test_04_String_Multibyte()
 {
-	global $stringTest, $emptyResult;
+	global $stringTest, $emptyResult, $testsLoopLimits;
 
 	if (!function_exists('mb_strlen')) {
 		return $emptyResult;
 	}
 
+	$count = $testsLoopLimits['04_string_mb'];
 	$time_start = get_microtime();
 	$stringFunctions = array('mb_strtoupper', 'mb_strtolower', 'mb_strlen', 'mb_strwidth');
 	foreach ($stringFunctions as $key => $function) {
@@ -419,9 +537,10 @@ function test_04_String_Multibyte($count = 130000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_05_String_Manipulation($count = 1300000)
+function test_05_String_Manipulation()
 {
-	global $stringTest;
+	global $stringTest, $testsLoopLimits;
+	$count = $testsLoopLimits['05_string_manip'];
 	$time_start = get_microtime();
 	$stringFunctions = array('addslashes', 'chunk_split', 'metaphone', 'strip_tags', 'soundex', 'wordwrap');
 	foreach ($stringFunctions as $key => $function) {
@@ -437,9 +556,10 @@ function test_05_String_Manipulation($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_06_Regex($count = 1300000)
+function test_06_Regex()
 {
-	global $stringTest, $regexPattern;
+	global $stringTest, $regexPattern, $testsLoopLimits;
+	$count = $testsLoopLimits['06_regex'];
 	$time_start = get_microtime();
 	$stringFunctions = array('preg_match', 'preg_split');
 	foreach ($stringFunctions as $key => $function) {
@@ -455,9 +575,10 @@ function test_06_Regex($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_07_1_Hashing($count = 1300000)
+function test_07_1_Hashing()
 {
-	global $stringTest;
+	global $stringTest, $testsLoopLimits;
+	$count = $testsLoopLimits['07_1_hashing'];
 	$time_start = get_microtime();
 	$stringFunctions = array('crc32', 'md5', 'sha1');
 	foreach ($stringFunctions as $key => $function) {
@@ -473,9 +594,10 @@ function test_07_1_Hashing($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_07_2_Crypt($count = 10000)
+function test_07_2_Crypt()
 {
-	global $stringTest, $cryptSalt;
+	global $stringTest, $cryptSalt, $testsLoopLimits;
+	$count = $testsLoopLimits['07_2_crypt'];
 	$time_start = get_microtime();
 	$stringFunctions = array('crypt');
 	foreach ($stringFunctions as $key => $function) {
@@ -491,14 +613,15 @@ function test_07_2_Crypt($count = 10000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_08_Json_Encode($count = 1300000)
+function test_08_Json_Encode()
 {
-	global $stringTest, $emptyResult;
+	global $stringTest, $emptyResult, $testsLoopLimits;
 
 	if (!function_exists('json_encode')) {
 		return $emptyResult;
 	}
 
+	$count = $testsLoopLimits['08_json_encode'];
 	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
@@ -517,14 +640,15 @@ function test_08_Json_Encode($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_09_Json_Decode($count = 1300000)
+function test_09_Json_Decode()
 {
-	global $stringTest, $emptyResult;
+	global $stringTest, $emptyResult, $testsLoopLimits;
 
 	if (!function_exists('json_decode')) {
 		return $emptyResult;
 	}
 
+	$count = $testsLoopLimits['09_json_decode'];
 	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
@@ -546,14 +670,15 @@ function test_09_Json_Decode($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_10_Serialize($count = 1300000)
+function test_10_Serialize()
 {
-	global $stringTest, $emptyResult;
+	global $stringTest, $emptyResult, $testsLoopLimits;
 
 	if (!function_exists('serialize')) {
 		return $emptyResult;
 	}
 
+	$count = $testsLoopLimits['10_serialize'];
 	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
@@ -572,14 +697,15 @@ function test_10_Serialize($count = 1300000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_11_Unserialize($count = 1300000)
+function test_11_Unserialize()
 {
-	global $stringTest, $emptyResult;
+	global $stringTest, $emptyResult, $testsLoopLimits;
 
 	if (!function_exists('unserialize')) {
 		return $emptyResult;
 	}
 
+	$count = $testsLoopLimits['11_unserialize'];
 	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
@@ -603,8 +729,9 @@ function test_11_Unserialize($count = 1300000)
 
 function test_12_Array_Fill()
 {
-	global $arrayTestLoopLimit, $arrayDimensionLimit;
+	global $testsLoopLimits, $arrayDimensionLimit;
 
+	$arrayTestLoopLimit = $testsLoopLimits['12_array_loop'];
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
 		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
@@ -618,8 +745,9 @@ function test_12_Array_Fill()
 
 function test_13_Array_Unset()
 {
-	global $arrayTestLoopLimit, $arrayDimensionLimit;
+	global $testsLoopLimits, $arrayDimensionLimit;
 
+	$arrayTestLoopLimit = $testsLoopLimits['12_array_loop'];
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
 
@@ -637,8 +765,11 @@ function test_13_Array_Unset()
 	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit, memory_get_usage(true));
 }
 
-function test_14_Loops($count = 190000000)
+function test_14_Loops()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['14_loops'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; ++$i) ;
 	$i = 0;
@@ -646,8 +777,11 @@ function test_14_Loops($count = 190000000)
 	return format_result_test(get_microtime() - $time_start, $count * 2, memory_get_usage(true));
 }
 
-function test_15_Loop_IfElse($count = 90000000)
+function test_15_Loop_IfElse()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['15_loop_ifelse'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		if ($i == -1) {
@@ -659,8 +793,11 @@ function test_15_Loop_IfElse($count = 90000000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_16_Loop_Ternary($count = 90000000)
+function test_16_Loop_Ternary()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['16_loop_ternary'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = ($i % 2 == 1)
@@ -674,8 +811,11 @@ function test_16_Loop_Ternary($count = 90000000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_17_1_Loop_Defined_Access($count = 20000000)
+function test_17_1_Loop_Defined_Access()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['17_1_loop_def'];
 	$time_start = get_microtime();
 	$a = array(0 => 1, 1 => 0);
 	$r = 0;
@@ -685,8 +825,11 @@ function test_17_1_Loop_Defined_Access($count = 20000000)
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
 
-function test_17_2_Loop_Undefined_Access($count = 20000000)
+function test_17_2_Loop_Undefined_Access()
 {
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['17_2_loop_undef'];
 	$time_start = get_microtime();
 	$a = array();
 	$r = 0;
@@ -712,15 +855,16 @@ echo "<pre>\n$line\n|"
 	. "|\n$line\n"
 	. str_pad("Start:", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
 	. str_pad("Server:", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
 	. str_pad("CPU:", $padInfo) . " :\n"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
 	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
-	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
 	. str_pad("Benchmark version:", $padInfo) . " : " . $scriptVersion . "\n"
+	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
+	. str_pad("Max execution time:", $padInfo) . " : " . $maxTime . " sec.\n"
 	. str_pad("Crypt hash algo:", $padInfo) . " : " . $cryptAlgoName . "\n"
-	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
 	. "$line\n"
 	. str_pad('TEST NAME', $padLabel) . " :"
 	. str_pad('SECONDS', 8 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
