@@ -349,6 +349,7 @@ $cpuInfo = getCpuInfo();
 // CPU throttling?
 if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
 	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+	// TIME WASTED HERE
 	$cpuInfo = getCpuInfo(true);
 }
 
@@ -409,6 +410,7 @@ if ($factor < 1.0) {
 		$factor *= 1.0 * $cpuInfo['mhz'] / $loopMaxPhpTimesMHz;
 	}
 
+	// TIME WASTED HERE
 	$dumbTestTime = dumb_test_Functions();
 //	Debug
 //	print($dumbTestTime);
