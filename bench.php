@@ -36,6 +36,9 @@ $padLabel = 31;
 
 $emptyResult = array(0, '-.---', '-.--', '-.--', 0);
 
+$cryptSalt = null;
+$cryptAlgoName = 'default';
+
 // That gives around 256Mb memory use and reasonable test time
 $testMemoryFull = 256*1024*1024;
 // Arrays are matrix [$dimention] x [$dimention]
@@ -45,6 +48,9 @@ $arrayDimensionLimit = 300;
 $stringConcatLoopRepeat = 1;
 // Nice dice roll
 $stringConcatLoopLimit = 7700000;
+
+
+/** ---------------------------------- Common functions -------------------------------------------- */
 
 function get_microtime()
 {
@@ -229,10 +235,53 @@ function getCpuInfo($fireUpCpu = false)
 	return $cpu;
 }
 
+/** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
+
+// Search most common available algo for SALT
+// http://php.net/manual/ru/function.crypt.php example #3
+$cryptSalt = null;
+if (defined('CRYPT_STD_DES') && CRYPT_STD_DES == 1) {
+	$cryptSalt = 'rl';
+	$cryptAlgoName = 'Std. DES';
+}
+if (defined('CRYPT_EXT_DES') && CRYPT_EXT_DES == 1) {
+	$cryptSalt = '_J9..rasm';
+	$cryptAlgoName = 'Ext. DES';
+}
+if (defined('CRYPT_MD5') && CRYPT_MD5 == 1) {
+	$cryptSalt = '$1$rasmusle$';
+	$cryptAlgoName = 'MD5';
+}
+
+/**
+ * These are available since 5.3+
+ * MD5 should be available to all versions.
+ */
+
+/*
+if (defined('CRYPT_BLOWFISH') && CRYPT_BLOWFISH == 1) {
+	$cryptSalt = '$2a$07$usesomesillystringforsalt$';
+	$cryptAlgoName = 'BlowFish';
+}
+if (defined('CRYPT_SHA256') && CRYPT_SHA256 == 1) {
+	$cryptSalt = '$5$rounds=5000$usesomesillystringforsalt$';
+	$cryptAlgoName = 'Sha256';
+}
+if (defined('CRYPT_SHA512') && CRYPT_SHA512 == 1) {
+	$cryptSalt = '$6$rounds=5000$usesomesillystringforsalt$';
+	$cryptAlgoName = 'Sha512';
+}
+*/
+
+if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
+	print("<pre>\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n</pre>" . PHP_EOL);
+}
+
+
 $cpuInfo = getCpuInfo();
 // CPU throttling?
 if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
-	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\nFire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
 	$cpuInfo = getCpuInfo(true);
 }
 
@@ -264,6 +313,8 @@ if ($memoryLimit < $testMemoryFull) {
 }
 
 
+/** ---------------------------------- Common functions for tests -------------------------------------------- */
+
 /**
  * @return array((int)seconds, (str)seconds, (str)operations/sec), (str)opterations/MHz)
  */
@@ -291,6 +342,10 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 		return array(0, '0.000', 'x.xx ', 'x.xx ', 0);
 	}
 }
+
+
+/** ---------------------------------- Tests functions -------------------------------------------- */
+
 
 function test_01_Math($count = 1400000)
 {
@@ -420,7 +475,7 @@ function test_07_1_Hashing($count = 1300000)
 
 function test_07_2_Crypt($count = 10000)
 {
-	global $stringTest;
+	global $stringTest, $cryptSalt;
 	$time_start = get_microtime();
 	$stringFunctions = array('crypt');
 	foreach ($stringFunctions as $key => $function) {
@@ -430,7 +485,7 @@ function test_07_2_Crypt($count = 10000)
 	}
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($stringFunctions as $function) {
-			$r = call_user_func_array($function, array($stringTest, '_J9..rasm'));
+			$r = call_user_func_array($function, array($stringTest, $cryptSalt));
 		}
 	}
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
@@ -645,6 +700,9 @@ if ((int)$phpversion[0] >= 5) {
 	include_once 'php5.inc';
 }
 
+/** ---------------------------------- Common code -------------------------------------------- */
+
+
 $total = 0;
 $functions = get_defined_functions();
 sort($functions['user']);
@@ -661,6 +719,7 @@ echo "<pre>\n$line\n|"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
 	. str_pad("Benchmark version:", $padInfo) . " : " . $scriptVersion . "\n"
+	. str_pad("Crypt hash algo:", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
 	. "$line\n"
 	. str_pad('TEST NAME', $padLabel) . " :"
