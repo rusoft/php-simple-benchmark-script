@@ -50,13 +50,13 @@ if (isset($_GET['memory_limit']) && (int)$_GET['memory_limit']) {
 
 // http://php.net/manual/ru/function.getopt.php example #2
 $shortopts  = "h";
-$shortopts .= "m::"; // Необязательное значение
-$shortopts .= "t::"; // Необязательное значение
+$shortopts .= "m:";		// Обязательное значение
+$shortopts .= "t:";		// Обязательное значение
 
 $longopts  = array(
 	"help",
-	"memory-limit::",    // Необязательное значение
-	"time-limit::",    // Необязательное значение
+	"memory-limit:",	// Обязательное значение
+	"time-limit:",		// Обязательное значение
 );
 $options = getopt($shortopts, $longopts);
 
@@ -88,6 +88,8 @@ if ($options) {
 			case 'memory-limit':
 				if ((int)$oval) {
 					$defaultMemoryLimit = (int)$oval;
+				} else {
+					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>".PHP_EOL);
 				}
 				break;
 
@@ -95,11 +97,13 @@ if ($options) {
 			case 'time-limit':
 				if ((int)$oval) {
 					$defaultTimeLimit = (int)$oval;
+				} else {
+					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>".PHP_EOL);
 				}
 				break;
 
 			default:
-				print("Unknown option '$okey'!".PHP_EOL);
+				print("<pre><<< WARNING >>> Unknown option '$okey'!</pre>".PHP_EOL);
 		}
 
 	}
