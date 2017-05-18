@@ -26,7 +26,7 @@ $phpversion = explode('.', PHP_VERSION);
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
 
-set_time_limit(30);
+set_time_limit(600);
 @ini_set('memory_limit', '256M');
 
 $line = str_pad("-", 91, "-");
@@ -50,17 +50,25 @@ $stringConcatLoopRepeat = 1;
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$dumbTestTimeMax = 0.091;
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
 	'4.4' => 190,
 	'5.2' => 120,
-	'5.3' => 100,
+	'5.3' => 105,
 	// 5.4, 5.5, 5.6
 	'5' => 90,
 	// 7.0, 7.1
 	'7' => 45,
+);
+$dumbTestMaxPhpTimes = array(
+	'4.4' => 0.088,
+	'5.2' => 0.059,
+	'5.3' => 0.057,
+	// 5.4, 5.5, 5.6
+	'5' => 0.57,
+	// 7.0, 7.1
+	'7' => 0.029,
 );
 $testsLoopLimits = array(
 	'01_math'			=> 1400000,
@@ -380,6 +388,12 @@ if (isset($loopMaxPhpTimes[$pv])) {
 	$needTime = $loopMaxPhpTimes[$pv];
 } elseif (isset($loopMaxPhpTimes[$phpversion[0]])) {
 	$needTime = $loopMaxPhpTimes[$phpversion[0]];
+}
+
+if (isset($dumbTestMaxPhpTimes[$pv])) {
+	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$pv];
+} elseif (isset($dumbTestMaxPhpTimes[$phpversion[0]])) {
+	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$phpversion[0]];
 }
 
 $factor = 1.0;
