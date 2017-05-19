@@ -4,11 +4,11 @@
  * Special test only for php 5+.
  * php 4.x can't compile try construction.
  */
-function test_18_Loop_ExceptionTryCatch()
+function test_19_Loop_ExceptionTryCatch()
 {
 	global $testsLoopLimits;
 
-	$count = $testsLoopLimits['18_loop_except'];
+	$count = $testsLoopLimits['19_loop_except'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		try {
