@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 19, 2017                                                  #
-#  version     : 1.0.20                                                        #
+#  version     : 1.0.21                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.20';
+$scriptVersion = '1.0.21';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -184,13 +184,13 @@ $stringConcatLoopRepeat = 1;
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 200,
-	'5.2' => 120,
-	'5.3' => 105,
+	'4.4' => 210,
+	'5.2' => 135,
+	'5.3' => 115,
 	// 5.4, 5.5, 5.6
-	'5' => 95,
+	'5' => 105,
 	// 7.0, 7.1
-	'7' => 50,
+	'7' => 52,
 );
 $dumbTestMaxPhpTimes = array(
 	'4.4' => 0.894,
@@ -225,7 +225,9 @@ $testsLoopLimits = array(
 	'17_loop_ternary'	=> 90000000,
 	'18_1_loop_def'		=> 20000000,
 	'18_2_loop_undef'	=> 20000000,
-	'19_loop_except'	=> 4000000,
+	'19_type_func'		=> 5000000,
+	'20_type_conv'		=> 5000000,
+	'21_loop_except'	=> 4000000,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1002,6 +1004,46 @@ function test_18_2_Loop_Undefined_Access()
 	}
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
+
+function test_19_Type_Functions()
+{
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['20_type_conv'];
+	$time_start = get_microtime();
+	$ia = array('123456', '0.000001', '0x123');
+	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
+	for ($i = 0; $i < $count; $i++) {
+		foreach ($ia as $n) {
+			$r = intval($n);
+		}
+		foreach ($fa as $n) {
+			$r = floatval($n);
+		}
+	}
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+}
+
+function test_20_Type_Conversion()
+{
+	global $testsLoopLimits;
+
+	$count = $testsLoopLimits['20_type_conv'];
+	$time_start = get_microtime();
+	$ia = array('123456', '0.000001', '0x123');
+	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
+	for ($i = 0; $i < $count; $i++) {
+		foreach ($ia as $n) {
+			$r = (int)$n;
+		}
+		foreach ($fa as $n) {
+			$r = (float)$n;
+		}
+	}
+	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+}
+
+
 
 if ((int)$phpversion[0] >= 5) {
 	if (is_file('php5.inc')) {

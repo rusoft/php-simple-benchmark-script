@@ -56,6 +56,11 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 
 ## ChangeLog
 
+@ 2017-05-19, v1.0.21
+
+ * Добавили тесты производительности конвертации простых типов:
+   `string => (int)`, `string => intval()`
+
 @ 2017-05-19, v1.0.20
 
  * Поддержва длинных опций ком.строки только в php-5.3+
@@ -162,51 +167,55 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
  * Добавлен вывод потребления памяти
  * Добавлены новые функции, увеличен размер проверочной строки
 
-## Пример вывода скрпита
+## Пример вывода скрипта
 
 ```
 <pre>
 -------------------------------------------------------------------------------------------
 |                                  PHP BENCHMARK SCRIPT                                   |
 -------------------------------------------------------------------------------------------
-Start:              : 2017-05-18 06:48:07
-Server:             : Linux/4.4.0-78-generic x86_64
+Start:              : 2017-05-24 22:48:12
+Server:             : Linux/4.4.0-79-generic x86_64
 Platform:           : Linux
 CPU:                :
               model : Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
               cores : 4
-                MHz : 3766.601MHz
+                MHz : 3757.578MHz
 Memory              : 256 Mb available
-Benchmark version:  : 1.0.17
+Benchmark version:  : 1.0.21
 PHP version:        : 7.0.14-Ubuntu/16.04-SergeyD/9.3.1
 Max execution time: : 600 sec.
 Crypt hash algo:    : MD5
 -------------------------------------------------------------------------------------------
 TEST NAME                       :     SECONDS |       OP/SEC |      OP/SEC/MHz |    MEMORY
 -------------------------------------------------------------------------------------------
-01_math                         :   3.091 sec | 452.99 kOp/s | 120.27  Ops/MHz |      2 Mb
-02_string_concat                :   0.217 sec |  35.41 MOp/s |   9.40 kOps/MHz | 128.84 Mb
-03_string_simple_functions      :   1.764 sec | 736.92 kOp/s | 195.65  Ops/MHz |      4 Mb
-04_string_multibyte             :   4.052 sec |  32.08 kOp/s |   8.52  Ops/MHz |      4 Mb
-05_string_manipulation          :   2.393 sec | 543.34 kOp/s | 144.25  Ops/MHz |      4 Mb
-06_regex                        :   1.942 sec | 669.42 kOp/s | 177.72  Ops/MHz |      4 Mb
-07_1_hashing                    :   2.049 sec | 634.37 kOp/s | 168.42  Ops/MHz |      4 Mb
-07_2_crypt                      :   5.897 sec |   1.70 kOp/s |   0.45  Ops/MHz |      4 Mb
-08_json_encode                  :   1.596 sec | 814.62 kOp/s | 216.27  Ops/MHz |      4 Mb
-09_json_decode                  :   1.944 sec | 668.89 kOp/s | 177.59  Ops/MHz |      4 Mb
-10_serialize                    :   1.208 sec |   1.08 MOp/s | 285.69  Ops/MHz |      4 Mb
-11_unserialize                  :   1.747 sec | 744.11 kOp/s | 197.55  Ops/MHz |      4 Mb
-12_array_fill                   :   1.242 sec |  38.66 MOp/s |  10.26 kOps/MHz |     10 Mb
-13_array_unset                  :   1.802 sec |  26.64 MOp/s |   7.07 kOps/MHz |      4 Mb
-14_loops                        :   1.813 sec | 209.59 MOp/s |  55.65 kOps/MHz |      4 Mb
-15_loop_ifelse                  :   1.299 sec |  69.29 MOp/s |  18.40 kOps/MHz |      4 Mb
-16_loop_ternary                 :   3.191 sec |  28.20 MOp/s |   7.49 kOps/MHz |      4 Mb
-17_1_loop_defined_access        :   0.574 sec |  34.85 MOp/s |   9.25 kOps/MHz |      4 Mb
-17_2_loop_undefined_access      :   3.810 sec |   5.25 MOp/s |   1.39 kOps/MHz |      4 Mb
-18_loop_exceptiontrycatch       :   2.135 sec |   1.87 MOp/s | 497.52  Ops/MHz |      4 Mb
+01_math                         :   3.134 sec | 446.66 kOp/s | 118.87  Ops/MHz |      2 Mb
+02_string_concat                :   0.232 sec |  33.16 MOp/s |   8.82 kOps/MHz |      4 Mb
+03_1_string_number_concat       :   1.717 sec |   2.91 MOp/s | 774.94  Ops/MHz |      4 Mb
+03_2_string_number_format       :   1.500 sec |   3.33 MOp/s | 887.36  Ops/MHz |      4 Mb
+04_string_simple_functions      :   1.771 sec | 734.20 kOp/s | 195.39  Ops/MHz |      4 Mb
+05_string_multibyte             :   4.084 sec |  31.83 kOp/s |   8.47  Ops/MHz |      4 Mb
+06_string_manipulation          :   2.442 sec | 532.32 kOp/s | 141.67  Ops/MHz |      4 Mb
+07_regex                        :   1.956 sec | 664.78 kOp/s | 176.92  Ops/MHz |      4 Mb
+08_1_hashing                    :   2.023 sec | 642.55 kOp/s | 171.00  Ops/MHz |      4 Mb
+08_2_crypt                      :   5.928 sec |   1.69 kOp/s |   0.45  Ops/MHz |      4 Mb
+09_json_encode                  :   1.638 sec | 793.71 kOp/s | 211.23  Ops/MHz |      4 Mb
+10_json_decode                  :   1.992 sec | 652.76 kOp/s | 173.72  Ops/MHz |      4 Mb
+11_serialize                    :   1.223 sec |   1.06 MOp/s | 282.81  Ops/MHz |      4 Mb
+12_unserialize                  :   1.749 sec | 743.36 kOp/s | 197.83  Ops/MHz |      4 Mb
+13_array_fill                   :   2.008 sec |  23.91 MOp/s |   6.36 kOps/MHz |      4 Mb
+14_array_unset                  :   1.815 sec |  26.45 MOp/s |   7.04 kOps/MHz |      4 Mb
+15_loops                        :   2.011 sec | 188.95 MOp/s |  50.29 kOps/MHz |      4 Mb
+16_loop_ifelse                  :   1.492 sec |  60.34 MOp/s |  16.06 kOps/MHz |      4 Mb
+17_loop_ternary                 :   3.280 sec |  27.44 MOp/s |   7.30 kOps/MHz |      4 Mb
+18_1_loop_defined_access        :   0.590 sec |  33.92 MOp/s |   9.03 kOps/MHz |      4 Mb
+18_2_loop_undefined_access      :   3.843 sec |   5.20 MOp/s |   1.39 kOps/MHz |      4 Mb
+19_type_functions               :   1.749 sec |   2.86 MOp/s | 760.87  Ops/MHz |      4 Mb
+20_type_conversion              :   1.169 sec |   4.28 MOp/s |   1.14 kOps/MHz |      4 Mb
+21_loop_exceptiontrycatch       :   2.139 sec |   1.87 MOp/s | 497.63  Ops/MHz |      4 Mb
 -------------------------------------------------------------------------------------------
-Total time:                     : 43.765 sec.
-Current memory usage:           : 512.82 kb.
-Peak memory usage:              : 125.34 Mb.
+Total time:                     : 51.484 sec.
+Current memory usage:           : 535.71 kb.
+Peak memory usage:              : 125.36 Mb.
 </pre>
 ```
