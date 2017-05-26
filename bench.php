@@ -625,7 +625,6 @@ function test_02_String_Concat()
 		for ($i = 0; $i < $count; ++$i) {
 			$s .= '- Valar dohaeris' . PHP_EOL;
 		}
-		$s = '';
 	}
 	return format_result_test(get_microtime() - $time_start, $count*$stringConcatLoopRepeat, memory_get_usage(true));
 }
