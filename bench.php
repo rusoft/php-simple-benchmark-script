@@ -913,11 +913,11 @@ function test_14_Array_Range()
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
 		$x = range(0, $arrayDimensionLimit);
-		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
+		for ($i = 0; $i < $arrayDimensionLimit; $i++) {
 			$x[$i] = range(0, $arrayDimensionLimit);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $arrayDimensionLimit * $arrayTestLoopLimit, memory_get_usage(true));
 }
 
 function test_14_Array_Unset()
@@ -928,11 +928,11 @@ function test_14_Array_Unset()
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
 		$x = range(0, $arrayDimensionLimit);
-		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
+		for ($i = 0; $i < $arrayDimensionLimit; $i++) {
 			$x[$i] = range(0, $arrayDimensionLimit);
 		}
 		for ($i = $arrayDimensionLimit; $i >= 0; $i--) {
-			for ($j = 0; $j <= $arrayDimensionLimit; ++$j) {
+			for ($j = 0; $j <= $arrayDimensionLimit; $j++) {
 				unset($x[$i][$j]);
 			}
 			unset($x[$i]);
