@@ -31,7 +31,7 @@ if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
 	$dropDead = true;
 }
 if ($dropDead) {
-	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is '.PHP_VERSION.'</pre>');
+	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION . '</pre>');
 	exit(1);
 }
 
@@ -61,14 +61,14 @@ if (isset($_GET['memory_limit']) && (int)$_GET['memory_limit']) {
 }
 
 // http://php.net/manual/ru/function.getopt.php example #2
-$shortopts  = "h";
-$shortopts .= "m:";		// Обязательное значение
-$shortopts .= "t:";		// Обязательное значение
+$shortopts = "h";
+$shortopts .= "m:";       // Обязательное значение
+$shortopts .= "t:";       // Обязательное значение
 
-$longopts  = array(
+$longopts = array(
 	"help",
-	"memory-limit:",	// Обязательное значение
-	"time-limit:",		// Обязательное значение
+	"memory-limit:",      // Обязательное значение
+	"time-limit:",        // Обязательное значение
 );
 
 $hasLongOpts = true;
@@ -91,31 +91,31 @@ if ($options) {
 			case 'help':
 				if ($hasLongOpts) {
 					print(
-					'<pre>'.PHP_EOL
-					.'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
-					. PHP_EOL
-					.'Usage: '.basename(__FILE__).' [-h|--help] [-m|--memory-limit=256] [-t|--time-limit=600]'.PHP_EOL
-					.PHP_EOL
-					.'	-h|--help		- print this help and exit'.PHP_EOL
-					.'	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)'.PHP_EOL
-					.'	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)'.PHP_EOL
-					.PHP_EOL
-					.'Example: php '.basename(__FILE__).' -m=64 -t=30'.PHP_EOL
-					.'</pre>'.PHP_EOL
+						'<pre>' . PHP_EOL
+						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
+						. PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-m|--memory-limit=256] [-t|--time-limit=600]' . PHP_EOL
+						. PHP_EOL
+						. '	-h|--help		- print this help and exit' . PHP_EOL
+						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
+						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
+						. PHP_EOL
+						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
+						. '</pre>' . PHP_EOL
 					);
 				} else {
 					print(
-					'<pre>'.PHP_EOL
-					.'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
-					. PHP_EOL
-					.'Usage: '.basename(__FILE__).' [-h] [-m 256] [-t 600]'.PHP_EOL
-					.PHP_EOL
-					.'	-h		- print this help and exit'.PHP_EOL
-					.'	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)'.PHP_EOL
-					.'	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)'.PHP_EOL
-					.PHP_EOL
-					.'Example: php '.basename(__FILE__).' -m 64 -t 30'.PHP_EOL
-					.'</pre>'.PHP_EOL
+						'<pre>' . PHP_EOL
+						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
+						. PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-m 256] [-t 600]' . PHP_EOL
+						. PHP_EOL
+						. '	-h		- print this help and exit' . PHP_EOL
+						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
+						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
+						. PHP_EOL
+						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
+						. '</pre>' . PHP_EOL
 					);
 				}
 				exit(0);
@@ -126,7 +126,7 @@ if ($options) {
 				if ((int)$oval) {
 					$defaultMemoryLimit = (int)$oval;
 				} else {
-					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>".PHP_EOL);
+					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
 				}
 				break;
 
@@ -135,12 +135,12 @@ if ($options) {
 				if ((int)$oval) {
 					$defaultTimeLimit = (int)$oval;
 				} else {
-					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>".PHP_EOL);
+					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
 				}
 				break;
 
 			default:
-				print("<pre><<< WARNING >>> Unknown option '$okey'!</pre>".PHP_EOL);
+				print("<pre><<< WARNING >>> Unknown option '$okey'!</pre>" . PHP_EOL);
 		}
 
 	}
@@ -171,7 +171,7 @@ $cryptSalt = null;
 $cryptAlgoName = 'default';
 
 // That gives around 256Mb memory use and reasonable test time
-$testMemoryFull = 256*1024*1024;
+$testMemoryFull = 256 * 1024 * 1024;
 // Arrays are matrix [$dimention] x [$dimention]
 $arrayDimensionLimit = 400;
 
@@ -436,7 +436,6 @@ function dumb_test_Functions()
 }
 
 
-
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
 // Search most common available algo for SALT
@@ -494,10 +493,10 @@ $memoryLimitMb = convert($memoryLimit);
 // Adjust array tests limits
 if ($memoryLimit < $testMemoryFull) {
 
-	print("<pre>\n<<< WARNING >>>\nAvailable memory for tests: ".$memoryLimitMb
-		." is less than minimum required: ".convert($testMemoryFull)
-		.".\n Recalculate tests parameters to fit in memory limits."
-		."\n</pre>" . PHP_EOL);
+	print("<pre>\n<<< WARNING >>>\nAvailable memory for tests: " . $memoryLimitMb
+		. " is less than minimum required: " . convert($testMemoryFull)
+		. ".\n Recalculate tests parameters to fit in memory limits."
+		. "\n</pre>" . PHP_EOL);
 
 	$factor = 1.0 * ($testMemoryFull - $memoryLimit) / $testMemoryFull;
 
@@ -537,7 +536,7 @@ $factor = 1.0;
 // Don't bother if time is unlimited
 if ($maxTime) {
 	if ($needTime > ($maxTime - 1)) {
-		$factor = 1.0 * ($maxTime-1) / $needTime;
+		$factor = 1.0 * ($maxTime - 1) / $needTime;
 	}
 }
 if ($factor < 1.0) {
@@ -556,7 +555,7 @@ if ($factor < 1.0) {
 
 	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\n Will try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
 	foreach ($testsLoopLimits as $tst => $loops) {
-		$testsLoopLimits[ $tst ] = (int)($loops * $factor);
+		$testsLoopLimits[$tst] = (int)($loops * $factor);
 	}
 }
 
@@ -626,7 +625,7 @@ function test_02_String_Concat()
 			$s .= '- Valar dohaeris' . PHP_EOL;
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count*$stringConcatLoopRepeat, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count * $stringConcatLoopRepeat, memory_get_usage(true));
 }
 
 function test_03_1_String_Number_Concat()
@@ -637,7 +636,7 @@ function test_03_1_String_Number_Concat()
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; ++$i) {
 		$f = $i * 1.0;
-		$s = 'This is number '.$i.' string concat. Число: ' . $f . PHP_EOL;
+		$s = 'This is number ' . $i . ' string concat. Число: ' . $f . PHP_EOL;
 	}
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
@@ -902,9 +901,23 @@ function test_13_Array_Fill()
 				$X[$i][$j] = $i * $j;
 			}
 		}
-		unset($X);
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, memory_get_usage(true));
+}
+
+function test_14_Array_Range()
+{
+	global $testsLoopLimits, $arrayDimensionLimit;
+
+	$arrayTestLoopLimit = $testsLoopLimits['14_array_loop'];
+	$time_start = get_microtime();
+	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
+		$x = range(0, $arrayDimensionLimit);
+		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
+			$x[$i] = range(0, $arrayDimensionLimit);
+		}
+	}
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, memory_get_usage(true));
 }
 
 function test_14_Array_Unset()
@@ -914,20 +927,19 @@ function test_14_Array_Unset()
 	$arrayTestLoopLimit = $testsLoopLimits['14_array_loop'];
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
-
-		$X = range(0, $arrayDimensionLimit);
+		$x = range(0, $arrayDimensionLimit);
 		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
-			$X[$i] = range(0, $arrayDimensionLimit);
+			$x[$i] = range(0, $arrayDimensionLimit);
 		}
-		for ($i = $arrayDimensionLimit - 1; $i >= 0; $i--) {
-			for ($j = 0; $j < $arrayDimensionLimit; ++$j) {
-				unset($X[$i][$j]);
+		for ($i = $arrayDimensionLimit; $i >= 0; $i--) {
+			for ($j = 0; $j <= $arrayDimensionLimit; ++$j) {
+				unset($x[$i][$j]);
 			}
-			unset($X[$i]);
+			unset($x[$i]);
 		}
-		unset($X);
+		unset($x);
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2)*$arrayTestLoopLimit, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, memory_get_usage(true));
 }
 
 function test_15_Loops()
@@ -1041,7 +1053,6 @@ function test_20_Type_Conversion()
 	}
 	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
 }
-
 
 
 if ((int)$phpversion[0] >= 5) {
