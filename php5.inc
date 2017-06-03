@@ -16,5 +16,5 @@ function test_21_Loop_ExceptionTryCatch()
 		} catch (Exception $e) {
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }

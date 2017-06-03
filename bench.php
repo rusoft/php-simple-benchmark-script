@@ -173,7 +173,7 @@ $cryptAlgoName = 'default';
 // That gives around 256Mb memory use and reasonable test time
 $testMemoryFull = 256 * 1024 * 1024;
 // Arrays are matrix [$dimention] x [$dimention]
-$arrayDimensionLimit = 400;
+$arrayDimensionLimit = 500;
 
 // That limit gives around 256Mb too
 $stringConcatLoopRepeat = 1;
@@ -184,13 +184,13 @@ $stringConcatLoopRepeat = 1;
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 210,
-	'5.2' => 135,
-	'5.3' => 115,
+	'4.4' => 220,
+	'5.2' => 140,
+	'5.3' => 120,
 	// 5.4, 5.5, 5.6
 	'5' => 105,
 	// 7.0, 7.1
-	'7' => 52,
+	'7' => 58,
 );
 $dumbTestMaxPhpTimes = array(
 	'4.4' => 0.894,
@@ -218,8 +218,8 @@ $testsLoopLimits = array(
 	'10_json_decode'	=> 1300000,
 	'11_serialize'		=> 1300000,
 	'12_unserialize'	=> 1300000,
-	'13_array_loop'		=> 300,
-	'14_array_loop'		=> 300,
+	'13_array_loop'		=> 200,
+	'14_array_loop'		=> 200,
 	'15_loops'			=> 190000000,
 	'16_loop_ifelse'	=> 90000000,
 	'17_loop_ternary'	=> 90000000,
@@ -228,6 +228,8 @@ $testsLoopLimits = array(
 	'19_type_func'		=> 5000000,
 	'20_type_conv'		=> 5000000,
 	'21_loop_except'	=> 4000000,
+	'22_loop_nullop'	=> 50000000,
+	'23_loop_spaceship'	=> 50000000,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -435,6 +437,18 @@ function dumb_test_Functions()
 	return get_microtime() - $time_start;
 }
 
+function mymemory_usage()
+{
+	$m = memory_get_usage(true);
+	if (!$m) {
+		// If Zend Memory Manager disabled
+		// Dummy, not accurate
+		$dat = getrusage();
+		$m = $dat["ru_maxrss"];
+	}
+	return $m;
+}
+
 
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
@@ -597,20 +611,21 @@ function test_01_Math()
 {
 	global $testsLoopLimits;
 
-	$count = $testsLoopLimits['01_math'];
-	$time_start = get_microtime();
 	$mathFunctions = array('abs', 'acos', 'asin', 'atan', 'decbin', 'dechex', 'decoct', 'floor', 'exp', 'log1p', 'sin', 'tan', 'pi', 'is_finite', 'is_nan', 'sqrt', 'rad2deg');
 	foreach ($mathFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($mathFunctions[$key]);
 		}
 	}
+
+	$count = $testsLoopLimits['01_math'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($mathFunctions as $function) {
 			$r = call_user_func_array($function, array($i));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_02_String_Concat()
@@ -625,7 +640,7 @@ function test_02_String_Concat()
 			$s .= '- Valar dohaeris' . PHP_EOL;
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count * $stringConcatLoopRepeat, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count * $stringConcatLoopRepeat, mymemory_usage());
 }
 
 function test_03_1_String_Number_Concat()
@@ -638,7 +653,7 @@ function test_03_1_String_Number_Concat()
 		$f = $i * 1.0;
 		$s = 'This is number ' . $i . ' string concat. Число: ' . $f . PHP_EOL;
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_03_2_String_Number_Format()
@@ -651,27 +666,28 @@ function test_03_2_String_Number_Format()
 		$f = $i * 1.0;
 		$s = "This is number $i string format. Число: $f\n";
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_04_String_Simple_Functions()
 {
 	global $stringTest, $testsLoopLimits;
 
-	$count = $testsLoopLimits['04_string_simple'];
-	$time_start = get_microtime();
 	$stringFunctions = array('strtoupper', 'strtolower', 'strrev', 'strlen', 'str_rot13', 'ord', 'trim');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
 		}
 	}
+
+	$count = $testsLoopLimits['04_string_simple'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($stringFunctions as $function) {
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_05_String_Multibyte()
@@ -682,39 +698,42 @@ function test_05_String_Multibyte()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['05_string_mb'];
-	$time_start = get_microtime();
 	$stringFunctions = array('mb_strtoupper', 'mb_strtolower', 'mb_strlen', 'mb_strwidth');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
 		}
 	}
+
+	$count = $testsLoopLimits['05_string_mb'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($stringFunctions as $function) {
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_06_String_Manipulation()
 {
 	global $stringTest, $testsLoopLimits;
-	$count = $testsLoopLimits['06_string_manip'];
-	$time_start = get_microtime();
+
 	$stringFunctions = array('addslashes', 'chunk_split', 'metaphone', 'strip_tags', 'soundex', 'wordwrap');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
 		}
 	}
+
+	$count = $testsLoopLimits['06_string_manip'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($stringFunctions as $function) {
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_07_Regex()
@@ -733,45 +752,49 @@ function test_07_Regex()
 			$r = call_user_func_array($function, array($regexPattern, $stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_08_1_Hashing()
 {
 	global $stringTest, $testsLoopLimits;
-	$count = $testsLoopLimits['08_1_hashing'];
-	$time_start = get_microtime();
+
 	$stringFunctions = array('crc32', 'md5', 'sha1');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
 		}
 	}
+
+	$count = $testsLoopLimits['08_1_hashing'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($stringFunctions as $function) {
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_08_2_Crypt()
 {
 	global $stringTest, $cryptSalt, $testsLoopLimits;
-	$count = $testsLoopLimits['08_2_crypt'];
-	$time_start = get_microtime();
+
 	$stringFunctions = array('crypt');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
 		}
 	}
+
+	$count = $testsLoopLimits['08_2_crypt'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($stringFunctions as $function) {
 			$r = call_user_func_array($function, array($stringTest, $cryptSalt));
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_09_Json_Encode()
@@ -782,8 +805,6 @@ function test_09_Json_Encode()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['09_json_encode'];
-	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
 		123456,
@@ -793,12 +814,15 @@ function test_09_Json_Encode()
 		false,
 		new stdClass(),
 	);
+
+	$count = $testsLoopLimits['09_json_encode'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($data as $value) {
 			$r = json_encode($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_10_Json_Decode()
@@ -809,8 +833,6 @@ function test_10_Json_Decode()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['10_json_decode'];
-	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
 		123456,
@@ -823,12 +845,15 @@ function test_10_Json_Decode()
 	foreach ($data as $key => $value) {
 		$data[$key] = json_encode($value);
 	}
+
+	$count = $testsLoopLimits['10_json_decode'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($data as $value) {
 			$r = json_decode($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_11_Serialize()
@@ -839,8 +864,6 @@ function test_11_Serialize()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['11_serialize'];
-	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
 		123456,
@@ -850,12 +873,15 @@ function test_11_Serialize()
 		false,
 		new stdClass(),
 	);
+
+	$count = $testsLoopLimits['11_serialize'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($data as $value) {
 			$r = serialize($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_12_Unserialize()
@@ -866,8 +892,6 @@ function test_12_Unserialize()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['12_unserialize'];
-	$time_start = get_microtime();
 	$data = array(
 		$stringTest,
 		123456,
@@ -880,12 +904,15 @@ function test_12_Unserialize()
 	foreach ($data as $key => $value) {
 		$data[$key] = serialize($value);
 	}
+
+	$count = $testsLoopLimits['12_unserialize'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($data as $value) {
 			$r = unserialize($value);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_13_Array_Fill()
@@ -902,7 +929,7 @@ function test_13_Array_Fill()
 			}
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, mymemory_usage());
 }
 
 function test_14_Array_Range()
@@ -917,29 +944,30 @@ function test_14_Array_Range()
 			$x[$i] = range(0, $arrayDimensionLimit);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $arrayDimensionLimit * $arrayTestLoopLimit, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $arrayDimensionLimit * $arrayTestLoopLimit, mymemory_usage());
 }
 
 function test_14_Array_Unset()
 {
 	global $testsLoopLimits, $arrayDimensionLimit;
 
+	$xx = range(0, $arrayDimensionLimit);
+	for ($i = 0; $i < $arrayDimensionLimit; $i++) {
+		$xx[$i] = range(0, $arrayDimensionLimit);
+	}
+
 	$arrayTestLoopLimit = $testsLoopLimits['14_array_loop'];
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
-		$x = range(0, $arrayDimensionLimit);
-		for ($i = 0; $i < $arrayDimensionLimit; $i++) {
-			$x[$i] = range(0, $arrayDimensionLimit);
-		}
+		$x = $xx;
 		for ($i = $arrayDimensionLimit; $i >= 0; $i--) {
 			for ($j = 0; $j <= $arrayDimensionLimit; $j++) {
 				unset($x[$i][$j]);
 			}
 			unset($x[$i]);
 		}
-		unset($x);
 	}
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, mymemory_usage());
 }
 
 function test_15_Loops()
@@ -951,7 +979,7 @@ function test_15_Loops()
 	for ($i = 0; $i < $count; ++$i) ;
 	$i = 0;
 	while ($i++ < $count) ;
-	return format_result_test(get_microtime() - $time_start, $count * 2, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count * 2, mymemory_usage());
 }
 
 function test_16_Loop_IfElse()
@@ -967,7 +995,7 @@ function test_16_Loop_IfElse()
 		} else {
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_17_Loop_Ternary()
@@ -985,45 +1013,48 @@ function test_17_Loop_Ternary()
 				: 1)
 			: 0;
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_18_1_Loop_Defined_Access()
 {
 	global $testsLoopLimits;
 
-	$count = $testsLoopLimits['18_1_loop_def'];
-	$time_start = get_microtime();
 	$a = array(0 => 1, 1 => 0);
 	$r = 0;
+
+	$count = $testsLoopLimits['18_1_loop_def'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r += $a[$i % 2];
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_18_2_Loop_Undefined_Access()
 {
 	global $testsLoopLimits;
 
-	$count = $testsLoopLimits['18_2_loop_undef'];
-	$time_start = get_microtime();
 	$a = array();
 	$r = 0;
+
+	$count = $testsLoopLimits['18_2_loop_undef'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r += @$a[$i % 2] ? 0 : 1;
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_19_Type_Functions()
 {
 	global $testsLoopLimits;
 
-	$count = $testsLoopLimits['20_type_conv'];
-	$time_start = get_microtime();
 	$ia = array('123456', '0.000001', '0x123');
 	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
+
+	$count = $testsLoopLimits['20_type_conv'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($ia as $n) {
 			$r = intval($n);
@@ -1032,17 +1063,18 @@ function test_19_Type_Functions()
 			$r = floatval($n);
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_20_Type_Conversion()
 {
 	global $testsLoopLimits;
 
-	$count = $testsLoopLimits['20_type_conv'];
-	$time_start = get_microtime();
 	$ia = array('123456', '0.000001', '0x123');
 	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
+
+	$count = $testsLoopLimits['20_type_conv'];
+	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($ia as $n) {
 			$r = (int)$n;
@@ -1051,7 +1083,7 @@ function test_20_Type_Conversion()
 			$r = (float)$n;
 		}
 	}
-	return format_result_test(get_microtime() - $time_start, $count, memory_get_usage(true));
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 
@@ -1060,6 +1092,14 @@ if ((int)$phpversion[0] >= 5) {
 		include_once 'php5.inc';
 	} else {
 		print("<pre>\n<<< WARNING >>>\nMissing file 'php5.inc' with try/Exception/catch loop test!\n It matters only for php version 5+.\n</pre>");
+	}
+}
+
+if ((int)$phpversion[0] >= 7) {
+	if (is_file('php7.inc')) {
+		include_once 'php7.inc';
+	} else {
+		print("<pre>\n<<< WARNING >>>\nMissing file 'php7.inc' with PHP 7 new features tests!\n It matters only for php version 7+.\n</pre>");
 	}
 }
 
@@ -1102,7 +1142,7 @@ foreach ($functions['user'] as $user) {
 
 echo $line . "\n"
 	. str_pad("Total time:", $padLabel) . " : " . number_format($total, 3) . " sec.\n"
-	. str_pad("Current memory usage:", $padLabel) . " : " . convert(memory_get_usage()) . ".\n"
+	. str_pad("Current memory usage:", $padLabel) . " : " . convert(mymemory_usage()) . ".\n"
 	// Hi from php-4
 	. (function_exists('memory_get_peak_usage') ? str_pad("Peak memory usage:", $padLabel) . " : " . convert(memory_get_peak_usage()) . ".\n" : '')
 	. "</pre>\n";
