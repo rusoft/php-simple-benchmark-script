@@ -56,6 +56,10 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 
 ## ChangeLog
 
+@ 2017-09-04, v1.0.24
+
+ * Поправили пересчет времени тестов, если процессор Atom или ARM
+
 @ 2017-09-04, v1.0.23
 
  * Обновили тест на работу с try-catch блоком - отдельные под-тесты: без блока, блок без exception, и с exception

@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Sep 04, 2017                                                  #
-#  version     : 1.0.23                                                        #
+#  version     : 1.0.24                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.23';
+$scriptVersion = '1.0.24';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -554,12 +554,6 @@ if ($maxTime) {
 	}
 }
 
-$cpuModel = $cpuInfo['model'];
-if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
-	print("<pre>\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n</pre>" . PHP_EOL);
-	$factor = 1.0/3;
-}
-
 if ($factor < 1.0) {
 	// Adjust more only if maxTime too small
 	if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
@@ -573,7 +567,15 @@ if ($factor < 1.0) {
 	if ($dumbTestTime > $dumbTestTimeMax) {
 		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
 	}
+}
 
+$cpuModel = $cpuInfo['model'];
+if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
+	print("<pre>\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n</pre>" . PHP_EOL);
+	$factor = 1.0/3;
+}
+
+if ($factor < 1.0) {
 	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
 	foreach ($testsLoopLimits as $tst => $loops) {
 		$testsLoopLimits[$tst] = (int)($loops * $factor);
