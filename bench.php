@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Jun 03, 2017                                                  #
-#  version     : 1.0.22                                                        #
+#  Date        : Sep 04, 2017                                                  #
+#  version     : 1.0.23                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.22';
+$scriptVersion = '1.0.23';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -181,7 +181,7 @@ $stringConcatLoopRepeat = 1;
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3800;
+$loopMaxPhpTimesMHz = 3900;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
 	'4.4' => 220,
@@ -359,7 +359,7 @@ function getCpuInfo($fireUpCpu = false)
 
 	if ($fireUpCpu) {
 		// Fire up CPU, Don't waste much time here
-		$i = 20000000;
+		$i = 30000000;
 		while ($i--) ;
 	}
 
@@ -495,7 +495,7 @@ if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
 
 $cpuInfo = getCpuInfo();
 // CPU throttling?
-if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 400) {
+if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
 	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
 	// TIME WASTED HERE
 	$cpuInfo = getCpuInfo(true);
@@ -553,6 +553,13 @@ if ($maxTime) {
 		$factor = 1.0 * ($maxTime - 1) / $needTime;
 	}
 }
+
+$cpuModel = $cpuInfo['model'];
+if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
+	print("<pre>\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n</pre>" . PHP_EOL);
+	$factor = 1.0/3;
+}
+
 if ($factor < 1.0) {
 	// Adjust more only if maxTime too small
 	if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
@@ -567,7 +574,7 @@ if ($factor < 1.0) {
 		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
 	}
 
-	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\n Will try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
+	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
 	foreach ($testsLoopLimits as $tst => $loops) {
 		$testsLoopLimits[$tst] = (int)($loops * $factor);
 	}
