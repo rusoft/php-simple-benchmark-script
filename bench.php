@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Sep 04, 2017                                                  #
-#  version     : 1.0.24                                                        #
+#  Date        : Aug 06, 2018                                                  #
+#  version     : 1.0.25                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.24';
+$scriptVersion = '1.0.25';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -184,22 +184,22 @@ $stringConcatLoopRepeat = 1;
 $loopMaxPhpTimesMHz = 3900;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 220,
-	'5.2' => 140,
-	'5.3' => 120,
+	'4.4' => 230,
+	'5.2' => 147,
+	'5.3' => 126,
 	// 5.4, 5.5, 5.6
-	'5' => 105,
+	'5' => 115,
 	// 7.0, 7.1
-	'7' => 58,
+	'7' => 61,
 );
 $dumbTestMaxPhpTimes = array(
-	'4.4' => 0.894,
-	'5.2' => 0.596,
-	'5.3' => 0.566,
+	'4.4' => 1.3,
+	'5.2' => 0.97,
+	'5.3' => 0.95,
 	// 5.4, 5.5, 5.6
-	'5' => 0.578,
+	'5' => 0.95,
 	// 7.0, 7.1
-	'7' => 0.289,
+	'7' => 0.58,
 );
 $testsLoopLimits = array(
 	'01_math'			=> 1400000,
@@ -230,6 +230,8 @@ $testsLoopLimits = array(
 	'21_loop_except'	=> 4000000,
 	'22_loop_nullop'	=> 50000000,
 	'23_loop_spaceship'	=> 50000000,
+	'24_xmlrpc_encode'	=> 200000,
+	'25_xmlrpc_decode'	=> 30000,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -423,7 +425,7 @@ function dumb_test_Functions()
 
 	$count = 100000;
 	$time_start = get_microtime();
-	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode');
+	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode', 'xmlrpc_encode');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
@@ -1112,8 +1114,78 @@ if ((int)$phpversion[0] >= 7) {
 	}
 }
 
+
+function test_24_XmlRpc_Encode()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits;
+
+	if (!function_exists('xmlrpc_encode')) {
+		return $emptyResult;
+	}
+
+	$data = array(
+		$stringTest,
+		123456,
+		123.456,
+		array(123456),
+		null,
+		false,
+		new stdClass(),
+	);
+
+	$count = $testsLoopLimits['24_xmlrpc_encode'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		foreach ($data as $value) {
+			$r = xmlrpc_encode($value);
+		}
+	}
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_25_XmlRpc_Decode()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits;
+
+	if (!function_exists('xmlrpc_decode')) {
+		return $emptyResult;
+	}
+
+	$data = array(
+		$stringTest,
+		123456,
+		123.456,
+		array(123456),
+		null,
+		false,
+		new stdClass(),
+	);
+	foreach ($data as $key => $value) {
+		$data[$key] = xmlrpc_encode($value);
+	}
+
+	$count = $testsLoopLimits['25_xmlrpc_decode'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		foreach ($data as $value) {
+			$r = xmlrpc_decode($value);
+		}
+	}
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+
 /** ---------------------------------- Common code -------------------------------------------- */
 
+if (!function_exists('mb_strlen')) {
+	echo "<pre>Extenstion 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!</pre>";
+}
+if (!function_exists('json_encode')) {
+	echo "<pre>Extenstion 'json' not loaded or not compiled! JSON tests will produce empty result!</pre>";
+}
+if (!function_exists('xmlrpc_encode')) {
+	echo "<pre>Extenstion 'xmlrpc' not loaded or not compiled! XmlRpc tests will procude empty result!</pre>";
+}
 
 $total = 0;
 $functions = get_defined_functions();
