@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 07, 2018                                                  #
-#  version     : 1.0.27                                                        #
+#  version     : 1.0.28                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.27';
+$scriptVersion = '1.0.28';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -202,13 +202,13 @@ $stringConcatLoopRepeat = 1;
 $loopMaxPhpTimesMHz = 3700;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 230,
-	'5.2' => 147,
-	'5.3' => 126,
+	'4.4' => 235,
+	'5.2' => 150,
+	'5.3' => 130,
 	// 5.4, 5.5, 5.6
-	'5' => 115,
+	'5' => 130,
 	// 7.0, 7.1
-	'7' => 61,
+	'7' => 65,
 );
 $dumbTestMaxPhpTimes = array(
 	'4.4' => 1.3,
@@ -268,7 +268,10 @@ function get_microtime()
 function convert($size)
 {
 	$unit = array('b', 'kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb');
-	return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+	if ($size <= 0) $i = 0;
+	else $i = floor(log($size, 1024));
+	if ($i < 0) $i = 0;
+	return @round($size / pow(1024, $i), 2) . ' ' . $unit[$i];
 }
 
 function prefix_si($size)
@@ -1278,7 +1281,7 @@ echo "<pre>\n$line\n|"
 	. "$line\n";
 
 foreach ($functions['user'] as $user) {
-	if (preg_match('/^test_/', $user)) {
+	if (strpos($user, 'test_') === 0) {
 		$testName = str_replace('test_', '', $user);
 		echo str_pad($testName, $padLabel) . " :";
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
