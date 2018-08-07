@@ -3,14 +3,14 @@
 ################################################################################
 #                      PHP Benchmark Performance Script                        #
 #                           2010      Code24 BV                                #
-#                           2015-2017 Rusoft                                   #
+#                           2015-2018 Rusoft                                   #
 #                                                                              #
 #  Author      : Alessandro Torrisi                                            #
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Aug 06, 2018                                                  #
-#  version     : 1.0.25                                                        #
+#  Date        : Aug 07, 2018                                                  #
+#  version     : 1.0.26                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.25';
+$scriptVersion = '1.0.26';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -181,7 +181,7 @@ $stringConcatLoopRepeat = 1;
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3900;
+$loopMaxPhpTimesMHz = 3700;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
 	'4.4' => 230,
@@ -233,6 +233,7 @@ $testsLoopLimits = array(
 	'24_xmlrpc_encode'	=> 200000,
 	'25_xmlrpc_decode'	=> 30000,
 );
+$totalOps = 0;
 
 /** ---------------------------------- Common functions -------------------------------------------- */
 
@@ -620,7 +621,7 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 
 function test_01_Math()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$mathFunctions = array('abs', 'acos', 'asin', 'atan', 'decbin', 'dechex', 'decoct', 'floor', 'exp', 'log1p', 'sin', 'tan', 'pi', 'is_finite', 'is_nan', 'sqrt', 'rad2deg');
 	foreach ($mathFunctions as $key => $function) {
@@ -636,12 +637,13 @@ function test_01_Math()
 			$r = call_user_func_array($function, array($i));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_02_String_Concat()
 {
-	global $testsLoopLimits, $stringConcatLoopRepeat;
+	global $testsLoopLimits, $stringConcatLoopRepeat, $totalOps;
 
 	$count = $testsLoopLimits['02_string_concat'];
 	$time_start = get_microtime();
@@ -651,12 +653,13 @@ function test_02_String_Concat()
 			$s .= '- Valar dohaeris' . PHP_EOL;
 		}
 	}
+	$totalOps += $count * $stringConcatLoopRepeat;
 	return format_result_test(get_microtime() - $time_start, $count * $stringConcatLoopRepeat, mymemory_usage());
 }
 
 function test_03_1_String_Number_Concat()
 {
-	global $testsLoopLimits, $stringConcatLoopRepeat;
+	global $testsLoopLimits, $stringConcatLoopRepeat, $totalOps;
 
 	$count = $testsLoopLimits['03_1_string_number_concat'];
 	$time_start = get_microtime();
@@ -664,12 +667,13 @@ function test_03_1_String_Number_Concat()
 		$f = $i * 1.0;
 		$s = 'This is number ' . $i . ' string concat. Число: ' . $f . PHP_EOL;
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_03_2_String_Number_Format()
 {
-	global $testsLoopLimits, $stringConcatLoopRepeat;
+	global $testsLoopLimits, $stringConcatLoopRepeat, $totalOps;
 
 	$count = $testsLoopLimits['03_2_string_number_format'];
 	$time_start = get_microtime();
@@ -677,12 +681,13 @@ function test_03_2_String_Number_Format()
 		$f = $i * 1.0;
 		$s = "This is number $i string format. Число: $f\n";
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_04_String_Simple_Functions()
 {
-	global $stringTest, $testsLoopLimits;
+	global $stringTest, $testsLoopLimits, $totalOps;
 
 	$stringFunctions = array('strtoupper', 'strtolower', 'strrev', 'strlen', 'str_rot13', 'ord', 'trim');
 	foreach ($stringFunctions as $key => $function) {
@@ -698,12 +703,13 @@ function test_04_String_Simple_Functions()
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_05_String_Multibyte()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('mb_strlen')) {
 		return $emptyResult;
@@ -723,12 +729,13 @@ function test_05_String_Multibyte()
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_06_String_Manipulation()
 {
-	global $stringTest, $testsLoopLimits;
+	global $stringTest, $testsLoopLimits, $totalOps;
 
 	$stringFunctions = array('addslashes', 'chunk_split', 'metaphone', 'strip_tags', 'soundex', 'wordwrap');
 	foreach ($stringFunctions as $key => $function) {
@@ -744,12 +751,14 @@ function test_06_String_Manipulation()
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_07_Regex()
 {
-	global $stringTest, $regexPattern, $testsLoopLimits;
+	global $stringTest, $regexPattern, $testsLoopLimits, $totalOps;
+
 	$count = $testsLoopLimits['07_regex'];
 	$time_start = get_microtime();
 	$stringFunctions = array('preg_match', 'preg_split');
@@ -763,12 +772,13 @@ function test_07_Regex()
 			$r = call_user_func_array($function, array($regexPattern, $stringTest));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_08_1_Hashing()
 {
-	global $stringTest, $testsLoopLimits;
+	global $stringTest, $testsLoopLimits, $totalOps;
 
 	$stringFunctions = array('crc32', 'md5', 'sha1');
 	foreach ($stringFunctions as $key => $function) {
@@ -784,12 +794,13 @@ function test_08_1_Hashing()
 			$r = call_user_func_array($function, array($stringTest));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_08_2_Crypt()
 {
-	global $stringTest, $cryptSalt, $testsLoopLimits;
+	global $stringTest, $cryptSalt, $testsLoopLimits, $totalOps;
 
 	$stringFunctions = array('crypt');
 	foreach ($stringFunctions as $key => $function) {
@@ -805,12 +816,13 @@ function test_08_2_Crypt()
 			$r = call_user_func_array($function, array($stringTest, $cryptSalt));
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_09_Json_Encode()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('json_encode')) {
 		return $emptyResult;
@@ -833,12 +845,13 @@ function test_09_Json_Encode()
 			$r = json_encode($value);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_10_Json_Decode()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('json_decode')) {
 		return $emptyResult;
@@ -864,12 +877,13 @@ function test_10_Json_Decode()
 			$r = json_decode($value);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_11_Serialize()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('serialize')) {
 		return $emptyResult;
@@ -892,12 +906,13 @@ function test_11_Serialize()
 			$r = serialize($value);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_12_Unserialize()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('unserialize')) {
 		return $emptyResult;
@@ -923,12 +938,13 @@ function test_12_Unserialize()
 			$r = unserialize($value);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_13_Array_Fill()
 {
-	global $testsLoopLimits, $arrayDimensionLimit;
+	global $testsLoopLimits, $arrayDimensionLimit, $totalOps;
 
 	$arrayTestLoopLimit = $testsLoopLimits['13_array_loop'];
 	$time_start = get_microtime();
@@ -940,12 +956,13 @@ function test_13_Array_Fill()
 			}
 		}
 	}
+	$totalOps += pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit;
 	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, mymemory_usage());
 }
 
 function test_14_Array_Range()
 {
-	global $testsLoopLimits, $arrayDimensionLimit;
+	global $testsLoopLimits, $arrayDimensionLimit, $totalOps;
 
 	$arrayTestLoopLimit = $testsLoopLimits['14_array_loop'];
 	$time_start = get_microtime();
@@ -955,12 +972,13 @@ function test_14_Array_Range()
 			$x[$i] = range(0, $arrayDimensionLimit);
 		}
 	}
+	$totalOps += $arrayDimensionLimit * $arrayTestLoopLimit;
 	return format_result_test(get_microtime() - $time_start, $arrayDimensionLimit * $arrayTestLoopLimit, mymemory_usage());
 }
 
 function test_14_Array_Unset()
 {
-	global $testsLoopLimits, $arrayDimensionLimit;
+	global $testsLoopLimits, $arrayDimensionLimit, $totalOps;
 
 	$xx = range(0, $arrayDimensionLimit);
 	for ($i = 0; $i < $arrayDimensionLimit; $i++) {
@@ -978,24 +996,26 @@ function test_14_Array_Unset()
 			unset($x[$i]);
 		}
 	}
+	$totalOps += pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit;
 	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, mymemory_usage());
 }
 
 function test_15_Loops()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$count = $testsLoopLimits['15_loops'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; ++$i) ;
 	$i = 0;
 	while ($i++ < $count) ;
+	$totalOps += $count * 2;
 	return format_result_test(get_microtime() - $time_start, $count * 2, mymemory_usage());
 }
 
 function test_16_Loop_IfElse()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$count = $testsLoopLimits['16_loop_ifelse'];
 	$time_start = get_microtime();
@@ -1006,12 +1026,13 @@ function test_16_Loop_IfElse()
 		} else {
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_17_Loop_Ternary()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$count = $testsLoopLimits['17_loop_ternary'];
 	$time_start = get_microtime();
@@ -1024,12 +1045,13 @@ function test_17_Loop_Ternary()
 				: 1)
 			: 0;
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_18_1_Loop_Defined_Access()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$a = array(0 => 1, 1 => 0);
 	$r = 0;
@@ -1039,12 +1061,13 @@ function test_18_1_Loop_Defined_Access()
 	for ($i = 0; $i < $count; $i++) {
 		$r += $a[$i % 2];
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_18_2_Loop_Undefined_Access()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$a = array();
 	$r = 0;
@@ -1054,12 +1077,13 @@ function test_18_2_Loop_Undefined_Access()
 	for ($i = 0; $i < $count; $i++) {
 		$r += @$a[$i % 2] ? 0 : 1;
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_19_Type_Functions()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$ia = array('123456', '0.000001', '0x123');
 	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
@@ -1074,12 +1098,13 @@ function test_19_Type_Functions()
 			$r = floatval($n);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_20_Type_Conversion()
 {
-	global $testsLoopLimits;
+	global $testsLoopLimits, $totalOps;
 
 	$ia = array('123456', '0.000001', '0x123');
 	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
@@ -1094,6 +1119,7 @@ function test_20_Type_Conversion()
 			$r = (float)$n;
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
@@ -1117,7 +1143,7 @@ if ((int)$phpversion[0] >= 7) {
 
 function test_24_XmlRpc_Encode()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('xmlrpc_encode')) {
 		return $emptyResult;
@@ -1140,12 +1166,13 @@ function test_24_XmlRpc_Encode()
 			$r = xmlrpc_encode($value);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_25_XmlRpc_Decode()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits;
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('xmlrpc_decode')) {
 		return $emptyResult;
@@ -1171,20 +1198,32 @@ function test_25_XmlRpc_Decode()
 			$r = xmlrpc_decode($value);
 		}
 	}
+	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 
 /** ---------------------------------- Common code -------------------------------------------- */
 
+$has_mbstring = "yes";
 if (!function_exists('mb_strlen')) {
 	echo "<pre>Extenstion 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!</pre>";
+	$has_mbstring = "no";
 }
+$has_json = "yes";
 if (!function_exists('json_encode')) {
 	echo "<pre>Extenstion 'json' not loaded or not compiled! JSON tests will produce empty result!</pre>";
+	$has_json = "no";
 }
+$has_xmlrpc = "yes";
 if (!function_exists('xmlrpc_encode')) {
 	echo "<pre>Extenstion 'xmlrpc' not loaded or not compiled! XmlRpc tests will procude empty result!</pre>";
+	$has_xmlrpc = "no";
+}
+$has_pcre = "yes";
+if (!function_exists('preg_match')) {
+	echo "<pre>Extenstion 'pcre' not loaded or not compiled! Regex tests will procude empty result!</pre>";
+	$has_pcre = "no";
 }
 
 $total = 0;
@@ -1204,7 +1243,12 @@ echo "<pre>\n$line\n|"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("Benchmark version:", $padInfo) . " : " . $scriptVersion . "\n"
 	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
-	. str_pad("Max execution time:", $padInfo) . " : " . $maxTime . " sec.\n"
+	. str_pad(" ", $padInfo, ' ', STR_PAD_LEFT) . " : available modules" . "\n"
+	. str_pad("mbstring:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
+	. str_pad("json:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
+	. str_pad("xmlrpc:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xmlrpc\n"
+	. str_pad("pcre:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
+	. str_pad("Max execution time:", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo:", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. "$line\n"
 	. str_pad('TEST NAME', $padLabel) . " :"
@@ -1221,9 +1265,15 @@ foreach ($functions['user'] as $user) {
 	}
 }
 
-echo $line . "\n"
-	. str_pad("Total time:", $padLabel) . " : " . number_format($total, 3) . " sec.\n"
-	. str_pad("Current memory usage:", $padLabel) . " : " . convert(mymemory_usage()) . ".\n"
-	// Hi from php-4
-	. (function_exists('memory_get_peak_usage') ? str_pad("Peak memory usage:", $padLabel) . " : " . convert(memory_get_peak_usage()) . ".\n" : '')
+list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
+
+echo "$line\n"
+	. str_pad("Total time:", $padLabel) . " :";
+echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
+echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 11, ' ', STR_PAD_LEFT) . "\n"
+	// php-4 don't have peak_usage function
+	. (function_exists('memory_get_peak_usage')
+		? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 11, ' ', STR_PAD_LEFT) . "\n"
+		 : ''
+	)
 	. "</pre>\n";
