@@ -24,9 +24,10 @@
 
 Команда:
 ```
-php bench.php [-h|--help] [-m|--memory-limit=256] [-t|--time-limit=600]
+php bench.php [-h|--help] [-d|--dont-recalc] [-m|--memory-limit=256] [-t|--time-limit=600]
 
 	-h|--help		- вывод помощи и выход
+	-d|--dont-recalc		- не пересчитывать время выполнения тестов, если ограничения слишком низкие
 	-m|--memory-limit <Mb>	- установка значения параметра `memory_limit` в Мб, по-умолчанию равно 256 (Мб)
 	-t|--time-limit <sec>	- установка значения параметра `max_execution_time` в секундах, по-умолчанию равно 600 (сек.)
 ```
@@ -34,7 +35,7 @@ php bench.php [-h|--help] [-m|--memory-limit=256] [-t|--time-limit=600]
 
 Второй вариант передачи значений для параметров - переменные окружения:
 ```
-env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
+env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 DONT_RECALCULATE_LIMITS=1 php bench.php
 ```
 
 ### 2. Через веб-сервера (apache + php)
@@ -42,7 +43,7 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 Просто положите в любую доступную для выполнения php директорию сайта, например в корень.
 
 Потом скрипт можно будет вызывать с параметрами, как из консоли:
-`curl http://www.example.com/bench.php?memory_limit=64&time_limit=30`
+`curl http://www.example.com/bench.php?memory_limit=64&time_limit=30&dont_recalculate_limits=1`
 или через браузер.
 
 ### Учет параметров хостинга
@@ -55,6 +56,10 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 Пересчет времени выполнения скрипта будет произведен по наименьшим результирующим значениям.
 
 ## ChangeLog
+
+@ 2018-08-07, v1.0.27
+
+ * Добавили новый параметр, отключающий пересчет ограничений по времени для тестов
 
 @ 2018-08-07, v1.0.26
 

@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 07, 2018                                                  #
-#  version     : 1.0.26                                                        #
+#  version     : 1.0.27                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.26';
+$scriptVersion = '1.0.27';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -46,6 +46,8 @@ $defaultTimeLimit = 600;
 /* Default PHP memory limit in Mb */
 $defaultMemoryLimit = 256;
 
+$recalculateLimits = 1;
+
 if ((int)getenv('PHP_TIME_LIMIT')) {
 	$defaultTimeLimit = (int)getenv('PHP_TIME_LIMIT');
 }
@@ -60,13 +62,22 @@ if (isset($_GET['memory_limit']) && (int)$_GET['memory_limit']) {
 	$defaultMemoryLimit = (int)$_GET['memory_limit'];
 }
 
+if ((int)getenv('DONT_RECALCULATE_LIMITS')) {
+	$recalculateLimits = 0;
+}
+if (isset($_GET['dont_recalculate_limits']) && (int)$_GET['dont_recalculate_limits']) {
+	$recalculateLimits = 0;
+}
+
 // http://php.net/manual/ru/function.getopt.php example #2
 $shortopts = "h";
+$shortopts .= "d";
 $shortopts .= "m:";       // Обязательное значение
 $shortopts .= "t:";       // Обязательное значение
 
 $longopts = array(
 	"help",
+	"dont-recalc",
 	"memory-limit:",      // Обязательное значение
 	"time-limit:",        // Обязательное значение
 );
@@ -94,9 +105,10 @@ if ($options) {
 						'<pre>' . PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-m|--memory-limit=256] [-t|--time-limit=600]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-m|--memory-limit=256] [-t|--time-limit=600]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
+						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. PHP_EOL
@@ -108,9 +120,10 @@ if ($options) {
 						'<pre>' . PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-m 256] [-t 600]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-m 256] [-t 600]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
+						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. PHP_EOL
@@ -128,6 +141,11 @@ if ($options) {
 				} else {
 					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
 				}
+				break;
+
+			case 'd':
+			case 'dont-recalc':
+				$recalculateLimits = 0;
 				break;
 
 			case 't':
@@ -549,6 +567,8 @@ if (isset($dumbTestMaxPhpTimes[$pv])) {
 	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$phpversion[0]];
 }
 
+if ($recalculateLimits) {
+
 $factor = 1.0;
 // Don't bother if time is unlimited
 if ($maxTime) {
@@ -584,6 +604,8 @@ if ($factor < 1.0) {
 		$testsLoopLimits[$tst] = (int)($loops * $factor);
 	}
 }
+
+} // recalculate time limits
 
 /** ---------------------------------- Common functions for tests -------------------------------------------- */
 
