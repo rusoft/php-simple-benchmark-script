@@ -57,6 +57,11 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 DONT_RECALCULATE_LIMITS=1 php bench.ph
 
 ## ChangeLog
 
+@ 2018-08-08, v1.0.28.1
+
+ * Поправили вывод секунд - нужно на один символ больше места
+ * Немного поменяли вывод информации
+
 @ 2018-08-07, v1.0.28
 
  * Поправили пересчет размеров в единицы байт, при 0 происходила мат.ошибка
@@ -214,60 +219,60 @@ CPU is in powersaving mode? Set CPU governor to 'performance'!
 -------------------------------------------------------------------------------------------
 |                                  PHP BENCHMARK SCRIPT                                   |
 -------------------------------------------------------------------------------------------
-Start:              : 2018-08-07 14:38:05
-Server:             : Linux/4.15.0-29-generic x86_64
-Platform:           : Linux
-CPU:                :
+Start               : 2018-08-08 03:09:33
+Server              : Linux/4.15.0-29-generic x86_64
+Platform            : Linux
+CPU                 :
               model : Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
               cores : 4
-                MHz : 3728.681MHz
+                MHz : 3660.916MHz
 Memory              : 256 Mb available
-Benchmark version:  : 1.0.26
-PHP version:        : 7.0.23-Ubuntu/16.04-SergeyD/11.1
-                    : available modules
-          mbstring: : yes
-              json: : yes
-            xmlrpc: : yes
-              pcre: : yes
-Max execution time: : 600 sec
-Crypt hash algo:    : MD5
+Benchmark version   : 1.0.28.1
+PHP version         : 7.0.23-Ubuntu/16.04-SergeyD/11.1
+  available modules :
+           mbstring : yes
+               json : yes
+             xmlrpc : yes
+               pcre : yes
+Max execution time  : 600 sec
+Crypt hash algo     : MD5
 -------------------------------------------------------------------------------------------
-TEST NAME                       :     SECONDS |       OP/SEC |      OP/SEC/MHz |    MEMORY
+TEST NAME                      :      SECONDS |       OP/SEC |      OP/SEC/MHz |    MEMORY
 -------------------------------------------------------------------------------------------
-01_math                         :   2.759 sec | 507.47 kOp/s | 136.10  Ops/MHz |      2 Mb
-02_string_concat                :   0.250 sec |  30.80 MOp/s |   8.26 kOps/MHz | 128.84 Mb
-03_1_string_number_concat       :   1.769 sec |   2.83 MOp/s | 757.88  Ops/MHz |      4 Mb
-03_2_string_number_format       :   1.507 sec |   3.32 MOp/s | 889.74  Ops/MHz |      4 Mb
-04_string_simple_functions      :   1.690 sec | 769.43 kOp/s | 206.35  Ops/MHz |      4 Mb
-05_string_multibyte             :   4.536 sec |  28.66 kOp/s |   7.69  Ops/MHz |      4 Mb
-06_string_manipulation          :   2.414 sec | 538.54 kOp/s | 144.43  Ops/MHz |      4 Mb
-07_regex                        :   1.938 sec | 670.81 kOp/s | 179.91  Ops/MHz |      4 Mb
-08_1_hashing                    :   2.039 sec | 637.71 kOp/s | 171.03  Ops/MHz |      4 Mb
-08_2_crypt                      :   6.076 sec |   1.65 kOp/s |   0.44  Ops/MHz |      4 Mb
-09_json_encode                  :   1.603 sec | 810.89 kOp/s | 217.47  Ops/MHz |      4 Mb
-10_json_decode                  :   1.957 sec | 664.15 kOp/s | 178.12  Ops/MHz |      4 Mb
-11_serialize                    :   1.230 sec |   1.06 MOp/s | 283.48  Ops/MHz |      4 Mb
-12_unserialize                  :   1.829 sec | 710.61 kOp/s | 190.58  Ops/MHz |      4 Mb
-13_array_fill                   :   2.121 sec |  23.58 MOp/s |   6.32 kOps/MHz |     12 Mb
-14_array_range                  :   0.548 sec | 182.50 kOp/s |  48.95  Ops/MHz |     12 Mb
-14_array_unset                  :   1.542 sec |  32.42 MOp/s |   8.69 kOps/MHz |     12 Mb
-15_loops                        :   1.957 sec | 194.13 MOp/s |  52.06 kOps/MHz |      4 Mb
-16_loop_ifelse                  :   1.569 sec |  57.37 MOp/s |  15.39 kOps/MHz |      4 Mb
-17_loop_ternary                 :   3.060 sec |  29.42 MOp/s |   7.89 kOps/MHz |      4 Mb
-18_1_loop_defined_access        :   0.531 sec |  37.68 MOp/s |  10.11 kOps/MHz |      4 Mb
-18_2_loop_undefined_access      :   3.722 sec |   5.37 MOp/s |   1.44 kOps/MHz |      4 Mb
-19_type_functions               :   1.655 sec |   3.02 MOp/s | 810.16  Ops/MHz |      4 Mb
-20_type_conversion              :   1.094 sec |   4.57 MOp/s |   1.23 kOps/MHz |      4 Mb
-21_0_loop_exception_none        :   0.029 sec | 137.48 MOp/s |  36.87 kOps/MHz |      4 Mb
-21_1_loop_exception_try         :   0.037 sec | 109.15 MOp/s |  29.27 kOps/MHz |      4 Mb
-21_2_loop_exception_catch       :   2.149 sec |   1.86 MOp/s | 499.22  Ops/MHz |      4 Mb
-22_loop_null_op                 :   1.303 sec |  38.36 MOp/s |  10.29 kOps/MHz |      4 Mb
-23_loop_spaceship_op            :   1.159 sec |  43.14 MOp/s |  11.57 kOps/MHz |      4 Mb
-24_xmlrpc_encode                :   2.621 sec |  76.30 kOp/s |  20.46  Ops/MHz |      4 Mb
-25_xmlrpc_decode                :   3.428 sec |   8.75 kOp/s |   2.35  Ops/MHz |      4 Mb
+01_math                        :    2.717 sec | 515.18 kOp/s | 140.72  Ops/MHz |      2 Mb
+02_string_concat               :    0.243 sec |  31.67 MOp/s |   8.65 kOps/MHz | 128.84 Mb
+03_1_string_number_concat      :    1.760 sec |   2.84 MOp/s | 776.11  Ops/MHz |      4 Mb
+03_2_string_number_format      :    1.462 sec |   3.42 MOp/s | 934.05  Ops/MHz |      4 Mb
+04_string_simple_functions     :    1.672 sec | 777.53 kOp/s | 212.39  Ops/MHz |      4 Mb
+05_string_multibyte            :    4.475 sec |  29.05 kOp/s |   7.94  Ops/MHz |      4 Mb
+06_string_manipulation         :    2.488 sec | 522.51 kOp/s | 142.73  Ops/MHz |      4 Mb
+07_regex                       :    1.943 sec | 669.17 kOp/s | 182.79  Ops/MHz |      4 Mb
+08_1_hashing                   :    2.069 sec | 628.45 kOp/s | 171.66  Ops/MHz |      4 Mb
+08_2_crypt                     :    6.094 sec |   1.64 kOp/s |   0.45  Ops/MHz |      4 Mb
+09_json_encode                 :    1.570 sec | 828.13 kOp/s | 226.21  Ops/MHz |      4 Mb
+10_json_decode                 :    1.946 sec | 667.98 kOp/s | 182.46  Ops/MHz |      4 Mb
+11_serialize                   :    1.253 sec |   1.04 MOp/s | 283.35  Ops/MHz |      4 Mb
+12_unserialize                 :    1.731 sec | 751.18 kOp/s | 205.19  Ops/MHz |      4 Mb
+13_array_fill                  :    2.105 sec |  23.75 MOp/s |   6.49 kOps/MHz |     12 Mb
+14_array_range                 :    0.560 sec | 178.56 kOp/s |  48.78  Ops/MHz |     12 Mb
+14_array_unset                 :    1.547 sec |  32.31 MOp/s |   8.83 kOps/MHz |     12 Mb
+15_loops                       :    1.955 sec | 194.36 MOp/s |  53.09 kOps/MHz |      4 Mb
+16_loop_ifelse                 :    1.569 sec |  57.37 MOp/s |  15.67 kOps/MHz |      4 Mb
+17_loop_ternary                :    3.066 sec |  29.36 MOp/s |   8.02 kOps/MHz |      4 Mb
+18_1_loop_defined_access       :    0.524 sec |  38.20 MOp/s |  10.44 kOps/MHz |      4 Mb
+18_2_loop_undefined_access     :    3.680 sec |   5.43 MOp/s |   1.48 kOps/MHz |      4 Mb
+19_type_functions              :    1.627 sec |   3.07 MOp/s | 839.30  Ops/MHz |      4 Mb
+20_type_conversion             :    1.086 sec |   4.60 MOp/s |   1.26 kOps/MHz |      4 Mb
+21_0_loop_exception_none       :    0.030 sec | 133.25 MOp/s |  36.40 kOps/MHz |      4 Mb
+21_1_loop_exception_try        :    0.036 sec | 111.55 MOp/s |  30.47 kOps/MHz |      4 Mb
+21_2_loop_exception_catch      :    2.125 sec |   1.88 MOp/s | 514.07  Ops/MHz |      4 Mb
+22_loop_null_op                :    1.288 sec |  38.83 MOp/s |  10.61 kOps/MHz |      4 Mb
+23_loop_spaceship_op           :    1.151 sec |  43.45 MOp/s |  11.87 kOps/MHz |      4 Mb
+24_xmlrpc_encode               :    2.653 sec |  75.39 kOp/s |  20.59  Ops/MHz |      4 Mb
+25_xmlrpc_decode               :    3.468 sec |   8.65 kOp/s |   2.36  Ops/MHz |      4 Mb
 -------------------------------------------------------------------------------------------
-Total time:                     :  60.122 sec |  12.31 MOp/s |   3.30 kOps/MHz |
-Current PHP memory usage:       :       4 Mb
-Peak PHP memory usage:          :  125.26 Mb
+Total time:                    :   59.892 sec |  12.36 MOp/s |   3.37 kOps/MHz |
+Current PHP memory usage:      :        4 Mb
+Peak PHP memory usage:         :   125.26 Mb
 </pre>
 ```

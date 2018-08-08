@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 07, 2018                                                  #
-#  version     : 1.0.28                                                        #
+#  version     : 1.0.28.1                                                      #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.28';
+$scriptVersion = '1.0.28.1';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -181,7 +181,7 @@ header('X-Accel-Buffering: no');
 $line = str_pad("-", 91, "-");
 $padHeader = 89;
 $padInfo = 19;
-$padLabel = 31;
+$padLabel = 30;
 
 $emptyResult = array(0, '-.---', '-.--', '-.--', 0);
 
@@ -1258,26 +1258,26 @@ sort($functions['user']);
 echo "<pre>\n$line\n|"
 	. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
 	. "|\n$line\n"
-	. str_pad("Start:", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
-	. str_pad("Server:", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
-	. str_pad("Platform:", $padInfo) . " : " . PHP_OS . "\n"
-	. str_pad("CPU:", $padInfo) . " :\n"
+	. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
+	. str_pad("Server", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+	. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
+	. str_pad("CPU", $padInfo) . " :\n"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
 	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
-	. str_pad("Benchmark version:", $padInfo) . " : " . $scriptVersion . "\n"
-	. str_pad("PHP version:", $padInfo) . " : " . PHP_VERSION . "\n"
-	. str_pad(" ", $padInfo, ' ', STR_PAD_LEFT) . " : available modules" . "\n"
-	. str_pad("mbstring:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
-	. str_pad("json:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-	. str_pad("xmlrpc:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xmlrpc\n"
-	. str_pad("pcre:", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
-	. str_pad("Max execution time:", $padInfo) . " : " . $maxTime . " sec\n"
-	. str_pad("Crypt hash algo:", $padInfo) . " : " . $cryptAlgoName . "\n"
+	. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
+	. str_pad("PHP version", $padInfo) . " : " . PHP_VERSION . "\n"
+	. str_pad("available modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
+	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
+	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
+	. str_pad("xmlrpc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xmlrpc\n"
+	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
+	. str_pad("Max execution time", $padInfo) . " : " . $maxTime . " sec\n"
+	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. "$line\n"
 	. str_pad('TEST NAME', $padLabel) . " :"
-	. str_pad('SECONDS', 8 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
 	. "$line\n";
 
 foreach ($functions['user'] as $user) {
@@ -1286,7 +1286,7 @@ foreach ($functions['user'] as $user) {
 		echo str_pad($testName, $padLabel) . " :";
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 		$total += $resultSec;
-		echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
 	}
 }
 
@@ -1294,11 +1294,11 @@ list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_resu
 
 echo "$line\n"
 	. str_pad("Total time:", $padLabel) . " :";
-echo str_pad($resultSecFmt, 8, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
-echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 11, ' ', STR_PAD_LEFT) . "\n"
+echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
+echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
 	// php-4 don't have peak_usage function
 	. (function_exists('memory_get_peak_usage')
-		? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 11, ' ', STR_PAD_LEFT) . "\n"
+		? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
 		 : ''
 	)
 	. "</pre>\n";
