@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 08, 2018                                                  #
-#  Version     : 1.0.30                                                        #
+#  Version     : 1.0.31                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.30';
+$scriptVersion = '1.0.31';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -34,7 +34,12 @@ if ($dropDead) {
 	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION . '</pre>');
 	exit(1);
 }
-
+if (!defined('PHP_MAJOR_VERSION')) {
+	define('PHP_MAJOR_VERSION', (int)$phpversion[0]);
+}
+if (!defined('PHP_MINOR_VERSION')) {
+	define('PHP_MINOR_VERSION', (int)$phpversion[1]);
+}
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
 $regexPattern = '/[\s,]+/';
@@ -919,13 +924,6 @@ function test_09_Json_Encode()
 		return $emptyResult;
 	}
 
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -933,8 +931,17 @@ function test_09_Json_Encode()
 		array(123456),
 		null,
 		false,
-		$obj,
 	);
+	if (PHP_MAJOR_VERSION >=5) {
+		$obj = new stdClass();
+		$obj->fieldStr = 'value';
+		$obj->fieldInt = 123456;
+		$obj->fieldFloat = 123.456;
+		$obj->fieldArray = array(123456);
+		$obj->fieldNull = null;
+		$obj->fieldBool = false;
+		$data[] = $obj;
+	}
 
 	$count = $testsLoopLimits['09_json_encode'];
 	$time_start = get_microtime();
@@ -955,13 +962,6 @@ function test_10_Json_Decode()
 		return $emptyResult;
 	}
 
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -969,8 +969,18 @@ function test_10_Json_Decode()
 		array(123456),
 		null,
 		false,
-		$obj,
 	);
+	if (PHP_MAJOR_VERSION >=5) {
+		$obj = new stdClass();
+		$obj->fieldStr = 'value';
+		$obj->fieldInt = 123456;
+		$obj->fieldFloat = 123.456;
+		$obj->fieldArray = array(123456);
+		$obj->fieldNull = null;
+		$obj->fieldBool = false;
+		$data[] = $obj;
+	}
+
 	foreach ($data as $key => $value) {
 		$data[$key] = json_encode($value);
 	}
@@ -994,13 +1004,6 @@ function test_11_Serialize()
 		return $emptyResult;
 	}
 
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -1008,8 +1011,17 @@ function test_11_Serialize()
 		array(123456),
 		null,
 		false,
-		$obj,
 	);
+	if (PHP_MAJOR_VERSION >=5) {
+		$obj = new stdClass();
+		$obj->fieldStr = 'value';
+		$obj->fieldInt = 123456;
+		$obj->fieldFloat = 123.456;
+		$obj->fieldArray = array(123456);
+		$obj->fieldNull = null;
+		$obj->fieldBool = false;
+		$data[] = $obj;
+	}
 
 	$count = $testsLoopLimits['11_serialize'];
 	$time_start = get_microtime();
@@ -1030,13 +1042,6 @@ function test_12_Unserialize()
 		return $emptyResult;
 	}
 
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -1044,8 +1049,18 @@ function test_12_Unserialize()
 		array(123456),
 		null,
 		false,
-		$obj,
 	);
+	if (PHP_MAJOR_VERSION >=5) {
+		$obj = new stdClass();
+		$obj->fieldStr = 'value';
+		$obj->fieldInt = 123456;
+		$obj->fieldFloat = 123.456;
+		$obj->fieldArray = array(123456);
+		$obj->fieldNull = null;
+		$obj->fieldBool = false;
+		$data[] = $obj;
+	}
+
 	foreach ($data as $key => $value) {
 		$data[$key] = serialize($value);
 	}
@@ -1268,13 +1283,6 @@ function test_24_XmlRpc_Encode()
 		return $emptyResult;
 	}
 
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
 	$data = array(
 		// XmlRpc don't like html tags (php-7.2 + libxmlrpc-epi)
 		base64_encode($stringTest),
@@ -1283,8 +1291,17 @@ function test_24_XmlRpc_Encode()
 		array(123456),
 		null,
 		false,
-		$obj,
 	);
+	if (PHP_MAJOR_VERSION >=5) {
+		$obj = new stdClass();
+		$obj->fieldStr = 'value';
+		$obj->fieldInt = 123456;
+		$obj->fieldFloat = 123.456;
+		$obj->fieldArray = array(123456);
+		$obj->fieldNull = null;
+		$obj->fieldBool = false;
+		$data[] = $obj;
+	}
 
 	$count = $testsLoopLimits['24_xmlrpc_encode'];
 	$time_start = get_microtime();
@@ -1305,13 +1322,6 @@ function test_25_XmlRpc_Decode()
 		return $emptyResult;
 	}
 
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
 	$data = array(
 		// XmlRpc don't like html tags (php-7.2 + libxmlrpc-epi)
 		base64_encode($stringTest),
@@ -1320,8 +1330,18 @@ function test_25_XmlRpc_Decode()
 		array(123456),
 		null,
 		false,
-		$obj,
 	);
+	if (PHP_MAJOR_VERSION >=5) {
+		$obj = new stdClass();
+		$obj->fieldStr = 'value';
+		$obj->fieldInt = 123456;
+		$obj->fieldFloat = 123.456;
+		$obj->fieldArray = array(123456);
+		$obj->fieldNull = null;
+		$obj->fieldBool = false;
+		$data[] = $obj;
+	}
+
 	foreach ($data as $key => $value) {
 		$data[$key] = xmlrpc_encode($value);
 	}
