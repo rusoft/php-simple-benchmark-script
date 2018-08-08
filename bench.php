@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Aug 07, 2018                                                  #
-#  version     : 1.0.28.1                                                      #
+#  Date        : Aug 08, 2018                                                  #
+#  version     : 1.0.29                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.28.1';
+$scriptVersion = '1.0.29';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -48,18 +48,24 @@ $defaultMemoryLimit = 256;
 
 $recalculateLimits = 1;
 
-if ((int)getenv('PHP_TIME_LIMIT')) {
-	$defaultTimeLimit = (int)getenv('PHP_TIME_LIMIT');
+$outputTestsList = 0;
+
+$showOnlySystemInfo = 0;
+
+$selectedTests = array();
+
+if ($t = (int)getenv('PHP_TIME_LIMIT')) {
+	$defaultTimeLimit = $t;
 }
-if (isset($_GET['time_limit']) && (int)$_GET['time_limit']) {
-	$defaultTimeLimit = (int)$_GET['time_limit'];
+if (isset($_GET['time_limit']) && $t = (int)$_GET['time_limit']) {
+	$defaultTimeLimit = $t;
 }
 
-if ((int)getenv('PHP_MEMORY_LIMIT')) {
-	$defaultMemoryLimit = (int)getenv('PHP_MEMORY_LIMIT');
+if ($m = (int)getenv('PHP_MEMORY_LIMIT')) {
+	$defaultMemoryLimit = $m;
 }
-if (isset($_GET['memory_limit']) && (int)$_GET['memory_limit']) {
-	$defaultMemoryLimit = (int)$_GET['memory_limit'];
+if (isset($_GET['memory_limit']) && $m = (int)$_GET['memory_limit']) {
+	$defaultMemoryLimit = $m;
 }
 
 if ((int)getenv('DONT_RECALCULATE_LIMITS')) {
@@ -69,17 +75,44 @@ if (isset($_GET['dont_recalculate_limits']) && (int)$_GET['dont_recalculate_limi
 	$recalculateLimits = 0;
 }
 
+if ((int)getenv('LIST_TESTS')) {
+	$outputTestsList = 1;
+}
+if (isset($_GET['list_tests']) && (int)$_GET['list_tests']) {
+	$outputTestsList = 1;
+}
+
+if ((int)getenv('SYSTEM_INFO')) {
+	$showOnlySystemInfo = 1;
+}
+if (isset($_GET['system_info']) && (int)$_GET['system_info']) {
+	$showOnlySystemInfo = 1;
+}
+
+if ($r = getenv('RUN_TESTS')) {
+	$selectedTests = explode(',', $r);
+}
+if (!empty($_GET['run_tests'])) {
+	$selectedTests = explode(',', $_GET['run_tests']);
+}
+
 // http://php.net/manual/ru/function.getopt.php example #2
 $shortopts = "h";
 $shortopts .= "d";
+$shortopts .= "L";
+$shortopts .= "I";
 $shortopts .= "m:";       // Обязательное значение
 $shortopts .= "t:";       // Обязательное значение
+$shortopts .= "T:";       // Обязательное значение
 
 $longopts = array(
 	"help",
 	"dont-recalc",
+	"list-tests",
+	"system-info",
 	"memory-limit:",      // Обязательное значение
 	"time-limit:",        // Обязательное значение
+	"run-test:",          // Обязательное значение
 );
 
 $hasLongOpts = true;
@@ -105,12 +138,15 @@ if ($options) {
 						'<pre>' . PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-m|--memory-limit=256] [-t|--time-limit=600]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-L|--list-tests] [-I|--system-info] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
+						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
+						. '	-I|--system-info		- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
+						. '	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
 						. '</pre>' . PHP_EOL
@@ -120,12 +156,15 @@ if ($options) {
 						'<pre>' . PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-m 256] [-t 600]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-L] [-m 256] [-t 600] [-T name1 ...]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
+						. '	-L		- output list of available tests and exit' . PHP_EOL
+						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
+						. '	-T <name>	- run selected test, test names from -L output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
 						. '</pre>' . PHP_EOL
@@ -136,7 +175,7 @@ if ($options) {
 
 			case 'm':
 			case 'memory-limit':
-				if ((int)$oval) {
+				if (is_numeric($oval)) {
 					$defaultMemoryLimit = (int)$oval;
 				} else {
 					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
@@ -148,12 +187,32 @@ if ($options) {
 				$recalculateLimits = 0;
 				break;
 
+			case 'L':
+			case 'list-tests':
+				$outputTestsList = 1;
+				break;
+
+			case 'I':
+			case 'system-info':
+				$showOnlySystemInfo = 1;
+				break;
+
 			case 't':
 			case 'time-limit':
-				if ((int)$oval) {
+				if (is_numeric($oval)) {
 					$defaultTimeLimit = (int)$oval;
 				} else {
 					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
+				}
+				break;
+
+			case 'T':
+			case 'run-test':
+				// Multiple values are joined into array
+				if (!empty($oval)) {
+					$selectedTests = (array)$oval;
+				} else {
+					print("<pre><<< WARNING >>> Option '$okey' has no value! Skip.</pre>" . PHP_EOL);
 				}
 				break;
 
@@ -195,6 +254,8 @@ $arrayDimensionLimit = 500;
 
 // That limit gives around 256Mb too
 $stringConcatLoopRepeat = 1;
+
+$runOnlySelectedTests = !empty($selectedTests);
 
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
@@ -474,6 +535,9 @@ function mymemory_usage()
 }
 
 
+// Run tests or not?
+if (!$outputTestsList) {
+
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
 // Search most common available algo for SALT
@@ -609,6 +673,8 @@ if ($factor < 1.0) {
 }
 
 } // recalculate time limits
+
+} // only show tests names or not?
 
 /** ---------------------------------- Common functions for tests -------------------------------------------- */
 
@@ -1228,6 +1294,23 @@ function test_25_XmlRpc_Decode()
 }
 
 
+$functions = get_defined_functions();
+sort($functions['user']);
+
+/** ------------------------------- Early checks ------------------------------- */
+
+if ($outputTestsList) {
+	echo "<pre>\nAvailable tests:\n";
+	foreach ($functions['user'] as $user) {
+		if (strpos($user, 'test_') === 0) {
+			$testName = str_replace('test_', '', $user);
+			echo $testName . PHP_EOL;
+		}
+	}
+	echo "</pre>\n";
+	exit(0);
+}
+
 /** ---------------------------------- Common code -------------------------------------------- */
 
 $has_mbstring = "yes";
@@ -1252,8 +1335,6 @@ if (!function_exists('preg_match')) {
 }
 
 $total = 0;
-$functions = get_defined_functions();
-sort($functions['user']);
 
 echo "<pre>\n$line\n|"
 	. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
@@ -1275,14 +1356,22 @@ echo "<pre>\n$line\n|"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
 	. str_pad("Max execution time", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
-	. "$line\n"
-	. str_pad('TEST NAME', $padLabel) . " :"
+	. "$line\n";
+
+if (!$showOnlySystemInfo) {
+
+echo str_pad('TEST NAME', $padLabel) . " :"
 	. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
 	. "$line\n";
 
 foreach ($functions['user'] as $user) {
 	if (strpos($user, 'test_') === 0) {
 		$testName = str_replace('test_', '', $user);
+		if ($runOnlySelectedTests) {
+			if (!in_array($testName, $selectedTests)) {
+				continue;
+			}
+		}
 		echo str_pad($testName, $padLabel) . " :";
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 		$total += $resultSec;
@@ -1300,5 +1389,8 @@ echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(my
 	. (function_exists('memory_get_peak_usage')
 		? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
 		 : ''
-	)
-	. "</pre>\n";
+	);
+
+} // show only system info?
+
+echo "</pre>\n";

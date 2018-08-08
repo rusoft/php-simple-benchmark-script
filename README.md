@@ -24,27 +24,48 @@
 
 Команда:
 ```
-php bench.php [-h|--help] [-d|--dont-recalc] [-m|--memory-limit=256] [-t|--time-limit=600]
+php bench.php [-h|--help] [-d|--dont-recalc] [-L|--list-tests] [-I|--system-info] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]
 
 	-h|--help		- вывод помощи и выход
-	-d|--dont-recalc		- не пересчитывать время выполнения тестов, если ограничения слишком низкие
+	-d|--dont-recalc	- не пересчитывать время выполнения тестов, если ограничения слишком низкие
+	-L|--list-tests		- вывод списка доступных тестов и выход
+	-I|--system-info		- вывод информации о системе без запуска тестов и выход
 	-m|--memory-limit <Mb>	- установка значения параметра `memory_limit` в Мб, по-умолчанию равно 256 (Мб)
-	-t|--time-limit <sec>	- установка значения параметра `max_execution_time` в секундах, по-умолчанию равно 600 (сек.)
+	-t|--time-limit <sec>	- установка значения параметра `max_execution_time` в секундах, по-умолчанию равно 600 (сек)
+	-T|--run-test <name>	- запустить только указанные тесты, названия тестов из вывода параметра --list-tests, можно указать несколько раз
 ```
 Например: `php bench.php -m=64 -t=30`
 
 Второй вариант передачи значений для параметров - переменные окружения:
 ```
-env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 DONT_RECALCULATE_LIMITS=1 php bench.php
+env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 ```
+
+Доступные переменные:
+
+- PHP_MEMORY_LIMIT=<Мб>
+- PHP_TIME_LIMIT=<Секунды>
+- DONT_RECALCULATE_LIMITS=0/1
+- LIST_TESTS=0/1
+- SYSTEM_INFO=0/1
+- RUN_TESTS=test1,test2,...
 
 ### 2. Через веб-сервера (apache + php)
 
 Просто положите в любую доступную для выполнения php директорию сайта, например в корень.
 
 Потом скрипт можно будет вызывать с параметрами, как из консоли:
-`curl http://www.example.com/bench.php?memory_limit=64&time_limit=30&dont_recalculate_limits=1`
+`curl http://www.example.com/bench.php?memory_limit=64&time_limit=30`
 или через браузер.
+
+Доступные параметры:
+
+- memory_limit=Мб
+- time_limit=Секунды
+- dont_recalculate_limits=0/1
+- list_tests=0/1
+- system_info=0/1
+- run_tests=test1,test2,...
 
 ### Учет параметров хостинга
 
@@ -56,6 +77,12 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 DONT_RECALCULATE_LIMITS=1 php bench.ph
 Пересчет времени выполнения скрипта будет произведен по наименьшим результирующим значениям.
 
 ## ChangeLog
+
+@ 2018-08-08, v1.0.29
+
+ * Добавили параметр -L для вывода списка тестов
+ * Добавили параметр -T для запуска только конкретных тестов
+ * Добавили параметр -I для вывода только информации о системе без запуска тестов
 
 @ 2018-08-08, v1.0.28.1
 
