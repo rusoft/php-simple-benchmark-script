@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 08, 2018                                                  #
-#  Version     : 1.0.31                                                        #
+#  Version     : 1.0.32                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.31';
+$scriptVersion = '1.0.32';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -932,16 +932,14 @@ function test_09_Json_Encode()
 		null,
 		false,
 	);
-	if (PHP_MAJOR_VERSION >=5) {
-		$obj = new stdClass();
-		$obj->fieldStr = 'value';
-		$obj->fieldInt = 123456;
-		$obj->fieldFloat = 123.456;
-		$obj->fieldArray = array(123456);
-		$obj->fieldNull = null;
-		$obj->fieldBool = false;
-		$data[] = $obj;
-	}
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
+	$data[] = $obj;
 
 	$count = $testsLoopLimits['09_json_encode'];
 	$time_start = get_microtime();
@@ -970,16 +968,14 @@ function test_10_Json_Decode()
 		null,
 		false,
 	);
-	if (PHP_MAJOR_VERSION >=5) {
-		$obj = new stdClass();
-		$obj->fieldStr = 'value';
-		$obj->fieldInt = 123456;
-		$obj->fieldFloat = 123.456;
-		$obj->fieldArray = array(123456);
-		$obj->fieldNull = null;
-		$obj->fieldBool = false;
-		$data[] = $obj;
-	}
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
+	$data[] = $obj;
 
 	foreach ($data as $key => $value) {
 		$data[$key] = json_encode($value);
@@ -1012,16 +1008,14 @@ function test_11_Serialize()
 		null,
 		false,
 	);
-	if (PHP_MAJOR_VERSION >=5) {
-		$obj = new stdClass();
-		$obj->fieldStr = 'value';
-		$obj->fieldInt = 123456;
-		$obj->fieldFloat = 123.456;
-		$obj->fieldArray = array(123456);
-		$obj->fieldNull = null;
-		$obj->fieldBool = false;
-		$data[] = $obj;
-	}
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
+	$data[] = $obj;
 
 	$count = $testsLoopLimits['11_serialize'];
 	$time_start = get_microtime();
@@ -1050,16 +1044,14 @@ function test_12_Unserialize()
 		null,
 		false,
 	);
-	if (PHP_MAJOR_VERSION >=5) {
-		$obj = new stdClass();
-		$obj->fieldStr = 'value';
-		$obj->fieldInt = 123456;
-		$obj->fieldFloat = 123.456;
-		$obj->fieldArray = array(123456);
-		$obj->fieldNull = null;
-		$obj->fieldBool = false;
-		$data[] = $obj;
-	}
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
+	$data[] = $obj;
 
 	foreach ($data as $key => $value) {
 		$data[$key] = serialize($value);
@@ -1292,16 +1284,14 @@ function test_24_XmlRpc_Encode()
 		null,
 		false,
 	);
-	if (PHP_MAJOR_VERSION >=5) {
-		$obj = new stdClass();
-		$obj->fieldStr = 'value';
-		$obj->fieldInt = 123456;
-		$obj->fieldFloat = 123.456;
-		$obj->fieldArray = array(123456);
-		$obj->fieldNull = null;
-		$obj->fieldBool = false;
-		$data[] = $obj;
-	}
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
+	$data[] = $obj;
 
 	$count = $testsLoopLimits['24_xmlrpc_encode'];
 	$time_start = get_microtime();
@@ -1331,16 +1321,14 @@ function test_25_XmlRpc_Decode()
 		null,
 		false,
 	);
-	if (PHP_MAJOR_VERSION >=5) {
-		$obj = new stdClass();
-		$obj->fieldStr = 'value';
-		$obj->fieldInt = 123456;
-		$obj->fieldFloat = 123.456;
-		$obj->fieldArray = array(123456);
-		$obj->fieldNull = null;
-		$obj->fieldBool = false;
-		$data[] = $obj;
-	}
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
+	$data[] = $obj;
 
 	foreach ($data as $key => $value) {
 		$data[$key] = xmlrpc_encode($value);
