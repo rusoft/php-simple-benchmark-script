@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 08, 2018                                                  #
-#  version     : 1.0.29                                                        #
+#  Version     : 1.0.30                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.29';
+$scriptVersion = '1.0.30';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
@@ -919,6 +919,13 @@ function test_09_Json_Encode()
 		return $emptyResult;
 	}
 
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -926,7 +933,7 @@ function test_09_Json_Encode()
 		array(123456),
 		null,
 		false,
-		new stdClass(),
+		$obj,
 	);
 
 	$count = $testsLoopLimits['09_json_encode'];
@@ -948,6 +955,13 @@ function test_10_Json_Decode()
 		return $emptyResult;
 	}
 
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -955,7 +969,7 @@ function test_10_Json_Decode()
 		array(123456),
 		null,
 		false,
-		new stdClass(),
+		$obj,
 	);
 	foreach ($data as $key => $value) {
 		$data[$key] = json_encode($value);
@@ -980,6 +994,13 @@ function test_11_Serialize()
 		return $emptyResult;
 	}
 
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -987,7 +1008,7 @@ function test_11_Serialize()
 		array(123456),
 		null,
 		false,
-		new stdClass(),
+		$obj,
 	);
 
 	$count = $testsLoopLimits['11_serialize'];
@@ -1009,6 +1030,13 @@ function test_12_Unserialize()
 		return $emptyResult;
 	}
 
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
 	$data = array(
 		$stringTest,
 		123456,
@@ -1016,7 +1044,7 @@ function test_12_Unserialize()
 		array(123456),
 		null,
 		false,
-		new stdClass(),
+		$obj,
 	);
 	foreach ($data as $key => $value) {
 		$data[$key] = serialize($value);
@@ -1240,14 +1268,22 @@ function test_24_XmlRpc_Encode()
 		return $emptyResult;
 	}
 
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
 	$data = array(
-		$stringTest,
+		// XmlRpc don't like html tags (php-7.2 + libxmlrpc-epi)
+		base64_encode($stringTest),
 		123456,
 		123.456,
 		array(123456),
 		null,
 		false,
-		new stdClass(),
+		$obj,
 	);
 
 	$count = $testsLoopLimits['24_xmlrpc_encode'];
@@ -1269,14 +1305,22 @@ function test_25_XmlRpc_Decode()
 		return $emptyResult;
 	}
 
+	$obj = new stdClass();
+	$obj->fieldStr = 'value';
+	$obj->fieldInt = 123456;
+	$obj->fieldFloat = 123.456;
+	$obj->fieldArray = array(123456);
+	$obj->fieldNull = null;
+	$obj->fieldBool = false;
 	$data = array(
-		$stringTest,
+		// XmlRpc don't like html tags (php-7.2 + libxmlrpc-epi)
+		base64_encode($stringTest),
 		123456,
 		123.456,
 		array(123456),
 		null,
 		false,
-		new stdClass(),
+		$obj,
 	);
 	foreach ($data as $key => $value) {
 		$data[$key] = xmlrpc_encode($value);
