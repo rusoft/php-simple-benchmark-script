@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Aug 08, 2018                                                  #
-#  Version     : 1.0.32                                                        #
+#  Date        : MAy 01, 2019                                                  #
+#  Version     : 1.0.33                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,20 +18,34 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.32';
+$scriptVersion = '1.0.33';
+
+ini_set('display_errors', 0);
+ini_set('error_log', null);
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
+// Disable explicit error reporting
+$xdebug = ini_get('xdebug.default_enable');
+ini_set('xdebug.show_exception_trace', 0);
+
+if ($xdebug) {
+	print('<pre><<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!</pre>'.PHP_EOL);
+	exit(1);
+}
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
 
 $dropDead = false;
+// No php < 4
 if ((int)$phpversion[0] < 4) {
 	$dropDead = true;
 }
+// No php <= 4.3
 if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
 	$dropDead = true;
 }
 if ($dropDead) {
-	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION . '</pre>');
+	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION . '</pre>'.PHP_EOL);
 	exit(1);
 }
 if (!defined('PHP_MAJOR_VERSION')) {
@@ -41,7 +55,7 @@ if (!defined('PHP_MINOR_VERSION')) {
 	define('PHP_MINOR_VERSION', (int)$phpversion[1]);
 }
 
-$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис         ";
+$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис   <span class='alert alert-danger'>У нас закончились ложки, Нео!</span>      ";
 $regexPattern = '/[\s,]+/';
 
 /** ------------------------------- Main Defaults ------------------------------- */
@@ -52,6 +66,8 @@ $defaultTimeLimit = 600;
 $defaultMemoryLimit = 256;
 
 $recalculateLimits = 1;
+
+$printDumbTest = 0;
 
 $outputTestsList = 0;
 
@@ -80,6 +96,13 @@ if (isset($_GET['dont_recalculate_limits']) && (int)$_GET['dont_recalculate_limi
 	$recalculateLimits = 0;
 }
 
+if ((int)getenv('PRINT_DUMB_TEST')) {
+	$printDumbTest = 1;
+}
+if (isset($_GET['print_dumb_test']) && (int)$_GET['print_dumb_test']) {
+	$printDumbTest = 1;
+}
+
 if ((int)getenv('LIST_TESTS')) {
 	$outputTestsList = 1;
 }
@@ -104,6 +127,7 @@ if (!empty($_GET['run_tests'])) {
 // http://php.net/manual/ru/function.getopt.php example #2
 $shortopts = "h";
 $shortopts .= "d";
+$shortopts .= "D";
 $shortopts .= "L";
 $shortopts .= "I";
 $shortopts .= "m:";       // Обязательное значение
@@ -113,6 +137,7 @@ $shortopts .= "T:";       // Обязательное значение
 $longopts = array(
 	"help",
 	"dont-recalc",
+	"dumb-test-print",
 	"list-tests",
 	"system-info",
 	"memory-limit:",      // Обязательное значение
@@ -147,8 +172,9 @@ if ($options) {
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
+						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
-						. '	-I|--system-info		- output system info but do not run tests and exit' . PHP_EOL
+						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times' . PHP_EOL
@@ -165,6 +191,7 @@ if ($options) {
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
+						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
@@ -190,6 +217,11 @@ if ($options) {
 			case 'd':
 			case 'dont-recalc':
 				$recalculateLimits = 0;
+				break;
+
+			case 'D':
+			case 'dumb-test-print':
+				$printDumbTest = 1;
 				break;
 
 			case 'L':
@@ -265,28 +297,38 @@ $runOnlySelectedTests = !empty($selectedTests);
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3700;
+$loopMaxPhpTimesMHz = 3000;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 235,
-	'5.2' => 150,
-	'5.3' => 130,
+	'4.4' => 350,
+	'5.2' => 237,
+	'5.3' => 211,
 	// 5.4, 5.5, 5.6
-	'5' => 130,
+	'5.4' => 191,
+	'5.5' => 189,
+	'5.6' => 190,
 	// 7.0, 7.1
-	'7' => 65,
+	'7.0' => 109,
+	'7.1' => 107,
+	'7.2' => 105,
+	'7.3' => 92,
 );
 $dumbTestMaxPhpTimes = array(
-	'4.4' => 1.3,
-	'5.2' => 0.97,
-	'5.3' => 0.95,
+	'4.4' => 2.13,
+	'5.2' => 1.82,
+	'5.3' => 1.82,
 	// 5.4, 5.5, 5.6
-	'5' => 0.95,
+	'5.4' => 1.71,
+	'5.5' => 1.86,
+	'5.6' => 1.92,
 	// 7.0, 7.1
-	'7' => 0.58,
+	'7.0' => 1.19,
+	'7.1' => 1.19,
+	'7.2' => 1.18,
+	'7.3' => 1.05,
 );
 $testsLoopLimits = array(
-	'01_math'			=> 1400000,
+	'01_math'			=> 1000000,
 	// Nice dice roll
 	// That limit gives around 256Mb too
 	'02_string_concat'	=> 7700000,
@@ -304,22 +346,46 @@ $testsLoopLimits = array(
 	'12_unserialize'	=> 1300000,
 	'13_array_loop'		=> 200,
 	'14_array_loop'		=> 200,
-	'15_loops'			=> 190000000,
-	'16_loop_ifelse'	=> 90000000,
-	'17_loop_ternary'	=> 90000000,
+	'15_loops'			=> 100000000,
+	'16_loop_ifelse'	=> 50000000,
+	'17_loop_ternary'	=> 50000000,
 	'18_1_loop_def'		=> 20000000,
 	'18_2_loop_undef'	=> 20000000,
-	'19_type_func'		=> 5000000,
-	'20_type_conv'		=> 5000000,
+	'19_type_func'		=> 3000000,
+	'20_type_conv'		=> 3000000,
 	'21_loop_except'	=> 4000000,
 	'22_loop_nullop'	=> 50000000,
 	'23_loop_spaceship'	=> 50000000,
 	'24_xmlrpc_encode'	=> 200000,
 	'25_xmlrpc_decode'	=> 30000,
+	'26_1_public'		=> 5000000,
+	'26_2_getset'		=> 5000000,
+	'26_3_magic'		=> 5000000,
 );
 $totalOps = 0;
 
 /** ---------------------------------- Common functions -------------------------------------------- */
+
+/**
+ * Gt pretty OS release name, if available
+ */
+function get_current_os()
+{
+	$osFile = '/etc/os-release';
+	$result = PHP_OS;
+	if (file_exists($osFile)) {
+		$f = fopen($osFile, 'r');
+		while (!feof($f)) {
+			$line = trim(fgets($f, 1000000));
+			if (strpos($line, 'PRETTY_NAME=') === 0) {
+				$s = explode('=', $line);
+				$result = array_pop($s);
+				$result = str_replace('"','', $result);
+			}
+		}
+	}
+	return $result;
+}
 
 function get_microtime()
 {
@@ -658,7 +724,9 @@ if ($factor < 1.0) {
 	// TIME WASTED HERE
 	$dumbTestTime = dumb_test_Functions();
 //	Debug
-//	print($dumbTestTime);
+	if ($printDumbTest) {
+		print("Dumb test time: " .$dumbTestTime . PHP_EOL);
+	}
 	if ($dumbTestTime > $dumbTestTimeMax) {
 		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
 	}
@@ -1394,6 +1462,7 @@ echo "<pre>\n$line\n|"
 	. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
 	. str_pad("Server", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
 	. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
+	. str_pad("System", $padInfo) . " : " . get_current_os() . "\n"
 	. str_pad("CPU", $padInfo) . " :\n"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
