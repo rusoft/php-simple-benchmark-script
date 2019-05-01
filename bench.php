@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Aug 08, 2018                                                  #
-#  Version     : 1.0.32                                                        #
+#  Date        : MAy 01, 2019                                                  #
+#  Version     : 1.0.33                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,15 +18,17 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.32';
+$scriptVersion = '1.0.33';
 
 // Used in hacks/fixes checks
 $phpversion = explode('.', PHP_VERSION);
 
 $dropDead = false;
+// No php < 4
 if ((int)$phpversion[0] < 4) {
 	$dropDead = true;
 }
+// No php <= 4.3
 if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
 	$dropDead = true;
 }
@@ -316,10 +318,34 @@ $testsLoopLimits = array(
 	'23_loop_spaceship'	=> 50000000,
 	'24_xmlrpc_encode'	=> 200000,
 	'25_xmlrpc_decode'	=> 30000,
+	'26_1_public'		=> 10000000,
+	'26_2_getset'		=> 10000000,
+	'26_3_magic'		=> 10000000,
 );
 $totalOps = 0;
 
 /** ---------------------------------- Common functions -------------------------------------------- */
+
+/**
+ * Gt pretty OS release name, if available
+ */
+function get_current_os()
+{
+	$osFile = '/etc/os-release';
+	$result = PHP_OS;
+	if (is_file($osFile)) {
+		$f = fopen($osFile, 'r');
+		while (!feof($f)) {
+			$line = stream_get_line($f, 1000000, "\n");
+			if (strpos($line, 'PRETTY_NAME=') === 0) {
+				$s = explode('=', $line);
+				$result = array_pop($s);
+				$result = str_replace('"','', $result);
+			}
+		}
+	}
+	return $result;
+}
 
 function get_microtime()
 {
@@ -1394,6 +1420,7 @@ echo "<pre>\n$line\n|"
 	. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
 	. str_pad("Server", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
 	. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
+	. str_pad("System", $padInfo) . " : " . get_current_os() . "\n"
 	. str_pad("CPU", $padInfo) . " :\n"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
