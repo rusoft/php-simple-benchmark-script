@@ -120,7 +120,7 @@ function test_26_2_Class_Getter_Setter()
 	$c = new GetterSetter();
 	$r = 0;
 
-	$count = $testsLoopLimits['26_1_getset'];
+	$count = $testsLoopLimits['26_2_getset'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = $c->getNumber();
@@ -130,14 +130,14 @@ function test_26_2_Class_Getter_Setter()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_26_2_Class_Magic_Methods()
+function test_26_3_Class_Magic_Methods()
 {
 	global $testsLoopLimits, $totalOps;
 
 	$c = new MagicMethods();
 	$r = 0;
 
-	$count = $testsLoopLimits['26_1_magic'];
+	$count = $testsLoopLimits['26_3_magic'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = $c->number;
