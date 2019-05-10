@@ -9,7 +9,7 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : MAy 10, 2019                                                  #
+#  Date        : May 10, 2019                                                  #
 #  Version     : 1.0.34                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
