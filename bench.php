@@ -506,14 +506,18 @@ function getCpuInfo($fireUpCpu = false)
 {
 	$cpu = array(
 		'model' => '',
+		'vendor' => '',
 		'cores' => 0,
 		'mhz' => 0.0,
+		'max-mhz' => 0.0,
+		'min-mhz' => 0.0,
 		'mips' => 0.0
 	);
 
 	if (!is_readable('/proc/cpuinfo')) {
 		$cpu['model'] = 'Unknown';
-		$cpu['cores'] = 0;
+		$cpu['vendor'] = 'Unknown';
+		$cpu['cores'] = 1;
 		return $cpu;
 	}
 
@@ -561,6 +565,7 @@ function getCpuInfo($fireUpCpu = false)
 				}
 				break;
 			case 'bogomips': // twice of MHz usualy on Intel/Amd
+			case 'BogoMIPS': // twice of MHz usualy on Intel/Amd
 				if (empty($cpu['mhz'])) {
 					$cpu['mhz'] = (float)$value / 2.0;
 				}
@@ -578,25 +583,24 @@ function getCpuInfo($fireUpCpu = false)
 	}
 
 	// Raspberry Pi or other ARM board etc.
-	if (empty($cpu['cores']) || empty($cpu['model'])) {
-		$cpuData = explode("\n", shell_exec('lscpu'));
-		foreach ($cpuData as $line) {
-			$line = explode(':', $line, 2);
+	$cpuData = explode("\n", shell_exec('lscpu'));
+	foreach ($cpuData as $line) {
+		$line = explode(':', $line, 2);
 
-			if (!array_key_exists(1, $line)) {
-				continue;
-			}
+		if (!array_key_exists(1, $line)) {
+			continue;
+		}
 
-			$key = trim($line[0]);
-			$value = trim($line[1]);
+		$key = trim($line[0]);
+		$value = trim($line[1]);
 
-			// What we want are bogomips, MHz, processor, and Model.
-			switch ($key) {
-				// CPU model
-				case 'Model name':
-					if (empty($cpu['model'])) {
-						$cpu['model'] = $value;
-					}
+		// What we want are bogomips, MHz, processor, and Model.
+		switch ($key) {
+			// CPU model
+			case 'Model name':
+				if (empty($cpu['model'])) {
+					$cpu['model'] = $value;
+				}
 				break;
 			// cores
 			case 'CPU(s)':
@@ -604,8 +608,29 @@ function getCpuInfo($fireUpCpu = false)
 					$cpu['cores'] = (int)$value;
 				}
 				break;
+			// MHz
+			case 'CPU max MHz':
+				if (empty($cpu['max-mhz'])) {
+					$cpu['max-mhz'] = (int)$value;
+				}
+				break;
+			case 'CPU min MHz':
+				if (empty($cpu['min-mhz'])) {
+					$cpu['min-mhz'] = (int)$value;
+				}
+				break;
+			// vendor
+			case 'Vendor ID':
+				if (empty($cpu['vendor'])) {
+					$cpu['vendor'] = $value;
+				}
+				break;
 		}
-		}
+	}
+
+	if ($cpu['vendor'] == 'ARM') {
+		// Unusable
+		$cpu['mips'] = 0;
 	}
 
 	return $cpu;
@@ -692,10 +717,18 @@ if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
 
 $cpuInfo = getCpuInfo();
 // CPU throttling?
-if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
-	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
-	// TIME WASTED HERE
-	$cpuInfo = getCpuInfo(true);
+if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
+	if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
+		print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+		// TIME WASTED HERE
+		$cpuInfo = getCpuInfo(true);
+	}
+} else if ($cpuInfo['max-mhz'] && $cpuInfo['mhz']) {
+	if (abs($cpuInfo['max-mhz'] - $cpuInfo['mhz']) > 300) {
+		print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+		// TIME WASTED HERE
+		$cpuInfo = getCpuInfo(true);
+	}
 }
 
 $memoryLimit = min(getPhpMemoryLimitBytes(), getSystemMemoryFreeLimitBytes());
