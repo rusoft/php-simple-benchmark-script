@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : MAy 01, 2019                                                  #
-#  Version     : 1.0.33                                                        #
+#  Date        : MAy 10, 2019                                                  #
+#  Version     : 1.0.34                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.33';
+$scriptVersion = '1.0.34';
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
@@ -272,6 +272,10 @@ ob_implicit_flush(1);
 // Special for nginx
 header('X-Accel-Buffering: no');
 
+if (file_exists('/usr/bin/taskset')) {
+	shell_exec('/usr/bin/taskset -c 0 -p ' . getmypid());
+}
+
 /** ------------------------------- Main Constants ------------------------------- */
 
 $line = str_pad("-", 91, "-");
@@ -509,7 +513,7 @@ function getCpuInfo($fireUpCpu = false)
 
 	if (!is_readable('/proc/cpuinfo')) {
 		$cpu['model'] = 'Unknown';
-		$cpu['cores'] = 1;
+		$cpu['cores'] = 0;
 		return $cpu;
 	}
 
@@ -517,6 +521,9 @@ function getCpuInfo($fireUpCpu = false)
 		// Fire up CPU, Don't waste much time here
 		$i = 30000000;
 		while ($i--) ;
+	}
+	if (file_exists('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq')) {
+		$cpu['mhz'] = ((int)file_get_contents('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'))/1000.0;
 	}
 
 	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
@@ -553,7 +560,7 @@ function getCpuInfo($fireUpCpu = false)
 					$cpu['mhz'] = (int)hexdec($value) / 1000000.0;
 				}
 				break;
-			case 'bogomips': // twice of MHz usualy
+			case 'bogomips': // twice of MHz usualy on Intel/Amd
 				if (empty($cpu['mhz'])) {
 					$cpu['mhz'] = (float)$value / 2.0;
 				}
@@ -567,6 +574,37 @@ function getCpuInfo($fireUpCpu = false)
 					$cpu['cores'] = (int)$value;
 				}
 				break;
+		}
+	}
+
+	// Raspberry Pi or other ARM board etc.
+	if (empty($cpu['cores']) || empty($cpu['model'])) {
+		$cpuData = explode("\n", shell_exec('lscpu'));
+		foreach ($cpuData as $line) {
+			$line = explode(':', $line, 2);
+
+			if (!array_key_exists(1, $line)) {
+				continue;
+			}
+
+			$key = trim($line[0]);
+			$value = trim($line[1]);
+
+			// What we want are bogomips, MHz, processor, and Model.
+			switch ($key) {
+				// CPU model
+				case 'Model name':
+					if (empty($cpu['model'])) {
+						$cpu['model'] = $value;
+					}
+				break;
+			// cores
+			case 'CPU(s)':
+				if (empty($cpu['cores'])) {
+					$cpu['cores'] = (int)$value;
+				}
+				break;
+		}
 		}
 	}
 
