@@ -273,7 +273,7 @@ ob_implicit_flush(1);
 header('X-Accel-Buffering: no');
 
 if (file_exists('/usr/bin/taskset')) {
-	shell_exec('/usr/bin/taskset -c 0 -p ' . getmypid());
+	shell_exec('/usr/bin/taskset -c 0 ' . getmypid());
 }
 
 /** ------------------------------- Main Constants ------------------------------- */
