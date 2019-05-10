@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : MAy 01, 2019                                                  #
-#  Version     : 1.0.33                                                        #
+#  Date        : May 10, 2019                                                  #
+#  Version     : 1.0.34                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.33';
+$scriptVersion = '1.0.34';
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
@@ -272,6 +272,10 @@ ob_implicit_flush(1);
 // Special for nginx
 header('X-Accel-Buffering: no');
 
+if (file_exists('/usr/bin/taskset')) {
+	shell_exec('/usr/bin/taskset -c -p 0 ' . getmypid());
+}
+
 /** ------------------------------- Main Constants ------------------------------- */
 
 $line = str_pad("-", 91, "-");
@@ -502,13 +506,17 @@ function getCpuInfo($fireUpCpu = false)
 {
 	$cpu = array(
 		'model' => '',
+		'vendor' => '',
 		'cores' => 0,
 		'mhz' => 0.0,
+		'max-mhz' => 0.0,
+		'min-mhz' => 0.0,
 		'mips' => 0.0
 	);
 
 	if (!is_readable('/proc/cpuinfo')) {
 		$cpu['model'] = 'Unknown';
+		$cpu['vendor'] = 'Unknown';
 		$cpu['cores'] = 1;
 		return $cpu;
 	}
@@ -517,6 +525,9 @@ function getCpuInfo($fireUpCpu = false)
 		// Fire up CPU, Don't waste much time here
 		$i = 30000000;
 		while ($i--) ;
+	}
+	if (file_exists('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq')) {
+		$cpu['mhz'] = ((int)file_get_contents('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'))/1000.0;
 	}
 
 	// Code from https://github.com/jrgp/linfo/blob/master/src/Linfo/OS/Linux.php
@@ -553,7 +564,8 @@ function getCpuInfo($fireUpCpu = false)
 					$cpu['mhz'] = (int)hexdec($value) / 1000000.0;
 				}
 				break;
-			case 'bogomips': // twice of MHz usualy
+			case 'bogomips': // twice of MHz usualy on Intel/Amd
+			case 'BogoMIPS': // twice of MHz usualy on Intel/Amd
 				if (empty($cpu['mhz'])) {
 					$cpu['mhz'] = (float)$value / 2.0;
 				}
@@ -568,6 +580,57 @@ function getCpuInfo($fireUpCpu = false)
 				}
 				break;
 		}
+	}
+
+	// Raspberry Pi or other ARM board etc.
+	$cpuData = explode("\n", shell_exec('lscpu'));
+	foreach ($cpuData as $line) {
+		$line = explode(':', $line, 2);
+
+		if (!array_key_exists(1, $line)) {
+			continue;
+		}
+
+		$key = trim($line[0]);
+		$value = trim($line[1]);
+
+		// What we want are bogomips, MHz, processor, and Model.
+		switch ($key) {
+			// CPU model
+			case 'Model name':
+				if (empty($cpu['model'])) {
+					$cpu['model'] = $value;
+				}
+				break;
+			// cores
+			case 'CPU(s)':
+				if (empty($cpu['cores'])) {
+					$cpu['cores'] = (int)$value;
+				}
+				break;
+			// MHz
+			case 'CPU max MHz':
+				if (empty($cpu['max-mhz'])) {
+					$cpu['max-mhz'] = (int)$value;
+				}
+				break;
+			case 'CPU min MHz':
+				if (empty($cpu['min-mhz'])) {
+					$cpu['min-mhz'] = (int)$value;
+				}
+				break;
+			// vendor
+			case 'Vendor ID':
+				if (empty($cpu['vendor'])) {
+					$cpu['vendor'] = $value;
+				}
+				break;
+		}
+	}
+
+	if ($cpu['vendor'] == 'ARM') {
+		// Unusable
+		$cpu['mips'] = 0;
 	}
 
 	return $cpu;
@@ -654,10 +717,18 @@ if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
 
 $cpuInfo = getCpuInfo();
 // CPU throttling?
-if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
-	print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
-	// TIME WASTED HERE
-	$cpuInfo = getCpuInfo(true);
+if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
+	if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
+		print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+		// TIME WASTED HERE
+		$cpuInfo = getCpuInfo(true);
+	}
+} else if ($cpuInfo['max-mhz'] && $cpuInfo['mhz']) {
+	if (abs($cpuInfo['max-mhz'] - $cpuInfo['mhz']) > 300) {
+		print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+		// TIME WASTED HERE
+		$cpuInfo = getCpuInfo(true);
+	}
 }
 
 $memoryLimit = min(getPhpMemoryLimitBytes(), getSystemMemoryFreeLimitBytes());
