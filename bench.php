@@ -3,14 +3,14 @@
 ################################################################################
 #                      PHP Benchmark Performance Script                        #
 #                           2010      Code24 BV                                #
-#                           2015-2018 Rusoft                                   #
+#                           2015-2019 Rusoft                                   #
 #                                                                              #
 #  Author      : Alessandro Torrisi                                            #
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 10, 2019                                                  #
-#  Version     : 1.0.34                                                        #
+#  Version     : 1.0.35                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.34';
+$scriptVersion = '1.0.35';
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
@@ -307,29 +307,27 @@ $loopMaxPhpTimes = array(
 	'4.4' => 350,
 	'5.2' => 237,
 	'5.3' => 211,
-	// 5.4, 5.5, 5.6
 	'5.4' => 191,
 	'5.5' => 189,
 	'5.6' => 190,
-	// 7.0, 7.1
 	'7.0' => 109,
 	'7.1' => 107,
 	'7.2' => 105,
 	'7.3' => 92,
+	'7.4' => 86,
 );
 $dumbTestMaxPhpTimes = array(
 	'4.4' => 2.13,
 	'5.2' => 1.82,
 	'5.3' => 1.82,
-	// 5.4, 5.5, 5.6
 	'5.4' => 1.71,
 	'5.5' => 1.86,
 	'5.6' => 1.92,
-	// 7.0, 7.1
 	'7.0' => 1.19,
 	'7.1' => 1.19,
 	'7.2' => 1.18,
 	'7.3' => 1.05,
+	'7.4' => 1.02,
 );
 $testsLoopLimits = array(
 	'01_math'			=> 1000000,
