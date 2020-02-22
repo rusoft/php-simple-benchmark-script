@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : May 10, 2019                                                  #
-#  Version     : 1.0.35                                                        #
+#  Date        : Feb 22, 2020                                                  #
+#  Version     : 1.0.36                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.35';
+$scriptVersion = '1.0.36';
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
@@ -506,6 +506,7 @@ function getCpuInfo($fireUpCpu = false)
 		'model' => '',
 		'vendor' => '',
 		'cores' => 0,
+		'available' => 0,
 		'mhz' => 0.0,
 		'max-mhz' => 0.0,
 		'min-mhz' => 0.0,
@@ -516,6 +517,7 @@ function getCpuInfo($fireUpCpu = false)
 		$cpu['model'] = 'Unknown';
 		$cpu['vendor'] = 'Unknown';
 		$cpu['cores'] = 1;
+		$cpu['available'] = 1;
 		return $cpu;
 	}
 
@@ -577,11 +579,24 @@ function getCpuInfo($fireUpCpu = false)
 					$cpu['cores'] = (int)$value;
 				}
 				break;
+			case 'processor':
+			case 'core id':
+				if (empty($cpu['available'])) {
+					$cpu['available'] = (int)$value+1;
+				} else {
+					if ($cpu['available'] < (int)$value+1) {
+						$cpu['available'] = (int)$value+1;
+					}
+				}
+				break;
 		}
 	}
 
 	// Raspberry Pi or other ARM board etc.
-	$cpuData = explode("\n", shell_exec('lscpu'));
+	$cpuData = array();
+	if (is_executable('/usr/bin/lscpu')) {
+		$cpuData = explode("\n", shell_exec('/usr/bin/lscpu'));
+	}
 	foreach ($cpuData as $line) {
 		$line = explode(':', $line, 2);
 
@@ -604,6 +619,8 @@ function getCpuInfo($fireUpCpu = false)
 			case 'CPU(s)':
 				if (empty($cpu['cores'])) {
 					$cpu['cores'] = (int)$value;
+					// Different output, not like /proc/cpuinfo
+					$cpu['available'] = (int)$value;
 				}
 				break;
 			// MHz
@@ -1535,6 +1552,7 @@ echo "<pre>\n$line\n|"
 	. str_pad("CPU", $padInfo) . " :\n"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
+	. str_pad("available", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['available'] . "\n"
 	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
