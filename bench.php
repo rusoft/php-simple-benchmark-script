@@ -304,18 +304,18 @@ $runOnlySelectedTests = !empty($selectedTests);
 $loopMaxPhpTimesMHz = 3099;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 350,
-	'5.2' => 237,
-	'5.3' => 211,
-	'5.4' => 191,
-	'5.5' => 189,
-	'5.6' => 190,
-	'7.0' => 109,
-	'7.1' => 107,
-	'7.2' => 105,
-	'7.3' => 92,
-	'7.4' => 86,
-	'8.0' => 86,
+	'4.4' => 318,
+	'5.2' => 217,
+	'5.3' => 186,
+	'5.4' => 170,
+	'5.5' => 167,
+	'5.6' => 170,
+	'7.0' => 93,
+	'7.1' => 92,
+	'7.2' => 86,
+	'7.3' => 73,
+	'7.4' => 72,
+	'8.0' => 67,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
