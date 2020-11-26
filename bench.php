@@ -3,14 +3,14 @@
 ################################################################################
 #                      PHP Benchmark Performance Script                        #
 #                           2010      Code24 BV                                #
-#                           2015-2019 Rusoft                                   #
+#                           2015-2020 Rusoft                                   #
 #                                                                              #
 #  Author      : Alessandro Torrisi                                            #
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Feb 22, 2020                                                  #
-#  Version     : 1.0.36                                                        #
+#  Date        : Nov 26, 2020                                                  #
+#  Version     : 1.0.37                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.36';
+$scriptVersion = '1.0.37';
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
@@ -315,6 +315,7 @@ $loopMaxPhpTimes = array(
 	'7.2' => 105,
 	'7.3' => 92,
 	'7.4' => 86,
+	'8.0' => 86,
 );
 $dumbTestMaxPhpTimes = array(
 	'4.4' => 2.13,
@@ -328,6 +329,7 @@ $dumbTestMaxPhpTimes = array(
 	'7.2' => 1.18,
 	'7.3' => 1.05,
 	'7.4' => 1.02,
+	'8.0' => 1.02,
 );
 $testsLoopLimits = array(
 	'01_math'			=> 1000000,
@@ -358,8 +360,6 @@ $testsLoopLimits = array(
 	'21_loop_except'	=> 4000000,
 	'22_loop_nullop'	=> 50000000,
 	'23_loop_spaceship'	=> 50000000,
-	'24_xmlrpc_encode'	=> 200000,
-	'25_xmlrpc_decode'	=> 30000,
 	'26_1_public'		=> 5000000,
 	'26_2_getset'		=> 5000000,
 	'26_3_magic'		=> 5000000,
@@ -657,7 +657,7 @@ function dumb_test_Functions()
 
 	$count = 100000;
 	$time_start = get_microtime();
-	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode', 'xmlrpc_encode');
+	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);
@@ -1421,85 +1421,6 @@ if ((int)$phpversion[0] >= 7) {
 }
 
 
-function test_24_XmlRpc_Encode()
-{
-	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
-
-	if (!function_exists('xmlrpc_encode')) {
-		return $emptyResult;
-	}
-
-	$data = array(
-		// XmlRpc don't like html tags (php-7.2 + libxmlrpc-epi)
-		base64_encode($stringTest),
-		123456,
-		123.456,
-		array(123456),
-		null,
-		false,
-	);
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
-	$data[] = $obj;
-
-	$count = $testsLoopLimits['24_xmlrpc_encode'];
-	$time_start = get_microtime();
-	for ($i = 0; $i < $count; $i++) {
-		foreach ($data as $value) {
-			$r = xmlrpc_encode($value);
-		}
-	}
-	$totalOps += $count;
-	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
-}
-
-function test_25_XmlRpc_Decode()
-{
-	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
-
-	if (!function_exists('xmlrpc_decode')) {
-		return $emptyResult;
-	}
-
-	$data = array(
-		// XmlRpc don't like html tags (php-7.2 + libxmlrpc-epi)
-		base64_encode($stringTest),
-		123456,
-		123.456,
-		array(123456),
-		null,
-		false,
-	);
-	$obj = new stdClass();
-	$obj->fieldStr = 'value';
-	$obj->fieldInt = 123456;
-	$obj->fieldFloat = 123.456;
-	$obj->fieldArray = array(123456);
-	$obj->fieldNull = null;
-	$obj->fieldBool = false;
-	$data[] = $obj;
-
-	foreach ($data as $key => $value) {
-		$data[$key] = xmlrpc_encode($value);
-	}
-
-	$count = $testsLoopLimits['25_xmlrpc_decode'];
-	$time_start = get_microtime();
-	for ($i = 0; $i < $count; $i++) {
-		foreach ($data as $value) {
-			$r = xmlrpc_decode($value);
-		}
-	}
-	$totalOps += $count;
-	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
-}
-
-
 $functions = get_defined_functions();
 sort($functions['user']);
 
@@ -1529,11 +1450,6 @@ if (!function_exists('json_encode')) {
 	echo "<pre>Extenstion 'json' not loaded or not compiled! JSON tests will produce empty result!</pre>";
 	$has_json = "no";
 }
-$has_xmlrpc = "yes";
-if (!function_exists('xmlrpc_encode')) {
-	echo "<pre>Extenstion 'xmlrpc' not loaded or not compiled! XmlRpc tests will procude empty result!</pre>";
-	$has_xmlrpc = "no";
-}
 $has_pcre = "yes";
 if (!function_exists('preg_match')) {
 	echo "<pre>Extenstion 'pcre' not loaded or not compiled! Regex tests will procude empty result!</pre>";
@@ -1560,7 +1476,6 @@ echo "<pre>\n$line\n|"
 	. str_pad("available modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
 	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-	. str_pad("xmlrpc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xmlrpc\n"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
 	. str_pad("Max execution time", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
