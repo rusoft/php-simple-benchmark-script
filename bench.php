@@ -301,7 +301,7 @@ $runOnlySelectedTests = !empty($selectedTests);
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3000;
+$loopMaxPhpTimesMHz = 3099;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
 	'4.4' => 350,
