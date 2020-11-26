@@ -873,7 +873,7 @@ function test_01_Math()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$mathFunctions = array('abs', 'acos', 'asin', 'atan', 'decbin', 'dechex', 'decoct', 'floor', 'exp', 'log1p', 'sin', 'tan', 'pi', 'is_finite', 'is_nan', 'sqrt', 'rad2deg');
+	$mathFunctions = array('abs', 'acos', 'asin', 'atan', 'decbin', 'dechex', 'decoct', 'floor', 'exp', 'log1p', 'sin', 'tan', 'is_finite', 'is_nan', 'sqrt', 'rad2deg');
 	foreach ($mathFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($mathFunctions[$key]);
