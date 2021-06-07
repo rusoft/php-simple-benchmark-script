@@ -20,8 +20,13 @@
 
 $scriptVersion = '1.0.37';
 
+header('X-Accel-Buffering: no', true);
+
 ini_set('display_errors', 0);
 ini_set('error_log', null);
+ini_set('implicit_flush', 1);
+ini_set('output_buffering', 0);
+
 error_reporting(E_ERROR | E_WARNING | E_PARSE);
 // Disable explicit error reporting
 $xdebug = ini_get('xdebug.default_enable');
