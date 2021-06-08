@@ -3,7 +3,7 @@
 ################################################################################
 #                      PHP Benchmark Performance Script                        #
 #                           2010      Code24 BV                                #
-#                           2015-2020 Rusoft                                   #
+#                           2015-2021 Rusoft                                   #
 #                                                                              #
 #  Author      : Alessandro Torrisi                                            #
 #  Company     : Code24 BV, The Netherlands                                    #
@@ -21,6 +21,9 @@
 $scriptVersion = '1.0.37';
 
 header('X-Accel-Buffering: no', true);
+
+$tz = date_default_timezone_get();
+if (!$tz) date_default_timezone_set('Europe/Moscow');
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
