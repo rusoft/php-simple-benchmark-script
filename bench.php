@@ -22,8 +22,8 @@ $scriptVersion = '1.0.37';
 
 header('X-Accel-Buffering: no', true);
 
-$tz = date_default_timezone_get();
-if (!$tz) date_default_timezone_set('Europe/Moscow');
+$tz = ini_get('date.timezone');
+if (!$tz) ini_set('date.timezone', 'Europe/Moscow');
 
 ini_set('display_errors', 0);
 ini_set('error_log', null);
