@@ -20,7 +20,9 @@
 
 $scriptVersion = '1.0.37';
 
+// Hello, nginx!
 header('X-Accel-Buffering: no', true);
+flush();
 
 $tz = ini_get('date.timezone');
 if (!$tz) ini_set('date.timezone', 'Europe/Moscow');
