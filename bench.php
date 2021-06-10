@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Nov 26, 2020                                                  #
-#  Version     : 1.0.37                                                        #
+#  Version     : 1.0.38                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,11 +18,28 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.37';
+function flprint($msg) {
+	print($msg);
+	flush();
+}
 
-// Hello, nginx!
-header('X-Accel-Buffering: no', true);
-flush();
+function print_pre($msg) {
+	if (php_sapi_name() != 'cli') {
+		print('<pre>'.$msg.'</pre>');
+	} else {
+		print($msg);
+	}
+	flush();
+}
+
+$scriptVersion = '1.0.38';
+
+if (php_sapi_name() != 'cli') {
+	// Hello, nginx!
+	header('X-Accel-Buffering: no', true);
+	header('Content-Type: text/html; charset=utf-8', true);
+	flush();
+}
 
 $tz = ini_get('date.timezone');
 if (!$tz) ini_set('date.timezone', 'Europe/Moscow');
@@ -38,7 +55,7 @@ $xdebug = ini_get('xdebug.default_enable');
 ini_set('xdebug.show_exception_trace', 0);
 
 if ($xdebug) {
-	print('<pre><<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!</pre>'.PHP_EOL);
+	print_pre('<<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!'.PHP_EOL);
 	exit(1);
 }
 
@@ -55,7 +72,7 @@ if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
 	$dropDead = true;
 }
 if ($dropDead) {
-	print('<pre><<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION . '</pre>'.PHP_EOL);
+	print_pre('<<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION .PHP_EOL);
 	exit(1);
 }
 if (!defined('PHP_MAJOR_VERSION')) {
@@ -174,8 +191,8 @@ if ($options) {
 			case 'h':
 			case 'help':
 				if ($hasLongOpts) {
-					print(
-						'<pre>' . PHP_EOL
+					print_pre(
+						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
 						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]' . PHP_EOL
@@ -190,11 +207,11 @@ if ($options) {
 						. '	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
-						. '</pre>' . PHP_EOL
+						. PHP_EOL
 					);
 				} else {
-					print(
-						'<pre>' . PHP_EOL
+					print_pre(
+						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
 						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-D] [-L] [-m 256] [-t 600] [-T name1 ...]' . PHP_EOL
@@ -209,7 +226,7 @@ if ($options) {
 						. '	-T <name>	- run selected test, test names from -L output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
-						. '</pre>' . PHP_EOL
+						. PHP_EOL
 					);
 				}
 				exit(0);
@@ -249,7 +266,7 @@ if ($options) {
 				if (is_numeric($oval)) {
 					$defaultTimeLimit = (int)$oval;
 				} else {
-					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
+					print_pre("<<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
 				}
 				break;
 
@@ -259,12 +276,12 @@ if ($options) {
 				if (!empty($oval)) {
 					$selectedTests = (array)$oval;
 				} else {
-					print("<pre><<< WARNING >>> Option '$okey' has no value! Skip.</pre>" . PHP_EOL);
+					print_pre("<<< WARNING >>> Option '$okey' has no value! Skip." . PHP_EOL);
 				}
 				break;
 
 			default:
-				print("<pre><<< WARNING >>> Unknown option '$okey'!</pre>" . PHP_EOL);
+				print_pre("<<< WARNING >>> Unknown option '$okey'!" . PHP_EOL);
 		}
 
 	}
@@ -737,7 +754,7 @@ if (defined('CRYPT_SHA512') && CRYPT_SHA512 == 1) {
 */
 
 if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
-	print("<pre>\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n</pre>" . PHP_EOL);
+	print_pre("$line\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n$line" . PHP_EOL);
 }
 
 
@@ -745,13 +762,13 @@ $cpuInfo = getCpuInfo();
 // CPU throttling?
 if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
 	if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
-		print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+		print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
 		// TIME WASTED HERE
 		$cpuInfo = getCpuInfo(true);
 	}
 } else if ($cpuInfo['max-mhz'] && $cpuInfo['mhz']) {
 	if (abs($cpuInfo['max-mhz'] - $cpuInfo['mhz']) > 300) {
-		print("<pre>\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n</pre>" . PHP_EOL);
+		print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
 		// TIME WASTED HERE
 		$cpuInfo = getCpuInfo(true);
 	}
@@ -763,10 +780,10 @@ $memoryLimitMb = convert($memoryLimit);
 // Adjust array tests limits
 if ($memoryLimit < $testMemoryFull) {
 
-	print("<pre>\n<<< WARNING >>>\nAvailable memory for tests: " . $memoryLimitMb
+	print_pre("$line\n<<< WARNING >>>\nAvailable memory for tests: " . $memoryLimitMb
 		. " is less than minimum required: " . convert($testMemoryFull)
 		. ".\n Recalculate tests parameters to fit in memory limits."
-		. "\n</pre>" . PHP_EOL);
+		. "\n$line" . PHP_EOL);
 
 	$factor = 1.0 * ($testMemoryFull - $memoryLimit) / $testMemoryFull;
 
@@ -831,12 +848,12 @@ if ($factor < 1.0) {
 
 $cpuModel = $cpuInfo['model'];
 if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
-	print("<pre>\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n</pre>" . PHP_EOL);
+	print_pre("$line\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n$line" . PHP_EOL);
 	$factor = 1.0/3;
 }
 
 if ($factor < 1.0) {
-	print("<pre>\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\n</pre>" . PHP_EOL);
+	print_pre("$line\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\n$line" . PHP_EOL);
 	foreach ($testsLoopLimits as $tst => $loops) {
 		$testsLoopLimits[$tst] = (int)($loops * $factor);
 	}
@@ -1419,7 +1436,7 @@ if ((int)$phpversion[0] >= 5) {
 	if (is_file('php5.inc')) {
 		include_once 'php5.inc';
 	} else {
-		print("<pre>\n<<< WARNING >>>\nMissing file 'php5.inc' with try/Exception/catch loop test!\n It matters only for php version 5+.\n</pre>");
+		print_pre("$line\n<<< WARNING >>>\nMissing file 'php5.inc' with try/Exception/catch loop test!\n It matters only for php version 5+.\n$line");
 	}
 }
 
@@ -1427,7 +1444,7 @@ if ((int)$phpversion[0] >= 7) {
 	if (is_file('php7.inc')) {
 		include_once 'php7.inc';
 	} else {
-		print("<pre>\n<<< WARNING >>>\nMissing file 'php7.inc' with PHP 7 new features tests!\n It matters only for php version 7+.\n</pre>");
+		print_pre("$line\n<<< WARNING >>>\nMissing file 'php7.inc' with PHP 7 new features tests!\n It matters only for php version 7+.\n$line");
 	}
 }
 
@@ -1438,14 +1455,17 @@ sort($functions['user']);
 /** ------------------------------- Early checks ------------------------------- */
 
 if ($outputTestsList) {
-	echo "<pre>\nAvailable tests:\n";
+	if (php_sapi_name() != 'cli')
+		print("<pre>");
+	print("\nAvailable tests:\n");
 	foreach ($functions['user'] as $user) {
 		if (strpos($user, 'test_') === 0) {
 			$testName = str_replace('test_', '', $user);
 			echo $testName . PHP_EOL;
 		}
 	}
-	echo "</pre>\n";
+	if (php_sapi_name() != 'cli')
+		print("</pre>\n");
 	exit(0);
 }
 
@@ -1453,23 +1473,24 @@ if ($outputTestsList) {
 
 $has_mbstring = "yes";
 if (!function_exists('mb_strlen')) {
-	echo "<pre>Extenstion 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!</pre>";
+	print_pre("Extenstion 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!");
 	$has_mbstring = "no";
 }
 $has_json = "yes";
 if (!function_exists('json_encode')) {
-	echo "<pre>Extenstion 'json' not loaded or not compiled! JSON tests will produce empty result!</pre>";
+	print_pre("Extenstion 'json' not loaded or not compiled! JSON tests will produce empty result!");
 	$has_json = "no";
 }
 $has_pcre = "yes";
 if (!function_exists('preg_match')) {
-	echo "<pre>Extenstion 'pcre' not loaded or not compiled! Regex tests will procude empty result!</pre>";
+	print_pre("Extenstion 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
 	$has_pcre = "no";
 }
 
 $total = 0;
 
-echo "<pre>\n$line\n|"
+if (php_sapi_name() != 'cli') echo "<pre>";
+echo "\n$line\n|"
 	. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
 	. "|\n$line\n"
 	. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
@@ -1491,12 +1512,14 @@ echo "<pre>\n$line\n|"
 	. str_pad("Max execution time", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. "$line\n";
+flush();
 
 if (!$showOnlySystemInfo) {
 
 echo str_pad('TEST NAME', $padLabel) . " :"
 	. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
 	. "$line\n";
+flush();
 
 foreach ($functions['user'] as $user) {
 	if (strpos($user, 'test_') === 0) {
@@ -1510,6 +1533,7 @@ foreach ($functions['user'] as $user) {
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 		$total += $resultSec;
 		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+		flush();
 	}
 }
 
@@ -1527,4 +1551,6 @@ echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(my
 
 } // show only system info?
 
-echo "</pre>\n";
+if (php_sapi_name() != 'cli')
+	echo "</pre>\n";
+flush();
