@@ -48,6 +48,7 @@ ini_set('display_errors', 0);
 ini_set('error_log', null);
 ini_set('implicit_flush', 1);
 ini_set('output_buffering', 0);
+ob_implicit_flush(1);
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE);
 // Disable explicit error reporting
@@ -291,16 +292,10 @@ if ($options) {
 set_time_limit($defaultTimeLimit);
 @ini_set('memory_limit', $defaultMemoryLimit . 'M');
 
-// Force output flushing, like in CLI
-// May help with proxy-pass apache-nginx
-@ini_set('output_buffering', 0);
-@ini_set('implicit_flush', 1);
-ob_implicit_flush(1);
-// Special for nginx
-header('X-Accel-Buffering: no');
-
-if (file_exists('/usr/bin/taskset')) {
-	shell_exec('/usr/bin/taskset -c -p 0 ' . getmypid());
+if (php_sapi_name() == 'cli') {
+	if (file_exists('/usr/bin/taskset')) {
+		shell_exec('/usr/bin/taskset -c -p 0 ' . getmypid());
+	}
 }
 
 /** ------------------------------- Main Constants ------------------------------- */
