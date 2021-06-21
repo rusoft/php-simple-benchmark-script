@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Nov 26, 2020                                                  #
-#  Version     : 1.0.38                                                        #
+#  Date        : Jun 21, 2021                                                  #
+#  Version     : 1.0.39                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.38';
+$scriptVersion = '1.0.39';
 
 if (php_sapi_name() != 'cli') {
 	// Hello, nginx!
@@ -57,6 +57,12 @@ ini_set('xdebug.show_exception_trace', 0);
 
 if ($xdebug) {
 	print_pre('<<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!'.PHP_EOL);
+	exit(1);
+}
+
+$mbover = ini_get('mbstring.func_overload');
+if ($mbover == 2) {
+	print_pre('<<< ERROR >>> You need to disable mbstring string functions overloading! It greatly slow things down!'.PHP_EOL);
 	exit(1);
 }
 
