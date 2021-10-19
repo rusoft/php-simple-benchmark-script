@@ -32,13 +32,18 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.39';
+$scriptVersion = '1.0.40-dev';
+
+// Special striing to flush buffers, nginx for example
+$flushStr = '<span style="display:none">'.str_repeat(" ", 4096).'</span>';
 
 if (php_sapi_name() != 'cli') {
 	// Hello, nginx!
 	header('X-Accel-Buffering: no', true);
 	header('Content-Type: text/html; charset=utf-8', true);
 	flush();
+} else {
+	$flushStr = '';
 }
 
 $tz = ini_get('date.timezone');
@@ -50,19 +55,32 @@ ini_set('implicit_flush', 1);
 ini_set('output_buffering', 0);
 ob_implicit_flush(1);
 
-error_reporting(E_ERROR | E_WARNING | E_PARSE);
 // Disable explicit error reporting
-$xdebug = ini_get('xdebug.default_enable');
-ini_set('xdebug.show_exception_trace', 0);
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
+// Check XDebug
+$xdebug = ini_get('xdebug.default_enable');
 if ($xdebug) {
 	print_pre('<<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!'.PHP_EOL);
+	exit(1);
+}
+ini_set('xdebug.show_exception_trace', 0);
+
+// Check OpCache
+$opcache = ini_get('opcache.enable');
+if ($opcache) {
+	print_pre('<<< ERROR >>> You need to disable OpCache extension! It may affect results greatly! Make it via .htaccess, VHost or fpm config'.PHP_EOL);
+	exit(1);
+}
+$opcache = ini_get('opcache.enable_cli');
+if ($opcache) {
+	print_pre('<<< ERROR >>> You need to disable Cli OpCache extension! It may affect results greatly! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
 	exit(1);
 }
 
 $mbover = ini_get('mbstring.func_overload');
 if ($mbover == 2) {
-	print_pre('<<< ERROR >>> You need to disable mbstring string functions overloading! It greatly slow things down!'.PHP_EOL);
+	print_pre('<<< ERROR >>> You need to disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
 	exit(1);
 }
 
@@ -1512,14 +1530,14 @@ echo "\n$line\n|"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
 	. str_pad("Max execution time", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
-	. "$line\n";
+	. "$line\n" . $flushStr;
 flush();
 
 if (!$showOnlySystemInfo) {
 
 echo str_pad('TEST NAME', $padLabel) . " :"
 	. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
-	. "$line\n";
+	. "$line\n" . $flushStr;
 flush();
 
 foreach ($functions['user'] as $user) {
@@ -1534,6 +1552,7 @@ foreach ($functions['user'] as $user) {
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 		$total += $resultSec;
 		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+		echo $flushStr;
 		flush();
 	}
 }
