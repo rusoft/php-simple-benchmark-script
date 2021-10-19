@@ -2,7 +2,7 @@
 
 /**
  * Special test only for php 5+
- * php 4.x can't compile try construction.
+ * php 4.x cant compile try construction.
  */
 
 /* ------------------------ Additional data ------------------------ */
@@ -146,4 +146,3 @@ function test_26_3_Class_Magic_Methods()
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
-
