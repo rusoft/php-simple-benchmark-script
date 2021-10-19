@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 21, 2021                                                  #
-#  Version     : 1.0.40                                                        #
+#  Version     : 1.0.41                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.40';
+$scriptVersion = '1.0.41';
 
 // Special striing to flush buffers, nginx for example
 $flushStr = '<span style="display:none">'.str_repeat(" ", 4096).'</span>';
@@ -936,7 +936,12 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 
 /** ---------------------------------- Tests functions -------------------------------------------- */
 
-include_once 'common.inc';
+if (is_file('common.inc')) {
+	include_once 'common.inc';
+} else {
+	print_pre("$line\n<<< ERROR >>>\nMissing file 'common.inc' with common tests!\n$line");
+	exit(1);
+}
 
 if ((int)$phpversion[0] >= 5) {
 	if (is_file('php5.inc')) {
