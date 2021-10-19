@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 21, 2021                                                  #
-#  Version     : 1.0.39                                                        #
+#  Version     : 1.0.40                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.40-dev';
+$scriptVersion = '1.0.40';
 
 // Special striing to flush buffers, nginx for example
 $flushStr = '<span style="display:none">'.str_repeat(" ", 4096).'</span>';
@@ -67,15 +67,18 @@ if ($xdebug) {
 ini_set('xdebug.show_exception_trace', 0);
 
 // Check OpCache
-$opcache = ini_get('opcache.enable');
-if ($opcache) {
-	print_pre('<<< ERROR >>> You need to disable OpCache extension! It may affect results greatly! Make it via .htaccess, VHost or fpm config'.PHP_EOL);
-	exit(1);
-}
-$opcache = ini_get('opcache.enable_cli');
-if ($opcache) {
-	print_pre('<<< ERROR >>> You need to disable Cli OpCache extension! It may affect results greatly! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
-	exit(1);
+if (php_sapi_name() != 'cli') {
+	$opcache = ini_get('opcache.enable');
+	if ($opcache) {
+		print_pre('<<< ERROR >>> You need to disable OpCache extension! It may affect results greatly! Make it via .htaccess, VHost or fpm config'.PHP_EOL);
+		exit(1);
+	}
+} else {
+	$opcache = ini_get('opcache.enable_cli');
+	if ($opcache) {
+		print_pre('<<< ERROR >>> You need to disable Cli OpCache extension! It may affect results greatly! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
+		exit(1);
+	}
 }
 
 $mbover = ini_get('mbstring.func_overload');
@@ -111,6 +114,9 @@ $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and
 $regexPattern = '/[\s,]+/';
 
 /** ------------------------------- Main Defaults ------------------------------- */
+
+$originMemoryLimit = @ini_get('memory_limit');
+$originTimeLimit = @ini_get('max_execution_time');
 
 /* Default execution time limit in seconds */
 $defaultTimeLimit = 600;
@@ -832,10 +838,25 @@ if (isset($loopMaxPhpTimes[$pv])) {
 	$needTime = $loopMaxPhpTimes[$phpversion[0]];
 }
 
+if ($printDumbTest) {
+	print_pre("Need time: " .$needTime . PHP_EOL
+		. "Max time: " .$maxTime . PHP_EOL);
+}
+
 if (isset($dumbTestMaxPhpTimes[$pv])) {
 	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$pv];
 } elseif (isset($dumbTestMaxPhpTimes[$phpversion[0]])) {
 	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$phpversion[0]];
+}
+
+if ($cpuInfo['mhz'] > $loopMaxPhpTimesMHz) {
+	// In reality it's non-linear, but that is best we can suggest
+	$needTime *= 1.0 / $cpuInfo['mhz'] * $loopMaxPhpTimesMHz;
+	$dumbTestTimeMax *= 1.0 / $cpuInfo['mhz'] * $loopMaxPhpTimesMHz;
+
+	if ($printDumbTest) {
+		print_pre("CPU is faster than base one, need time recalc: " .$needTime . PHP_EOL);
+	}
 }
 
 if ($recalculateLimits) {
@@ -843,13 +864,14 @@ if ($recalculateLimits) {
 $factor = 1.0;
 // Don't bother if time is unlimited
 if ($maxTime) {
-	if ($needTime > ($maxTime - 1)) {
-		$factor = 1.0 * ($maxTime - 1) / $needTime;
+	// Adjust more only if maxTime too small
+	if ($needTime > $maxTime) {
+		$factor = 1.0 * $maxTime / $needTime;
 	}
 }
 
 if ($factor < 1.0) {
-	// Adjust more only if maxTime too small
+	// Adjust more only if HZ too small
 	if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
 		$factor *= 1.0 * $cpuInfo['mhz'] / $loopMaxPhpTimesMHz;
 	}
@@ -858,7 +880,8 @@ if ($factor < 1.0) {
 	$dumbTestTime = dumb_test_Functions();
 //	Debug
 	if ($printDumbTest) {
-		print("Dumb test time: " .$dumbTestTime . PHP_EOL);
+		print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
+			. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
 	}
 	if ($dumbTestTime > $dumbTestTimeMax) {
 		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
@@ -872,7 +895,7 @@ if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== 
 }
 
 if ($factor < 1.0) {
-	print_pre("$line\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\n$line" . PHP_EOL);
+	print_pre("$line\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\nFactor is: '$factor'\n$line" . PHP_EOL);
 	foreach ($testsLoopLimits as $tst => $loops) {
 		$testsLoopLimits[$tst] = (int)($loops * $factor);
 	}
@@ -971,6 +994,14 @@ if (!function_exists('preg_match')) {
 	print_pre("Extenstion 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
 	$has_pcre = "no";
 }
+$has_opcache = "no";
+if (extension_loaded('Zend OPcache')) {
+	$has_opcache = "yes";
+}
+$has_xdebug = "no";
+if (extension_loaded('xdebug')) {
+	$has_debug = "yes";
+}
 
 $total = 0;
 
@@ -987,14 +1018,18 @@ echo "\n$line\n|"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
 	. str_pad("available", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['available'] . "\n"
 	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
-	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
 	. str_pad("PHP version", $padInfo) . " : " . PHP_VERSION . "\n"
-	. str_pad("available modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
+	. str_pad("PHP time limit", $padInfo) . " : " . $originTimeLimit . " sec\n"
+	. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
+	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
+	. str_pad("loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
 	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
-	. str_pad("Max execution time", $padInfo) . " : " . $maxTime . " sec\n"
+	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache\n"
+	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
+	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. "$line\n" . $flushStr;
 flush();
