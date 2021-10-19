@@ -59,7 +59,7 @@ ob_implicit_flush(1);
 error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 // Check XDebug
-$xdebug = ini_get('xdebug.default_enable');
+$xdebug = (int)ini_get('xdebug.default_enable');
 if ($xdebug) {
 	print_pre('<<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!'.PHP_EOL);
 	exit(1);
@@ -68,22 +68,20 @@ ini_set('xdebug.show_exception_trace', 0);
 
 // Check OpCache
 if (php_sapi_name() != 'cli') {
-	$opcache = ini_get('opcache.enable');
+	$opcache = (int)ini_get('opcache.enable');
 	if ($opcache) {
-		print_pre('<<< ERROR >>> You need to disable OpCache extension! It may affect results greatly! Make it via .htaccess, VHost or fpm config'.PHP_EOL);
-		exit(1);
+		print_pre('<<< WARNING >>> You may need to disable OpCache extension! It may affect results greatly! Make it via .htaccess, VHost or fpm config'.PHP_EOL);
 	}
 } else {
-	$opcache = ini_get('opcache.enable_cli');
+	$opcache = (int)ini_get('opcache.enable_cli');
 	if ($opcache) {
-		print_pre('<<< ERROR >>> You need to disable Cli OpCache extension! It may affect results greatly! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
-		exit(1);
+		print_pre('<<< WARNING >>> You may need to disable Cli OpCache extension! It may affect results greatly! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
 	}
 }
 
-$mbover = ini_get('mbstring.func_overload');
-if ($mbover == 2) {
-	print_pre('<<< ERROR >>> You need to disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
+$mbover = (int)ini_get('mbstring.func_overload');
+if ($mbover != 0) {
+	print_pre('<<< ERROR >>> You must disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
 	exit(1);
 }
 
