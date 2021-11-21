@@ -9,6 +9,8 @@
 - pcre
 - mbstring
 - json
+- dom
+- simplexml
 
 Обычно они уже установлены или "вкомпилированны" в php.
 
@@ -21,7 +23,7 @@
 
 ### 0. Файлы
 
-Нужно положить в один каталог файлы: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`
+Нужно положить в один каталог файлы: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `test.xml`.
 
 ### 1. Через консоль
 
