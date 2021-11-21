@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.41';
+$scriptVersion = '1.0.42-dev';
 
 // Special striing to flush buffers, nginx for example
 $flushStr = '<span style="display:none">'.str_repeat(" ", 4096).'</span>';
@@ -1029,7 +1029,7 @@ echo "\n$line\n|"
 	. str_pad("loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
 	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre\n"
+	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
 	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache\n"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
 	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
