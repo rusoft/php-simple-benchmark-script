@@ -414,6 +414,8 @@ $testsLoopLimits = array(
 	'26_1_public'		=> 5000000,
 	'26_2_getset'		=> 5000000,
 	'26_3_magic'		=> 5000000,
+	'27_simplexml'		=> 50000,
+	'28_domxml'			=> 50000,
 );
 $totalOps = 0;
 
@@ -1013,10 +1015,6 @@ $has_simplexml = "no";
 if (extension_loaded('simplexml')) {
 	$has_simplexml = "yes";
 }
-$has_xmlreader = "no";
-if (extension_loaded('xmlreader')) {
-	$has_xmlreader = "yes";
-}
 
 $total = 0;
 
@@ -1039,14 +1037,13 @@ echo "\n$line\n|"
 	. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
-	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
 	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
-	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache\n"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
-	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml\n"
+	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
+	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
+	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: ". intval($opcache) . "\n"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
-	. str_pad("xmlreader", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xmlreader\n"
 	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. "$line\n" . $flushStr;

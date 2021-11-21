@@ -146,3 +146,72 @@ function test_26_3_Class_Magic_Methods()
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
+
+// ------------------------- xml -------------------------
+
+function test_27_SimpleXml()
+{
+    global $testsLoopLimits, $totalOps, $emptyResult;
+
+    $count = $testsLoopLimits['27_simplexml'];
+    $time_start = get_microtime();
+
+    if (!class_exists('SimpleXMLElement')) {
+        return $emptyResult;
+    }
+
+    $file = 'test.xml';
+    if (!is_file($file)) {
+        return $emptyResult;
+    }
+
+    $xmlStr = file_get_contents($file);
+
+    $a = 0;
+    for ($i = 0; $i < $count; $i++) {
+        $rss = new SimpleXMLElement($xmlStr);
+        if ($rss->channel->title == 'PECL: Latest releases') $a++;
+        if ($rss->item[1]->title == 'rdkafka 5.0.1') $a++;
+    }
+    $totalOps += $count;
+    return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_28_DomXml()
+{
+    global $testsLoopLimits, $totalOps, $emptyResult;
+
+    $count = $testsLoopLimits['28_domxml'];
+    $time_start = get_microtime();
+
+    if (!class_exists('DOMDocument')) {
+        return $emptyResult;
+    }
+
+    $file = 'test.xml';
+    if (!is_file($file)) {
+        return $emptyResult;
+    }
+    
+    $xmlStr = file_get_contents($file);
+
+	$a = 0;
+    for ($i = 0; $i < $count; $i++) {
+		$rss = new DOMDocument('1.0', 'utf-8');
+		$rss->loadXML($xmlStr);
+
+		$channel = $rss->getElementsByTagName('channel');
+		$channel = $channel->item(0);
+		$chTitle = $channel->getElementsByTagName('title');
+		$chTitle = $chTitle->item(0);
+		if ($chTitle->nodeValue == 'PECL: Latest releases') $a++;
+
+		$items = $rss->getElementsByTagName('item');
+		$item = $items->item(1);
+		$iTitle = $item->getElementsByTagName('title');
+		$iTitle = $iTitle->item(0);
+		if ($iTitle->nodeValue == 'rdkafka 5.0.1') $a++;
+    }
+    $totalOps += $count;
+    return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
