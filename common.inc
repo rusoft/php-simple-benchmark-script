@@ -423,9 +423,14 @@ function test_15_Loops()
 
 	$count = $testsLoopLimits['15_loops'];
 	$time_start = get_microtime();
+
+	// @warning Since 8.0 may be eliminated as dead-code if opcache loaded and enabled
 	for ($i = 0; $i < $count; ++$i) ;
+
 	$i = 0;
+	// @warning Since 8.0 may be eliminated as dead-code if opcache loaded and enabled
 	while ($i++ < $count) ;
+
 	$totalOps += $count * 2;
 	return format_result_test(get_microtime() - $time_start, $count * 2, mymemory_usage());
 }
@@ -436,11 +441,17 @@ function test_16_Loop_IfElse()
 
 	$count = $testsLoopLimits['16_loop_ifelse'];
 	$time_start = get_microtime();
+	$a = 0;
 	for ($i = 0; $i < $count; $i++) {
-		if ($i == -1) {
-		} elseif ($i == -2) {
-		} else if ($i == -3) {
+		$d = $i % 5;
+		if ($d == 1) {
+			$a++;
+		} elseif ($d == 2) {
+			$a--;
+		} else if ($d == 3) {
+			$a++;
 		} else {
+			$a--;
 		}
 	}
 	$totalOps += $count;
@@ -453,6 +464,7 @@ function test_17_Loop_Ternary()
 
 	$count = $testsLoopLimits['17_loop_ternary'];
 	$time_start = get_microtime();
+	$a = 0;
 	for ($i = 0; $i < $count; $i++) {
 		$r = ($i % 2 == 1)
 			? (($i % 3 == 1)
@@ -461,6 +473,7 @@ function test_17_Loop_Ternary()
 					: 2)
 				: 1)
 			: 0;
+		$a += $r;
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
@@ -486,13 +499,13 @@ function test_18_2_Loop_Undefined_Access()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$a = array();
+	$a = array(1 => 1, 3 => 1);
 	$r = 0;
 
 	$count = $testsLoopLimits['18_2_loop_undef'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
-		$r += @$a[$i % 2] ? 0 : 1;
+		$r += @$a[$i % 5] ? 0 : 1;
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
@@ -502,7 +515,7 @@ function test_19_Type_Functions()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$ia = array('123456', '0.000001', '0x123');
+	$ia = array('123456', '0.000001', '0x123', '0644');
 	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
 
 	$count = $testsLoopLimits['20_type_conv'];
@@ -523,7 +536,7 @@ function test_20_Type_Conversion()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$ia = array('123456', '0.000001', '0x123');
+	$ia = array('123456', '0.000001', '0x123', '0644');
 	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
 
 	$count = $testsLoopLimits['20_type_conv'];

@@ -56,8 +56,10 @@ function test_21_0_Loop_Exception_None()
 
 	$count = $testsLoopLimits['21_loop_except'];
 	$time_start = get_microtime();
+	$a = 0;
 	for ($i = 0; $i < $count; $i++) {
-		$a = $i;
+		$a += $i;
+		if ($i % 10000 == 1) $a = 0;
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
@@ -69,9 +71,11 @@ function test_21_1_Loop_Exception_Try()
 
 	$count = $testsLoopLimits['21_loop_except'];
 	$time_start = get_microtime();
+	$a = 0;
 	for ($i = 0; $i < $count; $i++) {
 		try {
-			$a = $i;
+			$a += $i;
+			if ($i % 10000 == 1) $a = 0;
 		} catch (Exception $e) {
 		}
 	}
@@ -85,9 +89,11 @@ function test_21_2_Loop_Exception_Catch()
 
 	$count = $testsLoopLimits['21_loop_except'];
 	$time_start = get_microtime();
+	$a = 0;
 	for ($i = 0; $i < $count; $i++) {
 		try {
-			$a = $i;
+			$a += $i;
+			if ($i % 10000 == 1) $a = 0;
 			throw new Exception($i);
 		} catch (Exception $e) {
 		}
@@ -156,7 +162,7 @@ function test_27_SimpleXml()
     $count = $testsLoopLimits['27_simplexml'];
     $time_start = get_microtime();
 
-    if (!class_exists('SimpleXMLElement')) {
+    if (!class_exists('SimpleXMLElement', false)) {
         return $emptyResult;
     }
 
@@ -184,7 +190,7 @@ function test_28_DomXml()
     $count = $testsLoopLimits['28_domxml'];
     $time_start = get_microtime();
 
-    if (!class_exists('DOMDocument')) {
+    if (!class_exists('DOMDocument', false)) {
         return $emptyResult;
     }
 
@@ -192,11 +198,11 @@ function test_28_DomXml()
     if (!is_file($file)) {
         return $emptyResult;
     }
-    
+
     $xmlStr = file_get_contents($file);
 
 	$a = 0;
-    for ($i = 0; $i < $count; $i++) {
+	for ($i = 0; $i < $count; $i++) {
 		$rss = new DOMDocument('1.0', 'utf-8');
 		$rss->loadXML($xmlStr);
 

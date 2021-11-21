@@ -12,7 +12,7 @@ function test_22_Loop_Null_Op()
 	$count = $testsLoopLimits['22_loop_nullop'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
-		$r = $a[$i % 2] ?? 0;
+		$r = $a[$i % 5] ?? 0;
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());

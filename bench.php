@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 21, 2021                                                  #
-#  Version     : 1.0.41                                                        #
+#  Version     : 1.0.42                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,10 +32,10 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.42-dev';
+$scriptVersion = '1.0.42';
 
 // Special striing to flush buffers, nginx for example
-$flushStr = '<span style="display:none">'.str_repeat(" ", 4096).'</span>';
+$flushStr = '<!-- '.str_repeat(" ", 4096).' -->';
 
 if (php_sapi_name() != 'cli') {
 	// Hello, nginx!
@@ -341,52 +341,53 @@ $cryptAlgoName = 'default';
 // That gives around 256Mb memory use and reasonable test time
 $testMemoryFull = 256 * 1024 * 1024;
 // Arrays are matrix [$dimention] x [$dimention]
-$arrayDimensionLimit = 500;
+$arrayDimensionLimit = 600;
 
 // That limit gives around 256Mb too
-$stringConcatLoopRepeat = 1;
+$stringConcatLoopRepeat = 5;
 
 $runOnlySelectedTests = !empty($selectedTests);
 
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3099;
+$loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 318,
-	'5.2' => 217,
-	'5.3' => 186,
-	'5.4' => 170,
-	'5.5' => 167,
+	'4.4' => 308,
+	'5.2' => 226,
+	'5.3' => 195,
+	'5.4' => 174,
+	'5.5' => 173,
 	'5.6' => 170,
 	'7.0' => 93,
 	'7.1' => 92,
-	'7.2' => 86,
-	'7.3' => 73,
-	'7.4' => 72,
-	'8.0' => 67,
+	'7.2' => 87,
+	'7.3' => 78,
+	'7.4' => 78,
+	'8.0' => 73,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
-	'4.4' => 1.706,
-	'5.2' => 1.0596,
-	'5.3' => 1.0495,
-	'5.4' => 1.006,
-	'5.5' => 1.0256,
-	'5.6' => 1.0296,
-	'7.0' => 0.569,
-	'7.1' => 0.553,
-	'7.2' => 0.504,
-	'7.3' => 0.435,
-	'7.4' => 0.423,
-	'8.0' => 0.403,
+	'4.4' => 0.983,
+	'5.2' => 0.721,
+	'5.3' => 0.659,
+	'5.4' => 0.720,
+	'5.5' => 0.723,
+	'5.6' => 0.723,
+	'7.0' => 0.401,
+	'7.1' => 0.393,
+	'7.2' => 0.387,
+	'7.3' => 0.311,
+	'7.4' => 0.315,
+	'8.0' => 0.298,
 );
+// Nice dice roll
+// Should be passed into 600 seconds
 $testsLoopLimits = array(
-	'01_math'			=> 1000000,
-	// Nice dice roll
+	'01_math'			=> 2000000,
 	// That limit gives around 256Mb too
-	'02_string_concat'	=> 7700000,
+	'02_string_concat'	=> 7000000,
 	'03_1_string_number_concat'	=> 5000000,
 	'03_2_string_number_format'	=> 5000000,
 	'04_string_simple'	=> 1300000,
@@ -399,21 +400,21 @@ $testsLoopLimits = array(
 	'10_json_decode'	=> 1300000,
 	'11_serialize'		=> 1300000,
 	'12_unserialize'	=> 1300000,
-	'13_array_loop'		=> 200,
-	'14_array_loop'		=> 200,
-	'15_loops'			=> 100000000,
-	'16_loop_ifelse'	=> 50000000,
-	'17_loop_ternary'	=> 50000000,
-	'18_1_loop_def'		=> 20000000,
-	'18_2_loop_undef'	=> 20000000,
-	'19_type_func'		=> 3000000,
-	'20_type_conv'		=> 3000000,
-	'21_loop_except'	=> 4000000,
-	'22_loop_nullop'	=> 50000000,
-	'23_loop_spaceship'	=> 50000000,
-	'26_1_public'		=> 5000000,
-	'26_2_getset'		=> 5000000,
-	'26_3_magic'		=> 5000000,
+	'13_array_loop'		=> 250,
+	'14_array_loop'		=> 250,
+	'15_loops'			=> 200000000,
+	'16_loop_ifelse'	=> 100000000,
+	'17_loop_ternary'	=> 100000000,
+	'18_1_loop_def'		=> 50000000,
+	'18_2_loop_undef'	=> 50000000,
+	'19_type_func'		=> 5000000,
+	'20_type_conv'		=> 5000000,
+	'21_loop_except'	=> 10000000,
+	'22_loop_nullop'	=> 60000000,
+	'23_loop_spaceship'	=> 60000000,
+	'26_1_public'		=> 10000000,
+	'26_2_getset'		=> 10000000,
+	'26_3_magic'		=> 10000000,
 	'27_simplexml'		=> 50000,
 	'28_domxml'			=> 50000,
 );
@@ -878,13 +879,21 @@ if ($factor < 1.0) {
 
 	// TIME WASTED HERE
 	$dumbTestTime = dumb_test_Functions();
-//	Debug
+	//	Debug
 	if ($printDumbTest) {
 		print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
 			. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
 	}
 	if ($dumbTestTime > $dumbTestTimeMax) {
 		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
+	}
+} else {
+	// TIME WASTED HERE
+	$dumbTestTime = dumb_test_Functions();
+	//	Debug
+	if ($printDumbTest) {
+		print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
+			. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
 	}
 }
 
