@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 21, 2021                                                  #
-#  Version     : 1.0.42                                                        #
+#  Version     : 1.0.43-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.42';
+$scriptVersion = '1.0.43-dev';
 
 // Special striing to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 4096).' -->';
@@ -366,6 +366,7 @@ $loopMaxPhpTimes = array(
 	'7.3' => 78,
 	'7.4' => 78,
 	'8.0' => 73,
+	'8.1' => 71,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -381,6 +382,7 @@ $dumbTestMaxPhpTimes = array(
 	'7.3' => 0.311,
 	'7.4' => 0.315,
 	'8.0' => 0.298,
+	'8.1' => 0.298,
 );
 // Nice dice roll
 // Should be passed into 600 seconds
