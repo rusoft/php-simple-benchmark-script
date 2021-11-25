@@ -406,8 +406,8 @@ function test_14_Array_Unset()
 	$time_start = get_microtime();
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
 		$x = $xx;
-		for ($i = $arrayDimensionLimit; $i >= 0; $i--) {
-			for ($j = 0; $j <= $arrayDimensionLimit; $j++) {
+		for ($i = $arrayDimensionLimit-1; $i >= 0; $i--) {
+			for ($j = 0; $j < $arrayDimensionLimit; $j++) {
 				unset($x[$i][$j]);
 			}
 			unset($x[$i]);
