@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Jun 21, 2021                                                  #
-#  Version     : 1.0.43-dev                                                    #
+#  Date        : Nov 26, 2021                                                  #
+#  Version     : 1.0.43                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.43-dev';
+$scriptVersion = '1.0.43';
 
 // Special striing to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 4096).' -->';
@@ -354,35 +354,35 @@ $runOnlySelectedTests = !empty($selectedTests);
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 308,
-	'5.2' => 226,
-	'5.3' => 195,
-	'5.4' => 174,
-	'5.5' => 173,
-	'5.6' => 170,
-	'7.0' => 93,
-	'7.1' => 92,
-	'7.2' => 87,
-	'7.3' => 78,
-	'7.4' => 78,
-	'8.0' => 73,
-	'8.1' => 71,
+	'4.4' => 322,
+	'5.2' => 243,
+	'5.3' => 207,
+	'5.4' => 181,
+	'5.5' => 177,
+	'5.6' => 174,
+	'7.0' => 97,
+	'7.1' => 96,
+	'7.2' => 92,
+	'7.3' => 83,
+	'7.4' => 79,
+	'8.0' => 75,
+	'8.1' => 74,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
-	'4.4' => 0.983,
-	'5.2' => 0.721,
-	'5.3' => 0.659,
-	'5.4' => 0.720,
-	'5.5' => 0.723,
-	'5.6' => 0.723,
-	'7.0' => 0.401,
-	'7.1' => 0.393,
-	'7.2' => 0.387,
-	'7.3' => 0.311,
-	'7.4' => 0.315,
-	'8.0' => 0.298,
-	'8.1' => 0.298,
+	'4.4' => 1.041,
+	'5.2' => 0.771,
+	'5.3' => 0.737,
+	'5.4' => 0.769,
+	'5.5' => 0.770,
+	'5.6' => 0.781,
+	'7.0' => 0.425,
+	'7.1' => 0.425,
+	'7.2' => 0.412,
+	'7.3' => 0.339,
+	'7.4' => 0.340,
+	'8.0' => 0.324,
+	'8.1' => 0.323,
 );
 // Nice dice roll
 // Should be passed into 600 seconds
@@ -1016,10 +1016,11 @@ if (extension_loaded('Zend OPcache')) {
 }
 $has_xdebug = "no";
 if (extension_loaded('xdebug')) {
-	$has_debug = "yes";
+	print_pre("Extenstion 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!");
+	$has_xdebug = "yes";
 }
 $has_dom = "no";
-if (extension_loaded('dom') || extension_loaded('domxml')) {
+if (extension_loaded('dom')) {
 	$has_dom = "yes";
 }
 $has_simplexml = "no";
