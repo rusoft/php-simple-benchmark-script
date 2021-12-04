@@ -234,15 +234,15 @@ function test_29_DateTime()
 {
 	global $testsLoopLimits, $totalOps, $emptyResult;
 
-	$count = $testsLoopLimits['29_datetime'];
-	$time_start = get_microtime();
-
 	if (!class_exists('DateTime', false)) {
 		return $emptyResult;
 	}
 	if (!class_exists('DateInterval', false)) {
 		return $emptyResult;
 	}
+
+	$count = $testsLoopLimits['29_datetime'];
+	$time_start = get_microtime();
 
 	$now = new DateTime();
 	$day = new DateInterval("P1D");
@@ -260,3 +260,68 @@ function test_29_DateTime()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+// ------------------------- INTL tests -----------------------
+
+function test_30_Intl_Number_Format()
+{
+	global $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!class_exists('NumberFormatter', false)) {
+		return $emptyResult;
+	}
+	if (!function_exists('numfmt_create')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['30_intl_number_format'];
+	$time_start = get_microtime();
+
+	$fmt = new NumberFormatter( 'ru_RU', NumberFormatter::DECIMAL );
+	$fmtD = new NumberFormatter( 'ru_RU', NumberFormatter::DURATION );
+	$fmtC = new NumberFormatter( 'ru_RU', NumberFormatter::CURRENCY );
+	$fmtS = new NumberFormatter( 'en', NumberFormatter::SPELLOUT );
+
+	for ($i = 0; $i < $count; $i++) {
+		$num = $i / 100.;
+		$fmt->format($num);
+
+		$fmtC->formatCurrency($num, 'EUR');
+		$fmtC->formatCurrency($num, 'RUR');
+
+		$fmtD->format($num);
+		$fmtD->setTextAttribute(NumberFormatter::DEFAULT_RULESET, "%in-numerals");
+		$fmtD->format($num);
+		$fmtD->setTextAttribute(NumberFormatter::DEFAULT_RULESET, "%with-words");
+		$fmtD->format($num);
+
+		$fmtS->format($num);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_31_Intl_Message_Format()
+{
+	global $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!class_exists('MessageFormatter', false)) {
+		return $emptyResult;
+	}
+	if (!function_exists('msgfmt_create')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['31_intl_message_format'];
+	$time_start = get_microtime();
+
+	$fmt = new MessageFormatter("en_US", "{0,number,integer} monkeys on {1,number,integer} trees make {2,number} monkeys per tree");
+	$fmt2 = new MessageFormatter('en', 'Found {0, plural, =0 {no result} =1 {one result} other {# results}}');
+
+	for ($i = 0; $i < $count; $i++) {
+		$num = $i / 123.;
+		$fmt->format(array($i, 123, $num));
+		$fmt2->format(array($i));
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}

@@ -420,6 +420,8 @@ $testsLoopLimits = array(
 	'27_simplexml'		=> 50000,
 	'28_domxml'			=> 50000,
 	'29_datetime'		=> 500000,
+	'30_intl_number_format'		=> 20000,
+	'31_intl_message_format'	=> 200000,
 );
 $totalOps = 0;
 
@@ -1028,8 +1030,16 @@ $has_simplexml = "no";
 if (extension_loaded('simplexml')) {
 	$has_simplexml = "yes";
 }
+$has_intl = "no";
+if (extension_loaded('intl')) {
+	$has_intl = "yes";
+}
 
 $total = 0;
+
+if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
+if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
+if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 
 if (php_sapi_name() != 'cli') echo "<pre>";
 echo "\n$line\n|"
@@ -1055,6 +1065,7 @@ echo "\n$line\n|"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
 	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
+	. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == 'yes' ? '; version: ' . INTL_ICU_VERSION : '')."\n"
 	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: ". intval($opcache) . "\n"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
 	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
