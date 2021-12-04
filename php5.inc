@@ -157,67 +157,106 @@ function test_26_3_Class_Magic_Methods()
 
 function test_27_SimpleXml()
 {
-    global $testsLoopLimits, $totalOps, $emptyResult;
+	global $testsLoopLimits, $totalOps, $emptyResult;
 
-    $count = $testsLoopLimits['27_simplexml'];
-    $time_start = get_microtime();
+	$count = $testsLoopLimits['27_simplexml'];
+	$time_start = get_microtime();
 
-    if (!class_exists('SimpleXMLElement', false)) {
-        return $emptyResult;
-    }
+	if (!class_exists('SimpleXMLElement', false)) {
+		return $emptyResult;
+	}
 
-    $file = 'test.xml';
-    if (!is_file($file)) {
-        return $emptyResult;
-    }
+	$file = 'test.xml';
+	if (!is_file($file)) {
+		return $emptyResult;
+	}
 
-    $xmlStr = file_get_contents($file);
+	$xmlStr = file_get_contents($file);
 
-    $a = 0;
-    for ($i = 0; $i < $count; $i++) {
-        $rss = new SimpleXMLElement($xmlStr);
-        if ($rss->channel->title == 'PECL: Latest releases') $a++;
-        if ($rss->item[1]->title == 'rdkafka 5.0.1') $a++;
-    }
-    $totalOps += $count;
-    return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+	$a = 0;
+	for ($i = 0; $i < $count; $i++) {
+		$rss = new SimpleXMLElement($xmlStr);
+		if ($rss->channel->title == 'PECL: Latest releases') $a++;
+		if ($rss->item[1]->title == 'rdkafka 5.0.1') $a++;
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
 function test_28_DomXml()
 {
-    global $testsLoopLimits, $totalOps, $emptyResult;
+	global $testsLoopLimits, $totalOps, $emptyResult;
 
-    $count = $testsLoopLimits['28_domxml'];
-    $time_start = get_microtime();
+	$count = $testsLoopLimits['28_domxml'];
+	$time_start = get_microtime();
 
-    if (!class_exists('DOMDocument', false)) {
-        return $emptyResult;
-    }
+	if (!class_exists('DOMDocument', false)) {
+		return $emptyResult;
+	}
 
-    $file = 'test.xml';
-    if (!is_file($file)) {
-        return $emptyResult;
-    }
+	$file = 'test.xml';
+	if (!is_file($file)) {
+		return $emptyResult;
+	}
 
-    $xmlStr = file_get_contents($file);
+	$xmlStr = file_get_contents($file);
 
 	$a = 0;
 	for ($i = 0; $i < $count; $i++) {
 		$rss = new DOMDocument('1.0', 'utf-8');
 		$rss->loadXML($xmlStr);
 
-		$channel = $rss->getElementsByTagName('channel');
-		$channel = $channel->item(0);
+		$channels = $rss->getElementsByTagName('channel');
+		/** @var \DOMNodeList $channels */
+		$channel = $channels->item(0);
+		/** @var \DOMElement $channel */
 		$chTitle = $channel->getElementsByTagName('title');
+		/** @var \DOMNodeList $chTitle */
 		$chTitle = $chTitle->item(0);
 		if ($chTitle->nodeValue == 'PECL: Latest releases') $a++;
 
 		$items = $rss->getElementsByTagName('item');
+		/** @var \DOMNodeList $items */
 		$item = $items->item(1);
+		/** @var \DOMElement $item */
 		$iTitle = $item->getElementsByTagName('title');
+		/** @var \DOMNodeList $iTitle */
 		$iTitle = $iTitle->item(0);
 		if ($iTitle->nodeValue == 'rdkafka 5.0.1') $a++;
-    }
-    $totalOps += $count;
-    return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
+
+// ------------------- DateTime classes ---------------------
+
+function test_29_DateTime()
+{
+	global $testsLoopLimits, $totalOps, $emptyResult;
+
+	$count = $testsLoopLimits['29_datetime'];
+	$time_start = get_microtime();
+
+	if (!class_exists('DateTime', false)) {
+		return $emptyResult;
+	}
+	if (!class_exists('DateInterval', false)) {
+		return $emptyResult;
+	}
+
+	$now = new DateTime();
+	$day = new DateInterval("P1D");
+	$year = new DateInterval("P1Y");
+
+	$a = 0;
+	for ($i = 0; $i < $count; $i++) {
+		$unix = DateTime::createFromFormat("U", $i);
+		$unix->sub($year);
+		$unix->add($day);
+		$diff = $now->diff($unix);
+		$a += $diff->y % 2;
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
