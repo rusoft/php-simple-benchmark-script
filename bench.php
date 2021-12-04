@@ -422,6 +422,7 @@ $testsLoopLimits = array(
 	'29_datetime'		=> 500000,
 	'30_intl_number_format'		=> 20000,
 	'31_intl_message_format'	=> 200000,
+	'32_intl_calendar'			=> 300000,
 );
 $totalOps = 0;
 
