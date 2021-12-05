@@ -99,7 +99,7 @@ CPU                 :
               cores : 4
           available : 4
                 MHz : 3790.323MHz
-Benchmark version   : 1.0.44-dev
+Benchmark version   : 1.0.44
 PHP version         : 8.0.12-SergeyD/2
 PHP time limit      : 0 sec
 PHP memory limit    : 128M
