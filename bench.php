@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Nov 26, 2021                                                  #
-#  Version     : 1.0.44-dev                                                    #
+#  Date        : Dec 05, 2021                                                  #
+#  Version     : 1.0.44                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.44-dev';
+$scriptVersion = '1.0.44';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 4096).' -->';
@@ -242,7 +242,7 @@ if ($options) {
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
 						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
-						. '	-S|--do-not-task-set	- if run on cli - dont call taskset to ping process to one cpu core' . PHP_EOL
+						. '	-S|--do-not-task-set	- if run on cli - dont call taskset to pin process to one cpu core' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times' . PHP_EOL
@@ -262,7 +262,7 @@ if ($options) {
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
-						. '	-S		- if run on cli - dont call taskset to ping process to one cpu core' . PHP_EOL
+						. '	-S		- if run on cli - dont call taskset to pin process to one cpu core' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T <name>	- run selected test, test names from -L output, can be defined multiple times' . PHP_EOL
