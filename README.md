@@ -110,7 +110,7 @@ Memory              : 256 Mb available
                pcre : yes; version: 10.39 2021-10-29
           simplexml : yes; libxml version: 2.9.4
                 dom : yes
-               intl : yes; version: 60.2
+               intl : yes; icu version: 60.2
             opcache : yes; enabled: 0
              xdebug : no
 Set time limit      : 600 sec
