@@ -129,6 +129,8 @@ $outputTestsList = 0;
 
 $showOnlySystemInfo = 0;
 
+$doNotTaskSet = 0;
+
 $selectedTests = array();
 
 if ($t = (int)getenv('PHP_TIME_LIMIT')) {
@@ -173,6 +175,13 @@ if (isset($_GET['system_info']) && (int)$_GET['system_info']) {
 	$showOnlySystemInfo = 1;
 }
 
+if ((int)getenv('DO_NOT_TASK_SET')) {
+	$doNotTaskSet = 1;
+}
+if (isset($_GET['do_not_task_set']) && (int)$_GET['do_not_task_set']) {
+	$doNotTaskSet = 1;
+}
+
 if ($r = getenv('RUN_TESTS')) {
 	$selectedTests = explode(',', $r);
 }
@@ -186,6 +195,7 @@ $shortopts .= "d";
 $shortopts .= "D";
 $shortopts .= "L";
 $shortopts .= "I";
+$shortopts .= "S";
 $shortopts .= "m:";       // Обязательное значение
 $shortopts .= "t:";       // Обязательное значение
 $shortopts .= "T:";       // Обязательное значение
@@ -196,6 +206,7 @@ $longopts = array(
 	"dumb-test-print",
 	"list-tests",
 	"system-info",
+	"do-not-task-set",
 	"memory-limit:",      // Обязательное значение
 	"time-limit:",        // Обязательное значение
 	"run-test:",          // Обязательное значение
@@ -224,13 +235,14 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
 						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
+						. '	-S|--do-not-task-set	- if run on cli - dont call taskset to ping process to one cpu core' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times' . PHP_EOL
@@ -243,13 +255,14 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-D] [-L] [-m 256] [-t 600] [-T name1 ...]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-D] [-L] [-I] [-S] [-m 256] [-t 600] [-T name1 ...]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
+						. '	-S		- if run on cli - dont call taskset to ping process to one cpu core' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T <name>	- run selected test, test names from -L output, can be defined multiple times' . PHP_EOL
@@ -290,6 +303,11 @@ if ($options) {
 				$showOnlySystemInfo = 1;
 				break;
 
+			case 'S':
+			case 'do-not-task-set':
+				$doNotTaskSet = 1;
+				break;
+
 			case 't':
 			case 'time-limit':
 				if (is_numeric($oval)) {
@@ -321,7 +339,7 @@ set_time_limit($defaultTimeLimit);
 @ini_set('memory_limit', $defaultMemoryLimit . 'M');
 
 if (php_sapi_name() == 'cli') {
-	if (file_exists('/usr/bin/taskset')) {
+	if (file_exists('/usr/bin/taskset') && !$doNotTaskSet) {
 		shell_exec('/usr/bin/taskset -c -p 0 ' . getmypid());
 	}
 }
@@ -354,19 +372,19 @@ $runOnlySelectedTests = !empty($selectedTests);
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 322,
-	'5.2' => 243,
-	'5.3' => 207,
-	'5.4' => 181,
-	'5.5' => 177,
-	'5.6' => 174,
-	'7.0' => 97,
-	'7.1' => 96,
-	'7.2' => 92,
-	'7.3' => 83,
-	'7.4' => 79,
-	'8.0' => 75,
-	'8.1' => 74,
+	'4.4' => 324,
+	'5.2' => 248,
+	'5.3' => 204,
+	'5.4' => 188,
+	'5.5' => 189,
+	'5.6' => 186,
+	'7.0' => 105,
+	'7.1' => 102,
+	'7.2' => 98,
+	'7.3' => 89,
+	'7.4' => 86,
+	'8.0' => 81,
+	'8.1' => 80,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
