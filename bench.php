@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Dec 05, 2021                                                  #
-#  Version     : 1.0.44                                                        #
+#  Version     : 1.0.45-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,10 +32,10 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.44';
+$scriptVersion = '1.0.45-dev';
 
 // Special string to flush buffers, nginx for example
-$flushStr = '<!-- '.str_repeat(" ", 4096).' -->';
+$flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
 
 if (php_sapi_name() != 'cli') {
 	// Hello, nginx!
@@ -121,6 +121,8 @@ $defaultTimeLimit = 600;
 /* Default PHP memory limit in Mb */
 $defaultMemoryLimit = 256;
 
+$debugMode = 0;
+
 $recalculateLimits = 1;
 
 $printDumbTest = 0;
@@ -138,6 +140,13 @@ if ($t = (int)getenv('PHP_TIME_LIMIT')) {
 }
 if (isset($_GET['time_limit']) && $t = (int)$_GET['time_limit']) {
 	$defaultTimeLimit = $t;
+}
+
+if ($x = (int)getenv('PHP_DEBUG_MODE')) {
+	$debugMode = $x;
+}
+if (isset($_GET['debug_mode']) && $x = (int)$_GET['debug_mode']) {
+	$debugMode = $x;
 }
 
 if ($m = (int)getenv('PHP_MEMORY_LIMIT')) {
@@ -189,8 +198,10 @@ if (!empty($_GET['run_tests'])) {
 	$selectedTests = explode(',', $_GET['run_tests']);
 }
 
+
 // http://php.net/manual/ru/function.getopt.php example #2
 $shortopts = "h";
+$shortopts .= "x";
 $shortopts .= "d";
 $shortopts .= "D";
 $shortopts .= "L";
@@ -202,6 +213,7 @@ $shortopts .= "T:";       // Обязательное значение
 
 $longopts = array(
 	"help",
+	"debug",
 	"dont-recalc",
 	"dumb-test-print",
 	"list-tests",
@@ -238,6 +250,7 @@ if ($options) {
 						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
+						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
@@ -258,6 +271,7 @@ if ($options) {
 						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-D] [-L] [-I] [-S] [-m 256] [-t 600] [-T name1 ...]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
+						. '	-x		- enable debug mode, raise output level' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
@@ -286,6 +300,11 @@ if ($options) {
 			case 'd':
 			case 'dont-recalc':
 				$recalculateLimits = 0;
+				break;
+
+			case 'x':
+			case 'debug':
+				$debugMode = 1;
 				break;
 
 			case 'D':
@@ -523,9 +542,17 @@ function convert_si($size)
  */
 function getPhpMemoryLimitBytes()
 {
+	global $debugMode;
 	// http://stackoverflow.com/a/10209530
 	$memory_limit = strtolower(ini_get('memory_limit'));
+	if ($debugMode) {
+		print_pre("<<< DEBUG >>> getPhpMemoryLimitBytes(): ini_get memory_limit = '{$memory_limit}'\n");
+	}
 	if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+		if ($debugMode) {
+			$ve = var_export($matches, true);
+			print_pre("<<< DEBUG >>> getPhpMemoryLimitBytes(): parse via preg_math:\n{$ve}\n");
+		}
 		if ($matches[2] == 'g') {
 			$memory_limit = intval($matches[1]) * 1024 * 1024 * 1024; // nnnG -> nnn GB
 		} else if ($matches[2] == 'm') {
@@ -535,6 +562,9 @@ function getPhpMemoryLimitBytes()
 		} else {
 			$memory_limit = intval($matches[1]); // nnn -> nnn B
 		}
+	}
+	if ($debugMode) {
+		print_pre("<<< DEBUG >>> getPhpMemoryLimitBytes(): result memory_limit = '{$memory_limit}'\n");
 	}
 	return $memory_limit;
 }
@@ -568,9 +598,22 @@ function getSystemMemInfo()
  */
 function getSystemMemoryFreeLimitBytes()
 {
+	global $debugMode;
 	$info = getSystemMemInfo();
+
+	if ($debugMode) {
+		$ve = var_export($info, true);
+		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): system memory info:\n{$ve}'\n");
+	}
+
 	if (isset($info['MemAvailable'])) {
+		if ($debugMode) {
+			print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemAvailable\n");
+		}
 		return $info['MemAvailable'];
+	}
+	if ($debugMode) {
+		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemFree + Cached + Buffers\n");
 	}
 	return $info['MemFree'] + $info['Cached'] + $info['Buffers'];
 }
@@ -824,8 +867,17 @@ if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
 	}
 }
 
-$memoryLimit = min(getPhpMemoryLimitBytes(), getSystemMemoryFreeLimitBytes());
+$memoryLimitPhp = getPhpMemoryLimitBytes();
+$memoryLimitSystem = getSystemMemoryFreeLimitBytes();
+if ($debugMode) {
+	print_pre("<<< DEBUG >>> Available memory in system: " . convert($memoryLimitSystem) . PHP_EOL);
+	print_pre("<<< DEBUG >>> Available memory for php  : " . convert($memoryLimitPhp) . PHP_EOL);
+}
+$memoryLimit = min($memoryLimitPhp, $memoryLimitSystem);
 $memoryLimitMb = convert($memoryLimit);
+if ($debugMode) {
+	print_pre("<<< DEBUG >>> Selected memory for php   : " . $memoryLimitMb . PHP_EOL);
+}
 
 // Adjust array tests limits
 if ($memoryLimit < $testMemoryFull) {
@@ -834,6 +886,10 @@ if ($memoryLimit < $testMemoryFull) {
 		. " is less than minimum required: " . convert($testMemoryFull)
 		. ".\n Recalculate tests parameters to fit in memory limits."
 		. "\n$line" . PHP_EOL);
+	if ($debugMode) {
+		print_pre("<<< DEBUG >>> Original memory limit for php  : " . convert($originMemoryLimit) . PHP_EOL);
+		print_pre("<<< DEBUG >>> Calculated memory limit for php: " . convert($defaultMemoryLimit) . PHP_EOL);
+	}
 
 	$factor = 1.0 * ($testMemoryFull - $memoryLimit) / $testMemoryFull;
 
