@@ -539,10 +539,10 @@ function test_19_Type_Functions()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$ia = array('123456', '0.000001', '0x123', '0644');
-	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
+	$ia = array('123456', '0.000001', '0x123', '0644', 456, 123.456);
+	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001', 456, 123.456);
 
-	$count = $testsLoopLimits['20_type_conv'];
+	$count = $testsLoopLimits['19_type_func'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($ia as $n) {
@@ -556,14 +556,14 @@ function test_19_Type_Functions()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_20_Type_Conversion()
+function test_20_Type_Casting()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$ia = array('123456', '0.000001', '0x123', '0644');
-	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001');
+	$ia = array('123456', '0.000001', '0x123', '0644', 456, 123.456);
+	$fa = array('123456.7890', '123.456e7', '3E-12', '0.0000001', 456, 123.456);
 
-	$count = $testsLoopLimits['20_type_conv'];
+	$count = $testsLoopLimits['20_type_cast'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($ia as $n) {

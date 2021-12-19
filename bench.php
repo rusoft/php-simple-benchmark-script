@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Dec 05, 2021                                                  #
-#  Version     : 1.0.45-dev                                                    #
+#  Version     : 1.0.45                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.45-dev';
+$scriptVersion = '1.0.45';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -407,19 +407,19 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 324,
-	'5.2' => 248,
-	'5.3' => 204,
+	'4.4' => 315,
+	'5.2' => 237,
+	'5.3' => 207,
 	'5.4' => 188,
-	'5.5' => 189,
-	'5.6' => 186,
-	'7.0' => 105,
-	'7.1' => 102,
-	'7.2' => 98,
-	'7.3' => 89,
-	'7.4' => 86,
-	'8.0' => 81,
-	'8.1' => 80,
+	'5.5' => 196,
+	'5.6' => 190,
+	'7.0' => 102,
+	'7.1' => 103,
+	'7.2' => 96,
+	'7.3' => 85,
+	'7.4' => 83,
+	'8.0' => 76,
+	'8.1' => 75,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -462,8 +462,8 @@ $testsLoopLimits = array(
 	'17_loop_ternary'	=> 100000000,
 	'18_1_loop_def'		=> 50000000,
 	'18_2_loop_undef'	=> 50000000,
-	'19_type_func'		=> 5000000,
-	'20_type_conv'		=> 5000000,
+	'19_type_func'		=> 4000000,
+	'20_type_cast'		=> 4000000,
 	'21_loop_except'	=> 10000000,
 	'22_loop_nullop'	=> 60000000,
 	'23_loop_spaceship'	=> 60000000,
@@ -505,7 +505,7 @@ $testsMemoryLimits = array(
 	'18_1_loop_def'		=> 14,
 	'18_2_loop_undef'	=> 14,
 	'19_type_func'		=> 14,
-	'20_type_conv'		=> 14,
+	'20_type_cast'		=> 14,
 	'21_loop_except'	=> 14,
 	'22_loop_nullop'	=> 14,
 	'23_loop_spaceship'	=> 14,
@@ -1254,26 +1254,26 @@ echo "\n$line\n|"
 	. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
 	. str_pad("PHP version", $padInfo) . " : " . PHP_VERSION . "\n"
 	. str_pad("PHP time limit", $padInfo) . " : " . $originTimeLimit . " sec\n"
+	. str_pad("Setup time limit", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
-	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
-	. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
-	. str_pad("-useful-", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad("Setup memory limit", $padInfo) . " : " . $memoryLimitMb . "\n"
+	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
+	. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
 	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring; func_overload: {$mbover}\n"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
 	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 	. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == 'yes' ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
-	. str_pad("-affecting-", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
 	. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
 	. str_pad("apc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apc; enabled: {$apcache}\n"
 	. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
-	. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
-	. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is set up: ".($obd_set ? 'yes' : 'no')."\n"
-	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
-	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
+	. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? 'yes' : 'no')."\n"
 	. "$line\n" . $flushStr;
 flush();
 
