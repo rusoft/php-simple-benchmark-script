@@ -1,12 +1,19 @@
-php_flag display_errors off
+php_flag display_errors 0
 php_flag implicit_flush 1
-php_flag xdebug.show_exception_trace 0
+
 php_flag opcache.enable 0
+php_flag xcache.cacher 0
+php_flag apc.enable 0
+
+# still - xdebug slow things
 php_flag xdebug.default_enable 0
+php_flag xdebug.show_exception_trace 0
 
 php_value output_bufering 0
 php_value max_execution_time 600
 php_value error_log /dev/null
-php_value memory_limit 256M
+php_value memory_limit 128M
 php_value mbstring.internal_encoding UTF-8
 php_value mbstring.func_overload 0
+
+php_value date.timezone "Europe/Moscow"

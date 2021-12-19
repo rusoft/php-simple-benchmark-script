@@ -37,39 +37,53 @@ function test_02_String_Concat()
 	for ($r = 0; $r < $stringConcatLoopRepeat; ++$r) {
 		$s = '';
 		for ($i = 0; $i < $count; ++$i) {
-			$s .= '- Valar dohaeris' . PHP_EOL;
+			$s .= ' - Valar dohaeris';
+			// Work-around for opCache 8.0+ code elimination, maybe
+			$s .= ($i % 111) ? PHP_EOL : '!';
 		}
 	}
 	$totalOps += $count * $stringConcatLoopRepeat;
-	return format_result_test(get_microtime() - $time_start, $count * $stringConcatLoopRepeat, mymemory_usage());
+	$memory = mymemory_usage();
+	unset($s);
+	return format_result_test(get_microtime() - $time_start, $count * $stringConcatLoopRepeat, $memory);
 }
 
 function test_03_1_String_Number_Concat()
 {
-	global $testsLoopLimits, $stringConcatLoopRepeat, $totalOps;
+	global $testsLoopLimits, $totalOps;
 
 	$count = $testsLoopLimits['03_1_string_number_concat'];
 	$time_start = get_microtime();
+	$s = '';
 	for ($i = 0; $i < $count; ++$i) {
 		$f = $i * 1.0;
 		$s = 'This is number ' . $i . ' string concat. Число: ' . $f . PHP_EOL;
+		// Work-around for opCache 8.0+ code elimination, maybe
+		$s .= (($i % 333 == 0) ? '!' : '');
 	}
 	$totalOps += $count;
-	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+	$memory = mymemory_usage();
+	unset($s);
+	return format_result_test(get_microtime() - $time_start, $count, $memory);
 }
 
 function test_03_2_String_Number_Format()
 {
-	global $testsLoopLimits, $stringConcatLoopRepeat, $totalOps;
+	global $testsLoopLimits, $totalOps;
 
 	$count = $testsLoopLimits['03_2_string_number_format'];
 	$time_start = get_microtime();
+	$s = '';
 	for ($i = 0; $i < $count; ++$i) {
 		$f = $i * 1.0;
-		$s = "This is number $i string format. Число: $f\n";
+		$s = "This is number {$i} string format. Число: {$f}\n";
+		// Work-around for opCache 8.0+ code elimination, maybe
+		$s .= (($i % 333 == 0) ? '!' : '');
 	}
 	$totalOps += $count;
-	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+	$memory = mymemory_usage();
+	unset($s);
+	return format_result_test(get_microtime() - $time_start, $count, $memory);
 }
 
 function test_04_String_Simple_Functions()
@@ -365,16 +379,19 @@ function test_13_Array_Fill()
 
 	$arrayTestLoopLimit = $testsLoopLimits['13_array_loop'];
 	$time_start = get_microtime();
+	$memory = 0;
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
-		$X = array();
+		$x = array();
 		for ($i = 0; $i < $arrayDimensionLimit; ++$i) {
 			for ($j = 0; $j < $arrayDimensionLimit; ++$j) {
-				$X[$i][$j] = $i * $j;
+				$x[$i][$j] = $i * $j;
 			}
 		}
+		if (!$memory) $memory = mymemory_usage();
+		unset($x);
 	}
 	$totalOps += pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit;
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, mymemory_usage());
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, $memory);
 }
 
 function test_14_Array_Range()
@@ -383,14 +400,17 @@ function test_14_Array_Range()
 
 	$arrayTestLoopLimit = $testsLoopLimits['14_array_loop'];
 	$time_start = get_microtime();
+	$memory = 0;
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
-		$x = range(0, $arrayDimensionLimit);
+		$x = array()+range(0, $arrayDimensionLimit);
 		for ($i = 0; $i < $arrayDimensionLimit; $i++) {
-			$x[$i] = range(0, $arrayDimensionLimit);
+			$x[$i] = array()+range(0, $arrayDimensionLimit);
 		}
+		if (!$memory) $memory = mymemory_usage();
+		unset($x);
 	}
 	$totalOps += $arrayDimensionLimit * $arrayTestLoopLimit;
-	return format_result_test(get_microtime() - $time_start, $arrayDimensionLimit * $arrayTestLoopLimit, mymemory_usage());
+	return format_result_test(get_microtime() - $time_start, $arrayDimensionLimit * $arrayTestLoopLimit, $memory);
 }
 
 function test_14_Array_Unset()
@@ -399,29 +419,33 @@ function test_14_Array_Unset()
 
 	$xx = range(0, $arrayDimensionLimit);
 	for ($i = 0; $i < $arrayDimensionLimit; $i++) {
-		$xx[$i] = range(0, $arrayDimensionLimit);
+		$xx[$i] = array()+range(0, $arrayDimensionLimit);
 	}
 
 	$arrayTestLoopLimit = $testsLoopLimits['14_array_loop'];
 	$time_start = get_microtime();
+	$memory = 0;
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
-		$x = $xx;
+		$x = array()+$xx;
+		if (!$memory) $memory = mymemory_usage();
 		for ($i = $arrayDimensionLimit-1; $i >= 0; $i--) {
 			for ($j = 0; $j < $arrayDimensionLimit; $j++) {
 				unset($x[$i][$j]);
 			}
 			unset($x[$i]);
 		}
+		unset($x);
 	}
+	unset($xx);
 	$totalOps += pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit;
-	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, mymemory_usage());
+	return format_result_test(get_microtime() - $time_start, pow($arrayDimensionLimit, 2) * $arrayTestLoopLimit, $memory);
 }
 
-function test_15_Loops()
+function test_15_Clean_Loops()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$count = $testsLoopLimits['15_loops'];
+	$count = $testsLoopLimits['15_clean_loops'];
 	$time_start = get_microtime();
 
 	// @warning Since 8.0 may be eliminated as dead-code if opcache loaded and enabled

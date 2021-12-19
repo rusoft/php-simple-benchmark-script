@@ -30,15 +30,15 @@
 
 Команда:
 ```
-Usage: bench.php [-h|--help] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]
+Usage: bench.php [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=132] [-t|--time-limit=600] [-T|--run-test=name1 ...]
 
 	-h|--help		- print this help and exit
+	-x|--debug		- enable debug mode, raise output level
 	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low
 	-D|--dumb-test-print	- print dumb test time, for debug purpose
 	-L|--list-tests		- output list of available tests and exit
 	-I|--system-info	- output system info but do not run tests and exit
-	-S|--do-not-task-set	- if run on cli - dont call taskset to pin process to one cpu core
-	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)
+	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 132 (Mb)
 	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)
 	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times
 ```
@@ -51,12 +51,20 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 
 Доступные переменные:
 
-- PHP_MEMORY_LIMIT=<Мб>
 - PHP_TIME_LIMIT=<Секунды>
+- PHP_DEBUG_MODE=0/1
+- PHP_MEMORY_LIMIT=<Мб>
 - DONT_RECALCULATE_LIMITS=0/1
 - LIST_TESTS=0/1
 - SYSTEM_INFO=0/1
 - RUN_TESTS=test1,test2,...
+
+#### Дополнительно
+
+- Вы можете установить приоритет процесса с помощью команды `nice` - от -20 до 19. Чем больше значение - тем ниже приоритет. Пример: `nice -5 php bench.php`. Смотрите `man nice`.
+- Вы можете установить приоритет ввода-вывода с помощью команды `ionice`. Пример: `ionice -c3 php bench.php`. Смотрите `man ionice`.
+- Вы можете привязать выполнение скрипта к ядру процессора с помощью команды `taskset`. Пример: `taskset -c -p 0 php bench.php`. Смотрите `man taskset`.
+- Вы можете комбинировать команды: `taskset -c -p 0 nice -10 ionice -c3 php bench.php`.
 
 ### 2. Через веб-сервера (apache + php)
 
@@ -68,8 +76,9 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 
 Доступные параметры:
 
-- memory_limit=Мб
 - time_limit=Секунды
+- debug_mode=0/1
+- memory_limit=Мб
 - dont_recalculate_limits=0/1
 - list_tests=0/1
 - system_info=0/1
@@ -83,6 +92,13 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 по крайней мере не выше лимитов.
 
 Пересчет времени выполнения скрипта будет произведен по наименьшим результирующим значениям.
+
+### Другие платформы
+
+Например, на Raspberry Pi 2B, 3B и других подобных платах скорость выполнения настолько медленная,
+что приходится указвать параметры `-d -t 3600`, чтобы прошли все тесты.
+
+Это касается всех ARM, MIPS и т.п. А так же старых процессоров AMD и Intel, как Celeron, Atom, Duron и т.п.
 
 ## Пример вывода скрипта
 

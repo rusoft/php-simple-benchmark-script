@@ -64,25 +64,39 @@ if ($xdebug) {
 	print_pre('<<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!'.PHP_EOL);
 	exit(1);
 }
-ini_set('xdebug.show_exception_trace', 0);
 
 // Check OpCache
 if (php_sapi_name() != 'cli') {
 	$opcache = (int)ini_get('opcache.enable');
 	if ($opcache) {
-		print_pre('<<< WARNING >>> You may need to disable OpCache extension! It may affect results greatly! Make it via .htaccess, VHost or fpm config'.PHP_EOL);
+		print_pre('<<< WARNING >>> You may want to disable OpCache extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
 	}
+	$apcache = (int)ini_get('apc.enabled');
+	/*if ($apcache) {
+		print_pre('<<< WARNING >>> You may want to disable APC extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
+	}*/
 } else {
 	$opcache = (int)ini_get('opcache.enable_cli');
 	if ($opcache) {
-		print_pre('<<< WARNING >>> You may need to disable Cli OpCache extension! It may affect results greatly! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
+		print_pre('<<< WARNING >>> You may want to disable Cli OpCache extension! It can greatly affect the results! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
 	}
+	$apcache = (int)ini_get('apc.enable_cli');
+	/*if ($apcache) {
+		print_pre('<<< WARNING >>> You may want to disable APC extension! It can greatly affect the results! Run php with param: -dapc.enable_cli=0'.PHP_EOL);
+	}*/
 }
+$xcache = (int)ini_get('xcache.cacher');
+/*if ($xcache) {
+	print_pre('<<< WARNING >>> You may want to disable xCache extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
+}*/
+$eaccel = (int)ini_get('eaccelerator.enable');
+/*if ($eaccel) {
+	print_pre('<<< WARNING >>> You may want to disable eEccelerator extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
+}*/
 
 $mbover = (int)ini_get('mbstring.func_overload');
 if ($mbover != 0) {
-	print_pre('<<< ERROR >>> You must disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
-	exit(1);
+	print_pre('<<< WARNING >>> You must disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
 }
 
 // Used in hacks/fixes checks
@@ -108,9 +122,6 @@ if (!defined('PHP_MINOR_VERSION')) {
 	define('PHP_MINOR_VERSION', (int)$phpversion[1]);
 }
 
-$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис   <span class='alert alert-danger'>У нас закончились ложки, Нео!</span>      ";
-$regexPattern = '/[\s,]+/';
-
 /** ------------------------------- Main Defaults ------------------------------- */
 
 $originMemoryLimit = @ini_get('memory_limit');
@@ -118,8 +129,13 @@ $originTimeLimit = @ini_get('max_execution_time');
 
 /* Default execution time limit in seconds */
 $defaultTimeLimit = 600;
-/* Default PHP memory limit in Mb */
-$defaultMemoryLimit = 256;
+/*
+	Default PHP memory limit in Mb.
+	It's for ALL PHP structures!
+	Memory allocator works with blocks by X_Mb.
+	Some we need a little more.
+*/
+$defaultMemoryLimit = 130;
 
 $debugMode = 0;
 
@@ -131,9 +147,9 @@ $outputTestsList = 0;
 
 $showOnlySystemInfo = 0;
 
-$doNotTaskSet = 0;
-
 $selectedTests = array();
+
+/* ----------------- Fetch environ or GET params */
 
 if ($t = (int)getenv('PHP_TIME_LIMIT')) {
 	$defaultTimeLimit = $t;
@@ -184,13 +200,6 @@ if (isset($_GET['system_info']) && (int)$_GET['system_info']) {
 	$showOnlySystemInfo = 1;
 }
 
-if ((int)getenv('DO_NOT_TASK_SET')) {
-	$doNotTaskSet = 1;
-}
-if (isset($_GET['do_not_task_set']) && (int)$_GET['do_not_task_set']) {
-	$doNotTaskSet = 1;
-}
-
 if ($r = getenv('RUN_TESTS')) {
 	$selectedTests = explode(',', $r);
 }
@@ -206,7 +215,6 @@ $shortopts .= "d";
 $shortopts .= "D";
 $shortopts .= "L";
 $shortopts .= "I";
-$shortopts .= "S";
 $shortopts .= "m:";       // Обязательное значение
 $shortopts .= "t:";       // Обязательное значение
 $shortopts .= "T:";       // Обязательное значение
@@ -218,7 +226,6 @@ $longopts = array(
 	"dumb-test-print",
 	"list-tests",
 	"system-info",
-	"do-not-task-set",
 	"memory-limit:",      // Обязательное значение
 	"time-limit:",        // Обязательное значение
 	"run-test:",          // Обязательное значение
@@ -247,7 +254,7 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=256] [-t|--time-limit=600] [-T|--run-test=name1 ...]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
@@ -255,10 +262,9 @@ if ($options) {
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
 						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
-						. '	-S|--do-not-task-set	- if run on cli - dont call taskset to pin process to one cpu core' . PHP_EOL
-						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
+						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times' . PHP_EOL
+						. '	-T|--run-test <name>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
 						. PHP_EOL
@@ -268,7 +274,7 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-d] [-D] [-L] [-I] [-S] [-m 256] [-t 600] [-T name1 ...]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-x		- enable debug mode, raise output level' . PHP_EOL
@@ -276,10 +282,9 @@ if ($options) {
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
-						. '	-S		- if run on cli - dont call taskset to pin process to one cpu core' . PHP_EOL
-						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 256 (Mb)' . PHP_EOL
+						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T <name>	- run selected test, test names from -L output, can be defined multiple times' . PHP_EOL
+						. '	-T <name>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
 						. PHP_EOL
@@ -322,11 +327,6 @@ if ($options) {
 				$showOnlySystemInfo = 1;
 				break;
 
-			case 'S':
-			case 'do-not-task-set':
-				$doNotTaskSet = 1;
-				break;
-
 			case 't':
 			case 'time-limit':
 				if (is_numeric($oval)) {
@@ -354,13 +354,18 @@ if ($options) {
 
 }
 
-set_time_limit($defaultTimeLimit);
-@ini_set('memory_limit', $defaultMemoryLimit . 'M');
+if ($debugMode) {
+	ini_set('display_errors', 1);
+	error_reporting(E_ALL);
+}
 
-if (php_sapi_name() == 'cli') {
-	if (file_exists('/usr/bin/taskset') && !$doNotTaskSet) {
-		shell_exec('/usr/bin/taskset -c -p 0 ' . getmypid());
-	}
+$set = set_time_limit($defaultTimeLimit);
+if ($set === false) {
+	print_pre("<<< WARNING >>> Execution time limit not droppped to '{$defaultTimeLimit}' seconds!\nScript will have only '{$originTimeLimit}' seconds to" . PHP_EOL);
+}
+$set = ini_set('memory_limit', $defaultMemoryLimit . 'M');
+if ($set === false) {
+	print_pre("<<< WARNING >>> Memory limit not set to '{$defaultMemoryLimit}'!" . PHP_EOL);
 }
 
 /** ------------------------------- Main Constants ------------------------------- */
@@ -375,15 +380,20 @@ $emptyResult = array(0, '-.---', '-.--', '-.--', 0);
 $cryptSalt = null;
 $cryptAlgoName = 'default';
 
-// That gives around 256Mb memory use and reasonable test time
-$testMemoryFull = 256 * 1024 * 1024;
+// That gives around 130Mb memory use and reasonable test time
+$testMemoryFull = 130 * 1024 * 1024;
+// That gives around 8Mb memory use to run every tests
+$testMemoryMin = 5 * 1024 * 1024;
 // Arrays are matrix [$dimention] x [$dimention]
 $arrayDimensionLimit = 600;
 
-// That limit gives around 256Mb too
+// That limit gives around 128Mb too
 $stringConcatLoopRepeat = 5;
 
 $runOnlySelectedTests = !empty($selectedTests);
+
+$stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис   <span class='alert alert-danger'>У нас закончились ложки, Нео!</span>      ";
+$regexPattern = '/[\s,]+/';
 
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
@@ -422,11 +432,11 @@ $dumbTestMaxPhpTimes = array(
 	'8.1' => 0.323,
 );
 // Nice dice roll
-// Should be passed into 600 seconds
+// Should not be longer than 600 seconds
 $testsLoopLimits = array(
 	'01_math'			=> 2000000,
-	// That limit gives around 128Mb too
-	'02_string_concat'	=> 7000000,
+	// That limit gives around 90Mb
+	'02_string_concat'	=> 5000000,
 	'03_1_string_number_concat'	=> 5000000,
 	'03_2_string_number_format'	=> 5000000,
 	'04_string_simple'	=> 1300000,
@@ -441,7 +451,7 @@ $testsLoopLimits = array(
 	'12_unserialize'	=> 1300000,
 	'13_array_loop'		=> 250,
 	'14_array_loop'		=> 250,
-	'15_loops'			=> 200000000,
+	'15_clean_loops'	=> 200000000,
 	'16_loop_ifelse'	=> 100000000,
 	'17_loop_ternary'	=> 100000000,
 	'18_1_loop_def'		=> 50000000,
@@ -461,6 +471,49 @@ $testsLoopLimits = array(
 	'31_intl_message_format'	=> 200000,
 	'32_intl_calendar'			=> 300000,
 );
+// Should not be more than X Mb
+// Different PHP could use different amount of memory
+// There defined maximum possible
+$testsMemoryLimits = array(
+	'01_math'			=> 4,
+	'02_string_concat'	=> 90,
+	'03_1_string_number_concat'	=> 4,
+	'03_2_string_number_format'	=> 4,
+	'04_string_simple'	=> 4,
+	'05_string_mb'		=> 4,
+	'06_string_manip'	=> 4,
+	'07_regex'			=> 4,
+	'08_1_hashing'		=> 4,
+	'08_2_crypt'		=> 4,
+	'09_json_encode'	=> 4,
+	'10_json_decode'	=> 4,
+	'11_serialize'		=> 4,
+	'12_unserialize'	=> 4,
+	// php-5.3
+	'13_array_loop'		=> 54,
+	'14_array_loop'		=> 62,
+	// opcache, php-7.4
+	'15_clean_loops'	=> 14,
+	'16_loop_ifelse'	=> 14,
+	'17_loop_ternary'	=> 14,
+	'18_1_loop_def'		=> 14,
+	'18_2_loop_undef'	=> 14,
+	'19_type_func'		=> 14,
+	'20_type_conv'		=> 14,
+	'21_loop_except'	=> 14,
+	'22_loop_nullop'	=> 14,
+	'23_loop_spaceship'	=> 14,
+	'26_1_public'		=> 14,
+	'26_2_getset'		=> 14,
+	'26_3_magic'		=> 14,
+	'27_simplexml'		=> 14,
+	'28_domxml'			=> 14,
+	'29_datetime'		=> 14,
+	'30_intl_number_format'		=> 14,
+	'31_intl_message_format'	=> 14,
+	'32_intl_calendar'			=> 14,
+);
+
 $totalOps = 0;
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -570,7 +623,8 @@ function getPhpMemoryLimitBytes()
 }
 
 /**
- * Return array (dict) with system memory info
+ * Return array (dict) with system memory info.
+ * All values in bytes.
  * http://stackoverflow.com/a/1455610
  */
 function getSystemMemInfo()
@@ -608,14 +662,15 @@ function getSystemMemoryFreeLimitBytes()
 
 	if (isset($info['MemAvailable'])) {
 		if ($debugMode) {
-			print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemAvailable\n");
+			print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemAvailable: {$info['MemAvailable']}\n");
 		}
 		return $info['MemAvailable'];
 	}
+	$available = $info['MemFree'] + $info['Cached'] + $info['Buffers'];
 	if ($debugMode) {
-		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemFree + Cached + Buffers\n");
+		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemFree + Cached + Buffers: {$available}\n");
 	}
-	return $info['MemFree'] + $info['Cached'] + $info['Buffers'];
+	return $available;
 }
 
 /**
@@ -805,9 +860,6 @@ function mymemory_usage()
 }
 
 
-// Run tests or not?
-if (!$outputTestsList) {
-
 /** ---------------------------------- Code for common variables, tune values -------------------------------------------- */
 
 // Search most common available algo for SALT
@@ -850,7 +902,6 @@ if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
 	print_pre("$line\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n$line" . PHP_EOL);
 }
 
-
 $cpuInfo = getCpuInfo();
 // CPU throttling?
 if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
@@ -867,6 +918,20 @@ if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
 	}
 }
 
+/** Recalc loop limits if max_execution_time less than needed */
+$maxTime = ini_get('max_execution_time');
+$needTime = $defaultTimeLimit;
+$pv = $phpversion[0] . '.' . $phpversion[1];
+if (isset($loopMaxPhpTimes[$pv])) {
+	$needTime = $loopMaxPhpTimes[$pv];
+} elseif (isset($loopMaxPhpTimes[$phpversion[0]])) {
+	$needTime = $loopMaxPhpTimes[$phpversion[0]];
+}
+
+if ($debugMode) {
+	print_pre("<<< DEBUG >>> Need time: " .$needTime . "; Max time: " .$maxTime . PHP_EOL);
+}
+
 $memoryLimitPhp = getPhpMemoryLimitBytes();
 $memoryLimitSystem = getSystemMemoryFreeLimitBytes();
 if ($debugMode) {
@@ -879,120 +944,130 @@ if ($debugMode) {
 	print_pre("<<< DEBUG >>> Selected memory for php   : " . $memoryLimitMb . PHP_EOL);
 }
 
-// Adjust array tests limits
-if ($memoryLimit < $testMemoryFull) {
+if (!$memoryLimit || $memoryLimit == '0' || (int)$memoryLimit < $testMemoryMin) {
+	print_pre("<<< ERROR >>> Available memory is set too low: ".convert($memoryLimitMb).".\nThis is lower than ".convert($testMemoryMin).".\nAbort execution!" . PHP_EOL);
+	exit(1);
+}
 
-	print_pre("$line\n<<< WARNING >>>\nAvailable memory for tests: " . $memoryLimitMb
-		. " is less than minimum required: " . convert($testMemoryFull)
-		. ".\n Recalculate tests parameters to fit in memory limits."
-		. "\n$line" . PHP_EOL);
-	if ($debugMode) {
-		print_pre("<<< DEBUG >>> Original memory limit for php  : " . convert($originMemoryLimit) . PHP_EOL);
-		print_pre("<<< DEBUG >>> Calculated memory limit for php: " . convert($defaultMemoryLimit) . PHP_EOL);
+// Run tests or not?
+if (!$outputTestsList && !$showOnlySystemInfo) {
+
+	// Adjust array tests limits
+	if ($memoryLimit < $testMemoryFull) {
+
+		print_pre("$line\n<<< WARNING >>>\nAvailable memory " . $memoryLimitMb
+			. " is less than required to run full set of tests: " . convert($testMemoryFull)
+			. ".\n Recalculate tests parameters to fit in memory limits."
+			. "\n$line" . PHP_EOL);
+		if ($debugMode) {
+			print_pre("<<< DEBUG >>> Original memory limit for php  : " . convert($originMemoryLimit) . PHP_EOL);
+			print_pre("<<< DEBUG >>> Calculated memory limit for php: " . convert($defaultMemoryLimit) . PHP_EOL);
+		}
+
+		foreach ($testsMemoryLimits as $testName => $limitMb) {
+
+			$limitBytes = $limitMb * 1024 * 1024;
+
+			// Do we need to check and recalculate limits here?
+			// Or we need to fit memory anyway?
+			if ($limitBytes > $memoryLimit) {
+
+				$factor = 1.0 * ($limitBytes - $memoryLimit) / $limitBytes;
+				if ($debugMode) {
+					print_pre("<<< DEBUG >>> Test: {$testName}, need memory: {$limitMb}, memory factor: " . number_format($factor, 6, '.', '') . PHP_EOL);
+				}
+			
+				// Only if memory not enough, and memory available
+				if ($factor > 0 && $factor < 1.0) {
+
+					// Special hack for php-7.x
+					// New string classes, new memory allocator
+					// Consumes more, allocate huge blocks
+					if ((int)$phpversion[0] >= 7) $factor *= 1.1;
+
+					$diff = (int)($factor * $testsLoopLimits[ $testName ]);
+					if (in_array($testName, array('13_array_loop', '14_array_loop'))) {
+						$arrayDimensionLimit = (int)($factor * $arrayDimensionLimit);
+						$diff = 0;
+					}
+
+					$testsLoopLimits[$testName] -= $diff;
+				}
+
+			}
+		}
+
 	}
 
-	$factor = 1.0 * ($testMemoryFull - $memoryLimit) / $testMemoryFull;
+	if ($recalculateLimits) {
 
-	$diff = (int)($factor * $arrayDimensionLimit);
-	$testsLoopLimits['13_array_loop'] += (int)(1.0 * pow($arrayDimensionLimit, 2) * $testsLoopLimits['13_array_loop'] / pow($arrayDimensionLimit - $diff, 2));
-	$testsLoopLimits['14_array_loop'] = $testsLoopLimits['13_array_loop'];
-	$arrayDimensionLimit -= $diff;
+		if (isset($dumbTestMaxPhpTimes[$pv])) {
+			$dumbTestTimeMax = $dumbTestMaxPhpTimes[$pv];
+		} elseif (isset($dumbTestMaxPhpTimes[$phpversion[0]])) {
+			$dumbTestTimeMax = $dumbTestMaxPhpTimes[$phpversion[0]];
+		}
+		
+		if ($cpuInfo['mhz'] > $loopMaxPhpTimesMHz) {
+			// In reality it's non-linear, but that is best we can suggest
+			$needTime *= 1.0 / $cpuInfo['mhz'] * $loopMaxPhpTimesMHz;
+			$dumbTestTimeMax *= 1.0 / $cpuInfo['mhz'] * $loopMaxPhpTimesMHz;
+		
+			if ($printDumbTest) {
+				print_pre("CPU is faster than base one, need time recalc: " .$needTime . PHP_EOL);
+			}
+		}
 
-	$diff = (int)($factor * $testsLoopLimits['02_string_concat']);
+		$factor = 1.0;
+		// Don't bother if time is unlimited
+		if ($maxTime) {
+			// Adjust more only if maxTime too small
+			if ($needTime > $maxTime) {
+				$factor = 1.0 * $maxTime / $needTime;
+			}
+		}
 
-	// Special hack for php-7.x
-	// New string classes, new memory allocator
-	// Consumes more, allocate huge blocks
-	if ((int)$phpversion[0] >= 7) $diff = (int)($diff * 1.1);
+		if ($factor < 1.0) {
+			// Adjust more only if HZ too small
+			if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
+				$factor *= 1.0 * $cpuInfo['mhz'] / $loopMaxPhpTimesMHz;
+			}
 
-	$stringConcatLoopRepeat = (int)(1.0 * ($testsLoopLimits['02_string_concat'] * $stringConcatLoopRepeat) / ($testsLoopLimits['02_string_concat'] - $diff));
-	$testsLoopLimits['02_string_concat'] -= $diff;
-}
+			// TIME WASTED HERE
+			$dumbTestTime = dumb_test_Functions();
+			//	Debug
+			if ($printDumbTest) {
+				print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
+					. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
+			}
+			if ($dumbTestTime > $dumbTestTimeMax) {
+				$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
+			}
+		} else {
+			// TIME WASTED HERE
+			$dumbTestTime = dumb_test_Functions();
+			//	Debug
+			if ($printDumbTest) {
+				print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
+					. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
+			}
+		}
 
-/** Recalc loop limits if max_execution_time less than needed */
-$maxTime = ini_get('max_execution_time');
-$needTime = $defaultTimeLimit;
-$pv = $phpversion[0] . '.' . $phpversion[1];
-if (isset($loopMaxPhpTimes[$pv])) {
-	$needTime = $loopMaxPhpTimes[$pv];
-} elseif (isset($loopMaxPhpTimes[$phpversion[0]])) {
-	$needTime = $loopMaxPhpTimes[$phpversion[0]];
-}
+		$cpuModel = $cpuInfo['model'];
+		if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
+			print_pre("$line\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n$line" . PHP_EOL);
+			$factor = 1.0/3;
+		}
 
-if ($printDumbTest) {
-	print_pre("Need time: " .$needTime . PHP_EOL
-		. "Max time: " .$maxTime . PHP_EOL);
-}
+		if ($factor < 1.0) {
+			print_pre("$line\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\nFactor is: '$factor'\n$line" . PHP_EOL);
+			foreach ($testsLoopLimits as $tst => $loops) {
+				$testsLoopLimits[$tst] = (int)($loops * $factor);
+			}
+		}
 
-if (isset($dumbTestMaxPhpTimes[$pv])) {
-	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$pv];
-} elseif (isset($dumbTestMaxPhpTimes[$phpversion[0]])) {
-	$dumbTestTimeMax = $dumbTestMaxPhpTimes[$phpversion[0]];
-}
+	} // recalculate time limits
 
-if ($cpuInfo['mhz'] > $loopMaxPhpTimesMHz) {
-	// In reality it's non-linear, but that is best we can suggest
-	$needTime *= 1.0 / $cpuInfo['mhz'] * $loopMaxPhpTimesMHz;
-	$dumbTestTimeMax *= 1.0 / $cpuInfo['mhz'] * $loopMaxPhpTimesMHz;
-
-	if ($printDumbTest) {
-		print_pre("CPU is faster than base one, need time recalc: " .$needTime . PHP_EOL);
-	}
-}
-
-if ($recalculateLimits) {
-
-$factor = 1.0;
-// Don't bother if time is unlimited
-if ($maxTime) {
-	// Adjust more only if maxTime too small
-	if ($needTime > $maxTime) {
-		$factor = 1.0 * $maxTime / $needTime;
-	}
-}
-
-if ($factor < 1.0) {
-	// Adjust more only if HZ too small
-	if ($cpuInfo['mhz'] < $loopMaxPhpTimesMHz) {
-		$factor *= 1.0 * $cpuInfo['mhz'] / $loopMaxPhpTimesMHz;
-	}
-
-	// TIME WASTED HERE
-	$dumbTestTime = dumb_test_Functions();
-	//	Debug
-	if ($printDumbTest) {
-		print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
-			. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
-	}
-	if ($dumbTestTime > $dumbTestTimeMax) {
-		$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
-	}
-} else {
-	// TIME WASTED HERE
-	$dumbTestTime = dumb_test_Functions();
-	//	Debug
-	if ($printDumbTest) {
-		print_pre("Dumb test time: " .$dumbTestTime . PHP_EOL
-			. "Dumb test time max: " .$dumbTestTimeMax . PHP_EOL);
-	}
-}
-
-$cpuModel = $cpuInfo['model'];
-if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
-	print_pre("$line\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n$line" . PHP_EOL);
-	$factor = 1.0/3;
-}
-
-if ($factor < 1.0) {
-	print_pre("$line\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\nFactor is: '$factor'\n$line" . PHP_EOL);
-	foreach ($testsLoopLimits as $tst => $loops) {
-		$testsLoopLimits[$tst] = (int)($loops * $factor);
-	}
-}
-
-} // recalculate time limits
-
-} // only show tests names or not?
+} // Not only show tests names or system info. or not?
 
 /** ---------------------------------- Common functions for tests -------------------------------------------- */
 
@@ -1092,6 +1167,18 @@ $has_opcache = "no";
 if (extension_loaded('Zend OPcache')) {
 	$has_opcache = "yes";
 }
+$has_xcache = "no";
+if (extension_loaded('XCache')) {
+	$has_xcache = "yes";
+}
+$has_apc = "no";
+if (extension_loaded('apc')) {
+	$has_apc = "yes";
+}
+$has_eacc = "no";
+if (extension_loaded('eAccelerator')) {
+	$has_eacc = "yes";
+}
 $has_xdebug = "no";
 if (extension_loaded('xdebug')) {
 	print_pre("Extenstion 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!");
@@ -1135,13 +1222,18 @@ echo "\n$line\n|"
 	. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
 	. str_pad("loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
+	. str_pad("-useful-", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
+	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring; func_overload: {$mbover}\n"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
 	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 	. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == 'yes' ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
-	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: ". intval($opcache) . "\n"
+	. str_pad("-affecting-", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
+	. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
+	. str_pad("apc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apc; enabled: {$apcache}\n"
+	. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
 	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
@@ -1181,7 +1273,7 @@ echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(my
 	// php-4 don't have peak_usage function
 	. (function_exists('memory_get_peak_usage')
 		? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
-		 : ''
+		: ''
 	);
 
 } // show only system info?
