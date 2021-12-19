@@ -11,9 +11,11 @@ php_flag xdebug.show_exception_trace 0
 
 php_value output_bufering 0
 php_value max_execution_time 600
-php_value error_log /dev/null
-php_value memory_limit 128M
+php_value error_log ""
+php_value memory_limit 130M
 php_value mbstring.internal_encoding UTF-8
 php_value mbstring.func_overload 0
 
 php_value date.timezone "Europe/Moscow"
+
+php_value open_basedir ""

@@ -167,7 +167,7 @@ function test_27_SimpleXml()
 	}
 
 	$file = 'test.xml';
-	if (!is_file($file)) {
+	if (!@is_readable($file)) {
 		return $emptyResult;
 	}
 
@@ -195,7 +195,7 @@ function test_28_DomXml()
 	}
 
 	$file = 'test.xml';
-	if (!is_file($file)) {
+	if (!@is_readable($file)) {
 		return $emptyResult;
 	}
 

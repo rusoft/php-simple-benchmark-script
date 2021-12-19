@@ -50,7 +50,7 @@ $tz = ini_get('date.timezone');
 if (!$tz) ini_set('date.timezone', 'Europe/Moscow');
 
 ini_set('display_errors', 0);
-ini_set('error_log', null);
+@ini_set('error_log', null);
 ini_set('implicit_flush', 1);
 ini_set('output_buffering', 0);
 ob_implicit_flush(1);
@@ -97,6 +97,12 @@ $eaccel = (int)ini_get('eaccelerator.enable');
 $mbover = (int)ini_get('mbstring.func_overload');
 if ($mbover != 0) {
 	print_pre('<<< WARNING >>> You must disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
+}
+
+$obd_set = (int)!in_array(ini_get('open_basedir'), array('', null));
+if ($obd_set != 0) {
+	print_pre('<<< WARNING >>> You should unset `open_basedir` parameter! It may slow things down!'.PHP_EOL);
+	print_pre("<<< WARNING >>> Parameter `open_basedir` in effect! Script may not able to read system CPU and Memory information. Memory adjustment for tests may not work.\n");
 }
 
 // Used in hacks/fixes checks
@@ -375,7 +381,7 @@ $padHeader = 89;
 $padInfo = 19;
 $padLabel = 30;
 
-$emptyResult = array(0, '-.---', '-.--', '-.--', 0);
+$emptyResult = array(0, '-.---', '-.-- ', '-.-- ', 0);
 
 $cryptSalt = null;
 $cryptAlgoName = 'default';
@@ -525,7 +531,7 @@ function get_current_os()
 {
 	$osFile = '/etc/os-release';
 	$result = PHP_OS;
-	if (file_exists($osFile)) {
+	if (@is_readable($osFile)) {
 		$f = fopen($osFile, 'r');
 		while (!feof($f)) {
 			$line = trim(fgets($f, 1000000));
@@ -592,6 +598,8 @@ function convert_si($size)
 
 /**
  * Return memory_limit in bytes
+ * 
+ * @return int
  */
 function getPhpMemoryLimitBytes()
 {
@@ -629,8 +637,16 @@ function getPhpMemoryLimitBytes()
  */
 function getSystemMemInfo()
 {
-	$data = explode("\n", file_get_contents("/proc/meminfo"));
+	global $debugMode;
+
 	$meminfo = array();
+	if (! @is_readable("/proc/meminfo")) {
+		if ($debugMode) {
+			print_pre("<<< DEBUG >>> Can't read /proc/meminfo!" . PHP_EOL);
+		}
+		return $meminfo;
+	}
+	$data = explode("\n", file_get_contents("/proc/meminfo"));
 	foreach ($data as $line) {
 		if (empty($line)) {
 			continue;
@@ -649,6 +665,8 @@ function getSystemMemInfo()
 
 /**
  * Return system memory FREE+CACHED+BUFFERS bytes (may be free)
+ * 
+ * @return int
  */
 function getSystemMemoryFreeLimitBytes()
 {
@@ -658,6 +676,10 @@ function getSystemMemoryFreeLimitBytes()
 	if ($debugMode) {
 		$ve = var_export($info, true);
 		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): system memory info:\n{$ve}'\n");
+	}
+
+	if (empty($info)) {
+		return -1;
 	}
 
 	if (isset($info['MemAvailable'])) {
@@ -678,6 +700,7 @@ function getSystemMemoryFreeLimitBytes()
  */
 function getCpuInfo($fireUpCpu = false)
 {
+	global $debugMode;
 	$cpu = array(
 		'model' => '',
 		'vendor' => '',
@@ -689,7 +712,10 @@ function getCpuInfo($fireUpCpu = false)
 		'mips' => 0.0
 	);
 
-	if (!is_readable('/proc/cpuinfo')) {
+	if (! @is_readable('/proc/cpuinfo')) {
+		if ($debugMode) {
+			print_pre("<<< DEBUG >>> Can't read /proc/cpuinfo!" . PHP_EOL);
+		}
 		$cpu['model'] = 'Unknown';
 		$cpu['vendor'] = 'Unknown';
 		$cpu['cores'] = 1;
@@ -702,7 +728,7 @@ function getCpuInfo($fireUpCpu = false)
 		$i = 30000000;
 		while ($i--) ;
 	}
-	if (file_exists('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq')) {
+	if (@is_readable('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq')) {
 		$cpu['mhz'] = ((int)file_get_contents('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'))/1000.0;
 	}
 
@@ -770,7 +796,7 @@ function getCpuInfo($fireUpCpu = false)
 
 	// Raspberry Pi or other ARM board etc.
 	$cpuData = array();
-	if (is_executable('/usr/bin/lscpu')) {
+	if (@is_executable('/usr/bin/lscpu')) {
 		$cpuData = explode("\n", shell_exec('/usr/bin/lscpu'));
 	}
 	foreach ($cpuData as $line) {
@@ -938,6 +964,15 @@ if ($debugMode) {
 	print_pre("<<< DEBUG >>> Available memory in system: " . convert($memoryLimitSystem) . PHP_EOL);
 	print_pre("<<< DEBUG >>> Available memory for php  : " . convert($memoryLimitPhp) . PHP_EOL);
 }
+
+if ($memoryLimitSystem < 0) {
+	// Can't read /proc/meminfo? Drop it.
+	$memoryLimitSystem = $memoryLimitPhp;
+	if ($debugMode) {
+		print_pre("<<< DEBUG >>> Can't read available memory in system. Set it equal to PHP's." . PHP_EOL);
+	}
+}
+
 $memoryLimit = min($memoryLimitPhp, $memoryLimitSystem);
 $memoryLimitMb = convert($memoryLimit);
 if ($debugMode) {
@@ -1091,7 +1126,7 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 
 		return array($diffSeconds, number_format($diffSeconds, 3, '.', ''),
 			number_format($ops_v, 2, '.', '') . ' ' . $ops_u,
-			number_format($opmhz_v, 2, '.', '') . ' ' . $opmhz_u,
+			$opmhz ? number_format($opmhz_v, 2, '.', '') . ' ' . $opmhz_u : '-.-- ' . $opmhz_u,
 			convert($memory)
 		);
 	} else {
@@ -1150,17 +1185,17 @@ if ($outputTestsList) {
 
 $has_mbstring = "yes";
 if (!function_exists('mb_strlen')) {
-	print_pre("Extenstion 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!");
+	print_pre("<<< WARNING >>> Extension 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!");
 	$has_mbstring = "no";
 }
 $has_json = "yes";
 if (!function_exists('json_encode')) {
-	print_pre("Extenstion 'json' not loaded or not compiled! JSON tests will produce empty result!");
+	print_pre("<<< WARNING >>> Extension 'json' not loaded or not compiled! JSON tests will produce empty result!");
 	$has_json = "no";
 }
 $has_pcre = "yes";
 if (!function_exists('preg_match')) {
-	print_pre("Extenstion 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
+	print_pre("<<< WARNING >>> Extension 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
 	$has_pcre = "no";
 }
 $has_opcache = "no";
@@ -1181,7 +1216,7 @@ if (extension_loaded('eAccelerator')) {
 }
 $has_xdebug = "no";
 if (extension_loaded('xdebug')) {
-	print_pre("Extenstion 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!");
+	print_pre("<<< WARNING >>> Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!");
 	$has_xdebug = "yes";
 }
 $has_dom = "no";
@@ -1215,13 +1250,13 @@ echo "\n$line\n|"
 	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
 	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
 	. str_pad("available", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['available'] . "\n"
-	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . 'MHz' . "\n"
+	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . ' MHz' . "\n"
 	. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
 	. str_pad("PHP version", $padInfo) . " : " . PHP_VERSION . "\n"
 	. str_pad("PHP time limit", $padInfo) . " : " . $originTimeLimit . " sec\n"
 	. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
 	. str_pad("Memory", $padInfo) . " : " . $memoryLimitMb . ' available' . "\n"
-	. str_pad("loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
+	. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
 	. str_pad("-useful-", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
 	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring; func_overload: {$mbover}\n"
@@ -1235,6 +1270,8 @@ echo "\n$line\n|"
 	. str_pad("apc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apc; enabled: {$apcache}\n"
 	. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
+	. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . " :\n"
+	. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is set up: ".($obd_set ? 'yes' : 'no')."\n"
 	. str_pad("Set time limit", $padInfo) . " : " . $maxTime . " sec\n"
 	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
 	. "$line\n" . $flushStr;

@@ -30,7 +30,7 @@
 
 Команда:
 ```
-Usage: bench.php [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=132] [-t|--time-limit=600] [-T|--run-test=name1 ...]
+Usage: bench.php [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name1 ...]
 
 	-h|--help		- print this help and exit
 	-x|--debug		- enable debug mode, raise output level
@@ -38,7 +38,7 @@ Usage: bench.php [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-pri
 	-D|--dumb-test-print	- print dumb test time, for debug purpose
 	-L|--list-tests		- output list of available tests and exit
 	-I|--system-info	- output system info but do not run tests and exit
-	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 132 (Mb)
+	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)
 	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)
 	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times
 ```
@@ -59,9 +59,9 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 - SYSTEM_INFO=0/1
 - RUN_TESTS=test1,test2,...
 
-#### Дополнительно
+#### Дополнительно (утилиты в Linux)
 
-- Вы можете установить приоритет процесса с помощью команды `nice` - от -20 до 19. Чем больше значение - тем ниже приоритет. Пример: `nice -5 php bench.php`. Смотрите `man nice`.
+- Вы можете установить приоритет процесса с помощью команды `nice` - от -20 (высокий) до 19 (низкий). Пример, приоритет 5: `nice -5 php bench.php`. Смотрите `man nice`.
 - Вы можете установить приоритет ввода-вывода с помощью команды `ionice`. Пример: `ionice -c3 php bench.php`. Смотрите `man ionice`.
 - Вы можете привязать выполнение скрипта к ядру процессора с помощью команды `taskset`. Пример: `taskset -c -p 0 php bench.php`. Смотрите `man taskset`.
 - Вы можете комбинировать команды: `taskset -c -p 0 nice -10 ionice -c3 php bench.php`.
