@@ -576,3 +576,18 @@ function test_20_Type_Casting()
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
+
+function test_33_PhpInfo_Generate()
+{
+	global $testsLoopLimits, $totalOps;
+
+	$count = $testsLoopLimits['33_phpinfo_generate'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		ob_start();
+		phpinfo();
+		ob_get_clean();
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}

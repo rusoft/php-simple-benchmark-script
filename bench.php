@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Dec 19, 2021                                                  #
-#  Version     : 1.0.45                                                        #
+#  Date        : May 02, 2022                                                  #
+#  Version     : 1.0.46                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.45';
+$scriptVersion = '1.0.46';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -407,19 +407,19 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3800;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 315,
-	'5.2' => 237,
-	'5.3' => 207,
-	'5.4' => 188,
-	'5.5' => 196,
-	'5.6' => 190,
-	'7.0' => 102,
-	'7.1' => 103,
-	'7.2' => 96,
-	'7.3' => 85,
-	'7.4' => 83,
-	'8.0' => 76,
-	'8.1' => 75,
+	'4.4' => 324,
+	'5.2' => 248,
+	'5.3' => 211,
+	'5.4' => 199,
+	'5.5' => 200,
+	'5.6' => 204,
+	'7.0' => 106,
+	'7.1' => 104,
+	'7.2' => 98,
+	'7.3' => 89,
+	'7.4' => 89,
+	'8.0' => 83,
+	'8.1' => 82,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -476,6 +476,7 @@ $testsLoopLimits = array(
 	'30_intl_number_format'		=> 20000,
 	'31_intl_message_format'	=> 200000,
 	'32_intl_calendar'			=> 300000,
+	'33_phpinfo_generate'		=> 10000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -518,6 +519,7 @@ $testsMemoryLimits = array(
 	'30_intl_number_format'		=> 14,
 	'31_intl_message_format'	=> 14,
 	'32_intl_calendar'			=> 14,
+	'33_phpinfo_generate'		=> 14,
 );
 
 $totalOps = 0;
@@ -1261,7 +1263,7 @@ echo "\n$line\n|"
 	. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring; func_overload: {$mbover}\n"
+	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring;\n"
 	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
 	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
@@ -1274,6 +1276,7 @@ echo "\n$line\n|"
 	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
 	. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? 'yes' : 'no')."\n"
+	. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : {$mbover}\n"
 	. "$line\n" . $flushStr;
 flush();
 
