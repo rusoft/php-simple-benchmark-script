@@ -25,6 +25,7 @@ $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
 
 $messagesCnt = 0;
 $rawValues4json = false;
+$totalOps = 0;
 
 /** ------------------------------- Main Defaults ------------------------------- */
 
@@ -1424,12 +1425,11 @@ if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 function print_results_common()
 {
 	$total = 0;
-	$totalOps = 0;
 
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
-	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests;
+	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 
 	if (php_sapi_name() != 'cli') echo "<pre>";
 	echo "\n$line\n|"
@@ -1489,7 +1489,6 @@ function print_results_common()
 				echo str_pad($testName, $padLabel) . " :";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 				$total += $resultSec;
-				$totalOps += $resultOps;
 				echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
 				echo $flushStr;
 				flush();
@@ -1499,7 +1498,7 @@ function print_results_common()
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
 
 		echo "$line\n"
-			. str_pad("Total time:", $padLabel) . " :";
+			. str_pad("Total:", $padLabel) . " :";
 		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
 		echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
 			// php-4 don't have peak_usage function
@@ -1518,12 +1517,11 @@ function print_results_common()
 function print_results_machine()
 {
 	$total = 0;
-	$totalOps = 0;
 
-	global $scriptVersion, $showOnlySystemInfo;
-	global $functions, $runOnlySelectedTests, $selectedTests;
+	global $scriptVersion, $showOnlySystemInfo, $rawValues4json;
+	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 
-	echo "\n"
+	echo ""
 		. "PHP_BENCHMARK_SCRIPT: $scriptVersion\n"
 		. "START: " . date("Y-m-d H:i:s") . "\n"
 		. "SERVER: " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
@@ -1537,6 +1535,8 @@ function print_results_machine()
 		echo "TEST_NAME: SECONDS, OP/SEC, OP/SEC/MHz, MEMORY\n";
 		flush();
 
+		$rawValues4json = true;
+
 		foreach ($functions['user'] as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
@@ -1548,16 +1548,14 @@ function print_results_machine()
 				echo $testName . ": ";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 				$total += $resultSec;
-				$totalOps += $resultOps;
-				echo $resultSecFmt . " sec, ". $resultOps . " Op/s, " . $resultOpMhz . " Ops/MHz, " . $memory . "\n";
+				echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . "\n";
 				flush();
 			}
 		}
 
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
 
-		echo "TOTAL_TIME: ";
-		echo $resultSecFmt . " sec, " . $resultOps . " Op/s, " . $resultOpMhz . " Ops/MHz\n";
+		echo "TOTAL: " . $resultSecFmt . ", " . $resultOps . ", " . $resultOpMhz . "\n";
 		flush();
 
 	}
@@ -1566,10 +1564,9 @@ function print_results_machine()
 function print_results_json()
 {
 	$total = 0;
-	$totalOps = 0;
 
 	global $scriptVersion, $showOnlySystemInfo, $rawValues4json, $messagesCnt;
-	global $functions, $runOnlySelectedTests, $selectedTests;
+	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 
 	echo ""
 		. "\"php_benchmark_script\": \"$scriptVersion\",\n"
@@ -1583,7 +1580,7 @@ function print_results_json()
 	if (!$showOnlySystemInfo) {
 
 		echo "\"results\": {\n";
-		echo "  \"columns\": [ \"test_name\", \"seconds\", \"op/sec\", \"op/sec/MHz\", \"memory\" ],\n";
+		echo "  \"columns\": [ \"test_name\", \"seconds\", \"op\/sec\", \"op\/sec\/MHz\", \"memory\" ],\n";
 		flush();
 
 		$rawValues4json = true;
@@ -1600,19 +1597,18 @@ function print_results_json()
 				echo "    [ \"".$testName . "\", ";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 				$total += $resultSec;
-				$totalOps += $resultOps;
 				echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . " ],\n";
 				flush();
 			}
 		}
-		echo "    null ]\n";
+		echo "    null\n  ]\n";
 		echo "},\n";
 		flush();
 
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
 
-		echo "\"total_time\": { \"seconds\": ";
-		echo $resultSecFmt . ", \"op/sec\":" . $resultOps . ", \"op/sec/MHz\":" . $resultOpMhz . " },\n";
+		echo "\"total\": { \"seconds\": ";
+		echo $resultSecFmt . ", \"op\/sec\":" . $resultOps . ", \"op\/sec\/MHz\":" . $resultOpMhz . " },\n";
 	}
 	print("\"messages_count\": {$messagesCnt},\n");
 	print("\"end\":true\n}" . PHP_EOL);
