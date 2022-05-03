@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 03, 2022                                                  #
-#  Version     : 1.0.48-dev                                                    #
+#  Version     : 1.0.48                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.48-dev';
+$scriptVersion = '1.0.48';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';

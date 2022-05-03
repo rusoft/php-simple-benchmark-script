@@ -36,10 +36,12 @@ You need to put these files in one directory: `bench.php`, `common.inc`, `php5.i
 
 Command:
 ```
-Usage: bench.php [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name1 ...]
+Usage: bench.php [-h|--help] [-x|--debug] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name1 ...]
 
 	-h|--help		- print this help and exit
 	-x|--debug		- enable debug mode, raise output level
+	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.
+	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.
 	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low
 	-D|--dumb-test-print	- print dumb test time, for debug purpose
 	-L|--list-tests		- output list of available tests and exit
@@ -59,6 +61,8 @@ Available variables:
 
 - PHP_TIME_LIMIT=<Секунды>
 - PHP_DEBUG_MODE=0/1
+- PRINT_JSON=0/1
+- PRINT_MACHINE=0/1
 - PHP_MEMORY_LIMIT=<Мб>
 - DONT_RECALCULATE_LIMITS=0/1
 - LIST_TESTS=0/1
@@ -84,6 +88,8 @@ Available options:
 
 - time_limit=Секунды
 - debug_mode=0/1
+- print_json=0/1
+- print_machine=0/1
 - memory_limit=Мб
 - dont_recalculate_limits=0/1
 - list_tests=0/1
@@ -106,6 +112,8 @@ that you have to specify the `-d -t 3600` options to make all the tests pass.
 This applies to all ARM, MIPS, etc. As well as old AMD and Intel processors like Celeron, Atom, Duron, etc.
 
 ## Example script output
+
+### Generic format
 
 ```
 <<< WARNING >>> You need to disable Xdebug extension! It greatly slow things down! And mess with PHP internals.
@@ -196,4 +204,43 @@ TEST NAME                      :      SECONDS |       OP/SEC |      OP/SEC/MHz |
 Total time:                    :   81.337 sec |  13.73 MOp/s |   3.62 kOps/MHz |
 Current PHP memory usage:      :        4 Mb
 Peak PHP memory usage:         :    86.58 Mb
+```
+
+### JSON-format
+
+Command: `php74 -derror_log= -dxdebug.mode=off bench.php -T 01_math -T 33_phpinfo_generate -J`
+```
+{ 
+"php_benchmark_script": "1.0.48-dev",
+"start": "2022-05-03 22:11:19",
+"server": "Linux/5.4.0-104-lowlatency x86_64",
+"system": "Ubuntu 18.04.6 LTS",
+"php_version": "7.4.29-SergeyD/6.1",
+"results": {
+  "columns": [ "test_name", "seconds", "op\/sec", "op\/sec\/MHz", "memory" ],
+  "rows": [
+    [ "01_math", 3.4119508266449, 586174.91916397, 162.82636643444, 4194304 ],
+    [ "33_phpinfo_generate", 3.6402199268341, 2747.0867697538, 0.76307965826494, 4194304 ],
+    null
+  ]
+},
+"total": { "seconds": 7.052170753479, "op\/sec":285018.62338039, "op\/sec\/MHz":79.171839827885 },
+"messages_count": 0,
+"end":true
+}
+```
+
+### Machine-parsable format
+
+Command: `php74 -derror_log= -dxdebug.mode=off bench.php -T 01_math -T 33_phpinfo_generate -M`
+```
+PHP_BENCHMARK_SCRIPT: 1.0.48-dev
+START: 2022-05-03 22:11:52
+SERVER: Linux/5.4.0-104-lowlatency x86_64
+SYSTEM: Ubuntu 18.04.6 LTS
+PHP_VERSION: 7.4.29-SergeyD/6.1
+TEST_NAME: SECONDS, OP/SEC, OP/SEC/MHz, MEMORY
+01_math: 3.3808300495148, 591570.70030392, 164.32519452887, 4194304
+33_phpinfo_generate: 3.6759581565857, 2720.3791702809, 0.75566088063359, 4194304
+TOTAL: 7.0567882061005, 284832.12777484, 79.120035493011
 ```
