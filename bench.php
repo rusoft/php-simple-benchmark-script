@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 03, 2022                                                  #
-#  Version     : 1.0.47                                                        #
+#  Version     : 1.0.48-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,29 +18,381 @@
 ################################################################################
 */
 
-function flprint($msg) {
-	print($msg);
-	flush();
-}
-
-function print_pre($msg) {
-	if (php_sapi_name() != 'cli') {
-		print('<pre>'.$msg.'</pre>');
-	} else {
-		print($msg);
-	}
-	flush();
-}
-
-$scriptVersion = '1.0.47';
+$scriptVersion = '1.0.48-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
 
+$messagesCnt = 0;
+$rawValues4json = false;
+
+/** ------------------------------- Main Defaults ------------------------------- */
+
+$originMemoryLimit = @ini_get('memory_limit');
+$originTimeLimit = @ini_get('max_execution_time');
+
+/* Default execution time limit in seconds */
+$defaultTimeLimit = 600;
+/*
+	Default PHP memory limit in Mb.
+	It's for ALL PHP structures!
+	Memory allocator works with blocks by X_Mb.
+	Some we need a little more.
+*/
+$defaultMemoryLimit = 130;
+
+$debugMode = 0;
+
+$printJson = 0;
+
+$printMachine = 0;
+
+$recalculateLimits = 1;
+
+$printDumbTest = 0;
+
+$outputTestsList = 0;
+
+$showOnlySystemInfo = 0;
+
+$selectedTests = array();
+
+
+/* ----------------- Fetch environ or GET params */
+
+if ($t = (int)getenv('PHP_TIME_LIMIT')) {
+	$defaultTimeLimit = $t;
+}
+if (isset($_GET['time_limit']) && $t = (int)$_GET['time_limit']) {
+	$defaultTimeLimit = $t;
+}
+
+if ($x = (int)getenv('PHP_DEBUG_MODE')) {
+	$debugMode = $x;
+}
+if (isset($_GET['debug_mode']) && $x = (int)$_GET['debug_mode']) {
+	$debugMode = $x;
+}
+
+if ($x = (int)getenv('PRINT_JSON')) {
+	$printJson = $x;
+}
+if (isset($_GET['print_json']) && $x = (int)$_GET['print_json']) {
+	$printJson = $x;
+}
+if ($printJson) $printMachine = 0;
+
+if ($x = (int)getenv('PRINT_MACHINE')) {
+	$printMachine = $x;
+}
+if (isset($_GET['print_machine']) && $x = (int)$_GET['print_machine']) {
+	$printMachine = $x;
+}
+if ($printMachine) $printJson = 0;
+
+if ($m = (int)getenv('PHP_MEMORY_LIMIT')) {
+	$defaultMemoryLimit = $m;
+}
+if (isset($_GET['memory_limit']) && $m = (int)$_GET['memory_limit']) {
+	$defaultMemoryLimit = $m;
+}
+
+if ((int)getenv('DONT_RECALCULATE_LIMITS')) {
+	$recalculateLimits = 0;
+}
+if (isset($_GET['dont_recalculate_limits']) && (int)$_GET['dont_recalculate_limits']) {
+	$recalculateLimits = 0;
+}
+
+if ((int)getenv('PRINT_DUMB_TEST')) {
+	$printDumbTest = 1;
+}
+if (isset($_GET['print_dumb_test']) && (int)$_GET['print_dumb_test']) {
+	$printDumbTest = 1;
+}
+
+if ((int)getenv('LIST_TESTS')) {
+	$outputTestsList = 1;
+}
+if (isset($_GET['list_tests']) && (int)$_GET['list_tests']) {
+	$outputTestsList = 1;
+}
+
+if ((int)getenv('SYSTEM_INFO')) {
+	$showOnlySystemInfo = 1;
+}
+if (isset($_GET['system_info']) && (int)$_GET['system_info']) {
+	$showOnlySystemInfo = 1;
+}
+
+if ($r = getenv('RUN_TESTS')) {
+	$selectedTests = explode(',', $r);
+}
+if (!empty($_GET['run_tests'])) {
+	$selectedTests = explode(',', $_GET['run_tests']);
+}
+
+
+
+/* common functions */
+
+function print_pre($msg) {
+	global $printJson, $printMachine, $messagesCnt;
+	if ($printMachine) {
+		print($msg);
+	} else if ($printJson) {
+		$msg = trim(str_replace("\n", " ", $msg));
+		if (function_exists('json_encode')) {
+			$msg = json_encode($msg);
+		} else {
+			$msg = '"'.$msg.'"';
+		}
+		print('"message_'.$messagesCnt.'": '.$msg.','.PHP_EOL);
+	} else {
+		if (php_sapi_name() != 'cli') {
+			print('<pre>'.$msg.'</pre>');
+		} else {
+			print($msg);
+		}
+	}
+	flush();
+	$messagesCnt++;
+}
+
+function print_norm($msg) {
+	global $printJson, $messagesCnt;
+	if ($printJson) {
+		$msg = trim(str_replace("\n", " ", $msg));
+		if (function_exists('json_encode')) {
+			$msg = json_encode($msg);
+		} else {
+			$msg = '"'.$msg.'"';
+		}
+		print('"message_'.$messagesCnt.'": '.$msg.','.PHP_EOL);
+	} else {
+		print($msg);
+	}
+	flush();
+	$messagesCnt++;
+}
+
+
+/* global command line options */
+if (php_sapi_name() == 'cli') {
+
+
+// http://php.net/manual/ru/function.getopt.php example #2
+$shortopts = "h";
+$shortopts .= "x";
+$shortopts .= "d";
+$shortopts .= "J";
+$shortopts .= "M";
+$shortopts .= "D";
+$shortopts .= "L";
+$shortopts .= "I";
+$shortopts .= "m:";       // Обязательное значение
+$shortopts .= "t:";       // Обязательное значение
+$shortopts .= "T:";       // Обязательное значение
+
+$longopts = array(
+	"help",
+	"debug",
+	"print-json",
+	"print-machine",
+	"dont-recalc",
+	"dumb-test-print",
+	"list-tests",
+	"system-info",
+	"memory-limit:",      // Обязательное значение
+	"time-limit:",        // Обязательное значение
+	"run-test:",          // Обязательное значение
+);
+
+$hasLongOpts = true;
+if ((int)$phpversion[0] > 5) {
+	$options = getopt($shortopts, $longopts);
+} elseif ((int)$phpversion[0] == 5 && (int)$phpversion[1] >= 3) {
+	$options = getopt($shortopts, $longopts);
+} else {
+	$options = getopt($shortopts);
+	$hasLongOpts = false;
+}
+
+if ($options) {
+
+	// First - simple options that do not do any output
+	foreach ($options as $okey => $oval) {
+
+		switch ($okey) {
+			case 'd':
+			case 'dont-recalc':
+				$recalculateLimits = 0;
+				break;
+
+			case 'x':
+			case 'debug':
+				$debugMode = 1;
+				break;
+
+			case 'J':
+			case 'print-json':
+				$printJson = 1;
+				$printMachine = 0;
+				break;
+
+			case 'M':
+			case 'print-machine':
+				$printMachine = 1;
+				$printJson = 0;
+				break;
+
+			case 'D':
+			case 'dumb-test-print':
+				$printDumbTest = 1;
+				break;
+
+			case 'L':
+			case 'list-tests':
+				$outputTestsList = 1;
+				break;
+
+			case 'I':
+			case 'system-info':
+				$showOnlySystemInfo = 1;
+				break;
+
+		} // switch key
+
+	} // for options
+
+
+
+	// Start JSON output here
+	if ($printJson) print("{ " . PHP_EOL);
+
+	foreach ($options as $okey => $oval) {
+
+		switch ($okey) {
+
+			case 'h':
+			case 'help':
+				if ($hasLongOpts) {
+					print_pre(
+						PHP_EOL
+						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
+						. PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name]' . PHP_EOL
+						. PHP_EOL
+						. '	-h|--help		- print this help and exit' . PHP_EOL
+						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
+						. '	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
+						. '	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
+						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
+						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
+						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
+						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
+						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
+						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
+						. '	-T|--run-test <name>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
+						. PHP_EOL
+						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
+						. PHP_EOL
+					);
+				} else {
+					print_pre(
+						PHP_EOL
+						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
+						. PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-J] [-M] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
+						. PHP_EOL
+						. '	-h		- print this help and exit' . PHP_EOL
+						. '	-x		- enable debug mode, raise output level' . PHP_EOL
+						. '	-J		- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
+						. '	-M		- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
+						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
+						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
+						. '	-L		- output list of available tests and exit' . PHP_EOL
+						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
+						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
+						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
+						. '	-T <name>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
+						. PHP_EOL
+						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
+						. PHP_EOL
+					);
+				}
+				if ($printJson) {
+					print("\"messages_count\": {$messagesCnt},\n");
+					print("\"end\":true\n}" . PHP_EOL);
+				}
+				exit(0);
+				break;
+
+			case 'm':
+			case 'memory-limit':
+				if (is_numeric($oval)) {
+					$defaultMemoryLimit = (int)$oval;
+				} else {
+					print_pre("<<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
+				}
+				break;
+
+			case 't':
+			case 'time-limit':
+				if (is_numeric($oval)) {
+					$defaultTimeLimit = (int)$oval;
+				} else {
+					print_pre("<<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
+				}
+				break;
+
+			case 'T':
+			case 'run-test':
+				// Multiple values are joined into array
+				if (!empty($oval)) {
+					$selectedTests = (array)$oval;
+				} else {
+					print_pre("<<< WARNING >>> Option '$okey' has no value! Skip." . PHP_EOL);
+				}
+				break;
+
+
+			case 'd':
+			case 'dont-recalc':
+			case 'x':
+			case 'debug':
+			case 'J':
+			case 'print-json':
+			case 'M':
+			case 'print-machine':
+			case 'D':
+			case 'dumb-test-print':
+			case 'L':
+			case 'list-tests':
+			case 'I':
+			case 'system-info':
+				// Done in previous cycle
+				break;
+
+			default:
+				print_pre("<<< WARNING >>> Unknown option '$okey'!" . PHP_EOL);
+		}
+
+	}
+
+} // if options
+
+
+} // if sapi == cli
+
 if (php_sapi_name() != 'cli') {
 	// Hello, nginx!
 	header('X-Accel-Buffering: no', true);
-	header('Content-Type: text/html; charset=utf-8', true);
+	if ($printJson) {
+		header('Content-Type: application/json', true);
+	} else {
+		header('Content-Type: text/html; charset=utf-8', true);
+	}
 	flush();
 } else {
 	$flushStr = '';
@@ -118,6 +470,10 @@ if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
 }
 if ($dropDead) {
 	print_pre('<<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION .PHP_EOL);
+	if ($printJson) {
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}".PHP_EOL);
+	}
 	exit(1);
 }
 if (!defined('PHP_MAJOR_VERSION')) {
@@ -125,238 +481,6 @@ if (!defined('PHP_MAJOR_VERSION')) {
 }
 if (!defined('PHP_MINOR_VERSION')) {
 	define('PHP_MINOR_VERSION', (int)$phpversion[1]);
-}
-
-/** ------------------------------- Main Defaults ------------------------------- */
-
-$originMemoryLimit = @ini_get('memory_limit');
-$originTimeLimit = @ini_get('max_execution_time');
-
-/* Default execution time limit in seconds */
-$defaultTimeLimit = 600;
-/*
-	Default PHP memory limit in Mb.
-	It's for ALL PHP structures!
-	Memory allocator works with blocks by X_Mb.
-	Some we need a little more.
-*/
-$defaultMemoryLimit = 130;
-
-$debugMode = 0;
-
-$recalculateLimits = 1;
-
-$printDumbTest = 0;
-
-$outputTestsList = 0;
-
-$showOnlySystemInfo = 0;
-
-$selectedTests = array();
-
-/* ----------------- Fetch environ or GET params */
-
-if ($t = (int)getenv('PHP_TIME_LIMIT')) {
-	$defaultTimeLimit = $t;
-}
-if (isset($_GET['time_limit']) && $t = (int)$_GET['time_limit']) {
-	$defaultTimeLimit = $t;
-}
-
-if ($x = (int)getenv('PHP_DEBUG_MODE')) {
-	$debugMode = $x;
-}
-if (isset($_GET['debug_mode']) && $x = (int)$_GET['debug_mode']) {
-	$debugMode = $x;
-}
-
-if ($m = (int)getenv('PHP_MEMORY_LIMIT')) {
-	$defaultMemoryLimit = $m;
-}
-if (isset($_GET['memory_limit']) && $m = (int)$_GET['memory_limit']) {
-	$defaultMemoryLimit = $m;
-}
-
-if ((int)getenv('DONT_RECALCULATE_LIMITS')) {
-	$recalculateLimits = 0;
-}
-if (isset($_GET['dont_recalculate_limits']) && (int)$_GET['dont_recalculate_limits']) {
-	$recalculateLimits = 0;
-}
-
-if ((int)getenv('PRINT_DUMB_TEST')) {
-	$printDumbTest = 1;
-}
-if (isset($_GET['print_dumb_test']) && (int)$_GET['print_dumb_test']) {
-	$printDumbTest = 1;
-}
-
-if ((int)getenv('LIST_TESTS')) {
-	$outputTestsList = 1;
-}
-if (isset($_GET['list_tests']) && (int)$_GET['list_tests']) {
-	$outputTestsList = 1;
-}
-
-if ((int)getenv('SYSTEM_INFO')) {
-	$showOnlySystemInfo = 1;
-}
-if (isset($_GET['system_info']) && (int)$_GET['system_info']) {
-	$showOnlySystemInfo = 1;
-}
-
-if ($r = getenv('RUN_TESTS')) {
-	$selectedTests = explode(',', $r);
-}
-if (!empty($_GET['run_tests'])) {
-	$selectedTests = explode(',', $_GET['run_tests']);
-}
-
-
-// http://php.net/manual/ru/function.getopt.php example #2
-$shortopts = "h";
-$shortopts .= "x";
-$shortopts .= "d";
-$shortopts .= "D";
-$shortopts .= "L";
-$shortopts .= "I";
-$shortopts .= "m:";       // Обязательное значение
-$shortopts .= "t:";       // Обязательное значение
-$shortopts .= "T:";       // Обязательное значение
-
-$longopts = array(
-	"help",
-	"debug",
-	"dont-recalc",
-	"dumb-test-print",
-	"list-tests",
-	"system-info",
-	"memory-limit:",      // Обязательное значение
-	"time-limit:",        // Обязательное значение
-	"run-test:",          // Обязательное значение
-);
-
-$hasLongOpts = true;
-if ((int)$phpversion[0] > 5) {
-	$options = getopt($shortopts, $longopts);
-} elseif ((int)$phpversion[0] == 5 && (int)$phpversion[1] >= 3) {
-	$options = getopt($shortopts, $longopts);
-} else {
-	$options = getopt($shortopts);
-	$hasLongOpts = false;
-}
-
-if ($options) {
-
-	foreach ($options as $okey => $oval) {
-
-		switch ($okey) {
-
-			case 'h':
-			case 'help':
-				if ($hasLongOpts) {
-					print_pre(
-						PHP_EOL
-						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
-						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name]' . PHP_EOL
-						. PHP_EOL
-						. '	-h|--help		- print this help and exit' . PHP_EOL
-						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
-						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
-						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
-						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
-						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
-						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
-						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T|--run-test <name>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
-						. PHP_EOL
-						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
-						. PHP_EOL
-					);
-				} else {
-					print_pre(
-						PHP_EOL
-						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
-						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
-						. PHP_EOL
-						. '	-h		- print this help and exit' . PHP_EOL
-						. '	-x		- enable debug mode, raise output level' . PHP_EOL
-						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
-						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
-						. '	-L		- output list of available tests and exit' . PHP_EOL
-						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
-						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
-						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T <name>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
-						. PHP_EOL
-						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
-						. PHP_EOL
-					);
-				}
-				exit(0);
-				break;
-
-			case 'm':
-			case 'memory-limit':
-				if (is_numeric($oval)) {
-					$defaultMemoryLimit = (int)$oval;
-				} else {
-					print("<pre><<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip.</pre>" . PHP_EOL);
-				}
-				break;
-
-			case 'd':
-			case 'dont-recalc':
-				$recalculateLimits = 0;
-				break;
-
-			case 'x':
-			case 'debug':
-				$debugMode = 1;
-				break;
-
-			case 'D':
-			case 'dumb-test-print':
-				$printDumbTest = 1;
-				break;
-
-			case 'L':
-			case 'list-tests':
-				$outputTestsList = 1;
-				break;
-
-			case 'I':
-			case 'system-info':
-				$showOnlySystemInfo = 1;
-				break;
-
-			case 't':
-			case 'time-limit':
-				if (is_numeric($oval)) {
-					$defaultTimeLimit = (int)$oval;
-				} else {
-					print_pre("<<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
-				}
-				break;
-
-			case 'T':
-			case 'run-test':
-				// Multiple values are joined into array
-				if (!empty($oval)) {
-					$selectedTests = (array)$oval;
-				} else {
-					print_pre("<<< WARNING >>> Option '$okey' has no value! Skip." . PHP_EOL);
-				}
-				break;
-
-			default:
-				print_pre("<<< WARNING >>> Unknown option '$okey'!" . PHP_EOL);
-		}
-
-	}
-
 }
 
 if ($debugMode) {
@@ -520,8 +644,6 @@ $testsMemoryLimits = array(
 	'32_intl_calendar'			=> 14,
 	'33_phpinfo_generate'		=> 14,
 );
-
-$totalOps = 0;
 
 /** ---------------------------------- Common functions -------------------------------------------- */
 
@@ -926,20 +1048,32 @@ if (defined('CRYPT_SHA512') && CRYPT_SHA512 == 1) {
 */
 
 if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
-	print_pre("$line\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n$line" . PHP_EOL);
+	if ($printJson || $printMachine) {
+		print_pre("<<< WARNING >>> Hashing algorithm MD5 not available for crypt() in this PHP build! It should be available in any PHP build." . PHP_EOL);
+	} else {
+		print_pre("$line\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n$line" . PHP_EOL);
+	}
 }
 
 $cpuInfo = getCpuInfo();
 // CPU throttling?
 if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
 	if (abs($cpuInfo['mips'] - $cpuInfo['mhz']) > 300) {
-		print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
+		if ($printJson || $printMachine) {
+			print_pre("<<< WARNING >>> CPU is in powersaving mode? Set CPU governor to 'performance'! Fire up CPU and recalculate MHz!" . PHP_EOL);
+		} else {
+			print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
+		}
 		// TIME WASTED HERE
 		$cpuInfo = getCpuInfo(true);
 	}
 } else if ($cpuInfo['max-mhz'] && $cpuInfo['mhz']) {
 	if (abs($cpuInfo['max-mhz'] - $cpuInfo['mhz']) > 300) {
-		print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
+		if ($printJson || $printMachine) {
+			print_pre("<<< WARNING >>> CPU is in powersaving mode? Set CPU governor to 'performance'! Fire up CPU and recalculate MHz!" . PHP_EOL);
+		} else {
+			print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
+		}
 		// TIME WASTED HERE
 		$cpuInfo = getCpuInfo(true);
 	}
@@ -982,6 +1116,10 @@ if ($debugMode) {
 
 if (!$memoryLimit || $memoryLimit == '0' || (int)$memoryLimit < $testMemoryMin) {
 	print_pre("<<< ERROR >>> Available memory is set too low: ".convert($memoryLimitMb).".\nThis is lower than ".convert($testMemoryMin).".\nAbort execution!" . PHP_EOL);
+	if ($printJson) {
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}" . PHP_EOL);
+	}
 	exit(1);
 }
 
@@ -1112,7 +1250,7 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
  */
 function format_result_test($diffSeconds, $opCount, $memory = 0)
 {
-	global $cpuInfo;
+	global $cpuInfo, $rawValues4json;
 	if ($diffSeconds) {
 		$ops = $opCount / $diffSeconds;
 		$ops_v = convert_si($ops);
@@ -1125,12 +1263,20 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 		$opmhz_v = convert_si($opmhz);
 		$opmhz_u = prefix_si($opmhz);
 
+		if ($rawValues4json) {
+			return array($diffSeconds, $diffSeconds,
+				$ops, $opmhz, $memory
+			);
+		} 
 		return array($diffSeconds, number_format($diffSeconds, 3, '.', ''),
 			number_format($ops_v, 2, '.', '') . ' ' . $ops_u,
 			$opmhz ? number_format($opmhz_v, 2, '.', '') . ' ' . $opmhz_u : '-.-- ' . $opmhz_u,
 			convert($memory)
 		);
 	} else {
+		if ($rawValues4json) {
+			return array(0, 0, 0, 0, 0);
+		}
 		return array(0, '0.000', 'x.xx ', 'x.xx ', 0);
 	}
 }
@@ -1142,6 +1288,10 @@ if (is_file('common.inc')) {
 	include_once 'common.inc';
 } else {
 	print_pre("$line\n<<< ERROR >>>\nMissing file 'common.inc' with common tests!\n$line");
+	if ($printJson) {
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}" . PHP_EOL);
+	}
 	exit(1);
 }
 
@@ -1168,17 +1318,37 @@ sort($functions['user']);
 /** ------------------------------- Early checks ------------------------------- */
 
 if ($outputTestsList) {
-	if (php_sapi_name() != 'cli')
-		print("<pre>");
-	print("\nAvailable tests:\n");
-	foreach ($functions['user'] as $user) {
-		if (strpos($user, 'test_') === 0) {
-			$testName = str_replace('test_', '', $user);
-			echo $testName . PHP_EOL;
+	if (!$printJson) {
+		if (php_sapi_name() != 'cli') {
+			print("<pre>");
 		}
+		print("\nAvailable tests:\n");
+		foreach ($functions['user'] as $user) {
+			if (strpos($user, 'test_') === 0) {
+				$testName = str_replace('test_', '', $user);
+				print($testName . PHP_EOL);
+			}
+		}
+		if (php_sapi_name() != 'cli') {
+			print("</pre>\n");
+		}
+	} else {
+		print("tests: [".PHP_EOL);
+		$a = array();
+		foreach ($functions['user'] as $user) {
+			if (strpos($user, 'test_') === 0) {
+				$testName = str_replace('test_', '', $user);
+				$a[] = $testName;
+			}
+		}
+		print(join(',', $a));
+		print("]".PHP_EOL);
 	}
-	if (php_sapi_name() != 'cli')
-		print("</pre>\n");
+	
+	if ($printJson) {
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}" . PHP_EOL);
+	}
 	exit(0);
 }
 
@@ -1193,6 +1363,12 @@ $has_json = "yes";
 if (!function_exists('json_encode')) {
 	print_pre("<<< WARNING >>> Extension 'json' not loaded or not compiled! JSON tests will produce empty result!");
 	$has_json = "no";
+	if ($printJson) {
+		print_pre("<<< ERROR >>> Extension 'json' is mandatory for JSON output!");
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}" . PHP_EOL);
+		exit(-1);
+	}
 }
 $has_pcre = "yes";
 if (!function_exists('preg_match')) {
@@ -1241,90 +1417,213 @@ if (extension_loaded('intl')) {
 	$has_intl = "yes";
 }
 
-$total = 0;
-
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 
-if (php_sapi_name() != 'cli') echo "<pre>";
-echo "\n$line\n|"
-	. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
-	. "|\n$line\n"
-	. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
-	. str_pad("Server", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
-	. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
-	. str_pad("System", $padInfo) . " : " . get_current_os() . "\n"
-	. str_pad("CPU", $padInfo) . " :\n"
-	. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
-	. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
-	. str_pad("available", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['available'] . "\n"
-	. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . ' MHz' . "\n"
-	. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
-	. str_pad("PHP version", $padInfo) . " : " . PHP_VERSION . "\n"
-	. str_pad("PHP time limit", $padInfo) . " : " . $originTimeLimit . " sec\n"
-	. str_pad("Setup time limit", $padInfo) . " : " . $maxTime . " sec\n"
-	. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
-	. str_pad("Setup memory limit", $padInfo) . " : " . $memoryLimitMb . "\n"
-	. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
-	. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-	. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-	. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-	. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring;\n"
-	. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
-	. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
-	. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
-	. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == 'yes' ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
-	. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-	. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
-	. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
-	. str_pad("apc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apc; enabled: {$apcache}\n"
-	. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
-	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug, enabled: {$xdebug}, mode: '{$xdbg_mode}'\n"
-	. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-	. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? 'yes' : 'no')."\n"
-	. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : {$mbover}\n"
-	. "$line\n" . $flushStr;
-flush();
+function print_results_common()
+{
+	$total = 0;
+	$totalOps = 0;
 
-if (!$showOnlySystemInfo) {
+	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
+	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
+	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests;
 
-echo str_pad('TEST NAME', $padLabel) . " :"
-	. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
-	. "$line\n" . $flushStr;
-flush();
+	if (php_sapi_name() != 'cli') echo "<pre>";
+	echo "\n$line\n|"
+		. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
+		. "|\n$line\n"
+		. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
+		. str_pad("Server", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+		. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
+		. str_pad("System", $padInfo) . " : " . get_current_os() . "\n"
+		. str_pad("CPU", $padInfo) . " :\n"
+		. str_pad("model", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['model'] . "\n"
+		. str_pad("cores", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['cores'] . "\n"
+		. str_pad("available", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['available'] . "\n"
+		. str_pad("MHz", $padInfo, ' ', STR_PAD_LEFT) . " : " . $cpuInfo['mhz'] . ' MHz' . "\n"
+		. str_pad("Benchmark version", $padInfo) . " : " . $scriptVersion . "\n"
+		. str_pad("PHP version", $padInfo) . " : " . PHP_VERSION . "\n"
+		. str_pad("PHP time limit", $padInfo) . " : " . $originTimeLimit . " sec\n"
+		. str_pad("Setup time limit", $padInfo) . " : " . $maxTime . " sec\n"
+		. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
+		. str_pad("Setup memory limit", $padInfo) . " : " . $memoryLimitMb . "\n"
+		. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
+		. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
+		. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring;\n"
+		. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
+		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
+		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
+		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == 'yes' ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
+		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
+		. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
+		. str_pad("apc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apc; enabled: {$apcache}\n"
+		. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
+		. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug, enabled: {$xdebug}, mode: '{$xdbg_mode}'\n"
+		. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? 'yes' : 'no')."\n"
+		. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : {$mbover}\n"
+		. "$line\n" . $flushStr;
+	flush();
 
-foreach ($functions['user'] as $user) {
-	if (strpos($user, 'test_') === 0) {
-		$testName = str_replace('test_', '', $user);
-		if ($runOnlySelectedTests) {
-			if (!in_array($testName, $selectedTests)) {
-				continue;
+	if (!$showOnlySystemInfo) {
+
+		echo str_pad('TEST NAME', $padLabel) . " :"
+			. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
+			. "$line\n" . $flushStr;
+		flush();
+
+		foreach ($functions['user'] as $user) {
+			if (strpos($user, 'test_') === 0) {
+				$testName = str_replace('test_', '', $user);
+				if ($runOnlySelectedTests) {
+					if (!in_array($testName, $selectedTests)) {
+						continue;
+					}
+				}
+				echo str_pad($testName, $padLabel) . " :";
+				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				$total += $resultSec;
+				$totalOps += $resultOps;
+				echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+				echo $flushStr;
+				flush();
 			}
 		}
-		echo str_pad($testName, $padLabel) . " :";
-		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
-		$total += $resultSec;
-		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
-		echo $flushStr;
+
+		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
+
+		echo "$line\n"
+			. str_pad("Total time:", $padLabel) . " :";
+		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
+		echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
+			// php-4 don't have peak_usage function
+			. (function_exists('memory_get_peak_usage')
+				? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
+				: ''
+			);
+
+	} // show only system info?
+
+	if (php_sapi_name() != 'cli')
+		echo "</pre>\n";
+	flush();
+}
+
+function print_results_machine()
+{
+	$total = 0;
+	$totalOps = 0;
+
+	global $scriptVersion, $showOnlySystemInfo;
+	global $functions, $runOnlySelectedTests, $selectedTests;
+
+	echo "\n"
+		. "PHP_BENCHMARK_SCRIPT: $scriptVersion\n"
+		. "START: " . date("Y-m-d H:i:s") . "\n"
+		. "SERVER: " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+		. "SYSTEM: " . get_current_os() . "\n"
+		. "PHP_VERSION: " . PHP_VERSION . "\n"
+		;
+	flush();
+
+	if (!$showOnlySystemInfo) {
+
+		echo "TEST_NAME: SECONDS, OP/SEC, OP/SEC/MHz, MEMORY\n";
 		flush();
+
+		foreach ($functions['user'] as $user) {
+			if (strpos($user, 'test_') === 0) {
+				$testName = str_replace('test_', '', $user);
+				if ($runOnlySelectedTests) {
+					if (!in_array($testName, $selectedTests)) {
+						continue;
+					}
+				}
+				echo $testName . ": ";
+				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				$total += $resultSec;
+				$totalOps += $resultOps;
+				echo $resultSecFmt . " sec, ". $resultOps . " Op/s, " . $resultOpMhz . " Ops/MHz, " . $memory . "\n";
+				flush();
+			}
+		}
+
+		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
+
+		echo "TOTAL_TIME: ";
+		echo $resultSecFmt . " sec, " . $resultOps . " Op/s, " . $resultOpMhz . " Ops/MHz\n";
+		flush();
+
 	}
 }
 
-list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
+function print_results_json()
+{
+	$total = 0;
+	$totalOps = 0;
 
-echo "$line\n"
-	. str_pad("Total time:", $padLabel) . " :";
-echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
-echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
-	// php-4 don't have peak_usage function
-	. (function_exists('memory_get_peak_usage')
-		? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
-		: ''
-	);
+	global $scriptVersion, $showOnlySystemInfo, $rawValues4json, $messagesCnt;
+	global $functions, $runOnlySelectedTests, $selectedTests;
 
-} // show only system info?
+	echo ""
+		. "\"php_benchmark_script\": \"$scriptVersion\",\n"
+		. "\"start\": \"" . date("Y-m-d H:i:s") . "\",\n"
+		. "\"server\": \"" . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\",\n"
+		. "\"system\": \"" . get_current_os() . "\",\n"
+		. "\"php_version\": \"" . PHP_VERSION . "\",\n"
+		;
+	flush();
 
-if (php_sapi_name() != 'cli')
-	echo "</pre>\n";
-flush();
+	if (!$showOnlySystemInfo) {
+
+		echo "\"results\": {\n";
+		echo "  \"columns\": [ \"test_name\", \"seconds\", \"op/sec\", \"op/sec/MHz\", \"memory\" ],\n";
+		flush();
+
+		$rawValues4json = true;
+
+		echo "  \"rows\": [\n";
+		foreach ($functions['user'] as $user) {
+			if (strpos($user, 'test_') === 0) {
+				$testName = str_replace('test_', '', $user);
+				if ($runOnlySelectedTests) {
+					if (!in_array($testName, $selectedTests)) {
+						continue;
+					}
+				}
+				echo "    [ \"".$testName . "\", ";
+				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				$total += $resultSec;
+				$totalOps += $resultOps;
+				echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . " ],\n";
+				flush();
+			}
+		}
+		echo "    null ]\n";
+		echo "},\n";
+		flush();
+
+		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
+
+		echo "\"total_time\": { \"seconds\": ";
+		echo $resultSecFmt . ", \"op/sec\":" . $resultOps . ", \"op/sec/MHz\":" . $resultOpMhz . " },\n";
+	}
+	print("\"messages_count\": {$messagesCnt},\n");
+	print("\"end\":true\n}" . PHP_EOL);
+	flush();
+}
+
+if ($printJson) {
+	print_results_json();
+} else if ($printMachine) {
+	print_results_machine();
+} else {
+	print_results_common();
+}
+
