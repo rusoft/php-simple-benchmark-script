@@ -8,6 +8,9 @@ php_flag apc.enable 0
 # still - xdebug slow things
 php_flag xdebug.default_enable 0
 php_flag xdebug.show_exception_trace 0
+php_flag xdebug.remote_autostart 0
+php_flag xdebug.remote_enable 0
+php_value xdebug.mode off
 
 php_value output_bufering 0
 php_value max_execution_time 600

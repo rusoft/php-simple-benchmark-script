@@ -4,7 +4,7 @@ Works with all versions of PHP: from 4.3 to 8.1
 
 ## Dependencies
 
-Required modules for php:
+Required modules for full php testing:
 
 - pcre
 - mbstring
@@ -19,6 +19,12 @@ How to check it:
 
 - in console: `php -m`
 - or via function `phpinfo()` output
+
+### Modules affecting test results
+
+- xdebug - can slow down most of the tests by half, and some related to error handling - by 10!
+- opcache - can cache the execution of functions, or throw out "not affecting execution" pieces of code
+- other opcode accelerators: xcache, apc, eaccelerator, etc.
 
 ## Startup
 
@@ -102,10 +108,16 @@ This applies to all ARM, MIPS, etc. As well as old AMD and Intel processors like
 ## Example script output
 
 ```
+<<< WARNING >>> You need to disable Xdebug extension! It greatly slow things down! And mess with PHP internals.
+<<< WARNING >>> Execution time limit not droppped to '600' seconds!
+Script will have only '0' seconds to run.
+<<< WARNING >>> Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!
+<<< WARNING >>> Set xdebug.mode in php.ini / VHost or FPM config / php_admin_value or via cmd '-dxdebug.mode=off' option of PHP executable.
+
 -------------------------------------------------------------------------------------------
 |                                  PHP BENCHMARK SCRIPT                                   |
 -------------------------------------------------------------------------------------------
-Start               : 2022-05-02 19:54:25
+Start               : 2022-05-03 18:22:49
 Server              : Linux/5.4.0-104-lowlatency x86_64
 Platform            : Linux
 System              : Ubuntu 18.04.6 LTS
@@ -113,9 +125,9 @@ CPU                 :
               model : Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
               cores : 4
           available : 4
-                MHz : 3788.844 MHz
-Benchmark version   : 1.0.46
-PHP version         : 8.1.2-SergeyD/1.4
+                MHz : 3600 MHz
+Benchmark version   : 1.0.47
+PHP version         : 7.4.29-SergeyD/6.1
 PHP time limit      : 0 sec
 Setup time limit    : 600 sec
 PHP memory limit    : 128M
@@ -134,7 +146,7 @@ Crypt hash algo     : MD5
              xcache : no; enabled: 0
                 apc : no; enabled: 0
        eaccelerator : no; enabled: 0
-             xdebug : no
+             xdebug : yes, enabled: 1, mode: 'develop'
      PHP parameters
        open_basedir : is empty? yes
    mb.func_overload : 0

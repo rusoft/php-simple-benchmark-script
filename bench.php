@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : May 02, 2022                                                  #
-#  Version     : 1.0.46                                                        #
+#  Date        : May 03, 2022                                                  #
+#  Version     : 1.0.47                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -32,7 +32,7 @@ function print_pre($msg) {
 	flush();
 }
 
-$scriptVersion = '1.0.46';
+$scriptVersion = '1.0.47';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -61,8 +61,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE);
 // Check XDebug
 $xdebug = (int)ini_get('xdebug.default_enable');
 if ($xdebug) {
-	print_pre('<<< ERROR >>> You need to disable Xdebug extension! It greatly slow things down!'.PHP_EOL);
-	exit(1);
+	print_pre('<<< WARNING >>> You need to disable Xdebug extension! It greatly slow things down! And mess with PHP internals.'.PHP_EOL);
 }
 
 // Check OpCache
@@ -367,7 +366,7 @@ if ($debugMode) {
 
 $set = set_time_limit($defaultTimeLimit);
 if ($set === false) {
-	print_pre("<<< WARNING >>> Execution time limit not droppped to '{$defaultTimeLimit}' seconds!\nScript will have only '{$originTimeLimit}' seconds to" . PHP_EOL);
+	print_pre("<<< WARNING >>> Execution time limit not droppped to '{$defaultTimeLimit}' seconds!\nScript will have only '{$originTimeLimit}' seconds to run." . PHP_EOL);
 }
 $set = ini_set('memory_limit', $defaultMemoryLimit . 'M');
 if ($set === false) {
@@ -1218,9 +1217,17 @@ if (extension_loaded('eAccelerator')) {
 }
 $has_xdebug = "no";
 if (extension_loaded('xdebug')) {
-	print_pre("<<< WARNING >>> Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!");
+	print_pre("<<< WARNING >>> Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!\n");
+	print_pre("<<< WARNING >>> Set xdebug.mode in php.ini / VHost or FPM config / php_admin_value or via cmd '-dxdebug.mode=off' option of PHP executable.\n");
 	$has_xdebug = "yes";
+	ini_set("xdebug.mode", "off");
+	ini_set("xdebug.default_enable", 0);
+	ini_set("xdebug.remote_autostart", 0);
+	ini_set("xdebug.remote_enable", 0);
+	ini_set("xdebug.profiler_enable", 0);
 }
+$xdbg_mode = ini_get("xdebug.mode");
+
 $has_dom = "no";
 if (extension_loaded('dom')) {
 	$has_dom = "yes";
@@ -1273,7 +1280,7 @@ echo "\n$line\n|"
 	. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
 	. str_pad("apc", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apc; enabled: {$apcache}\n"
 	. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
-	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug\n"
+	. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug, enabled: {$xdebug}, mode: '{$xdbg_mode}'\n"
 	. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 	. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? 'yes' : 'no')."\n"
 	. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : {$mbover}\n"
