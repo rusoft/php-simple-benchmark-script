@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 03, 2022                                                  #
-#  Version     : 1.0.48                                                        #
+#  Version     : 1.0.49-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.48';
+$scriptVersion = '1.0.49-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -26,6 +26,41 @@ $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
 $messagesCnt = 0;
 $rawValues4json = false;
 $totalOps = 0;
+
+if (php_sapi_name() == 'cli') {
+	// Terminal color sequence
+	$colorReset = "\033[0m";
+	$colorRed = "\033[31m";
+	$colorGreen = "\033[32m";
+	$colorYellow = "\033[33m";
+	$colorGray = "\033[30m";
+
+	$term = getenv('TERM');
+	if (in_array($term, array('xterm', 'urxvt', 'linux', 'screen'))) {
+		// Concrete terms, or limited terms
+		// pass
+	} else if (strpos($term, '-color') !== false) {
+		// Special string
+		// pass
+	} else if (strpos($term, '-256color') !== false) {
+		// Special string
+		// pass
+	} else {
+		// not pass
+		$colorReset = '';
+		$colorRed = '';
+		$colorGreen = '';
+		$colorYellow = '';
+		$colorGray = '';
+	}
+} else {
+	// Html colors
+	$colorReset = '</span>'; // just closing tag
+	$colorRed = '<span style="color:red">';
+	$colorGreen = '<span style="color:green">';
+	$colorYellow = '<span style="color:orange">';
+	$colorGray = '<span style="color:gray">';
+}
 
 /** ------------------------------- Main Defaults ------------------------------- */
 
@@ -41,6 +76,8 @@ $defaultTimeLimit = 600;
 	Some we need a little more.
 */
 $defaultMemoryLimit = 130;
+
+$useColors = 1;
 
 $debugMode = 0;
 
@@ -66,6 +103,13 @@ if ($t = (int)getenv('PHP_TIME_LIMIT')) {
 }
 if (isset($_GET['time_limit']) && $t = (int)$_GET['time_limit']) {
 	$defaultTimeLimit = $t;
+}
+
+if ($x = (int)getenv('DONT_USE_COLORS')) {
+	$useColors = $x == 0;
+}
+if (isset($_GET['dont_use_colors']) && $x = (int)$_GET['dont_use_colors']) {
+	$useColors = $x == 0;
 }
 
 if ($x = (int)getenv('PHP_DEBUG_MODE')) {
@@ -186,6 +230,7 @@ if (php_sapi_name() == 'cli') {
 $shortopts = "h";
 $shortopts .= "x";
 $shortopts .= "d";
+$shortopts .= "C";
 $shortopts .= "J";
 $shortopts .= "M";
 $shortopts .= "D";
@@ -198,6 +243,7 @@ $shortopts .= "T:";       // Обязательное значение
 $longopts = array(
 	"help",
 	"debug",
+	"dont-use-colors",
 	"print-json",
 	"print-machine",
 	"dont-recalc",
@@ -235,6 +281,11 @@ if ($options) {
 				$debugMode = 1;
 				break;
 
+			case 'C':
+			case 'dont-use-colors':
+				$useColors = 0;
+				break;
+
 			case 'J':
 			case 'print-json':
 				$printJson = 1;
@@ -267,6 +318,15 @@ if ($options) {
 	} // for options
 
 
+	// Drop colors here
+	if (!$useColors || $printJson || $printMachine) {
+		$colorReset = '';
+		$colorRed = '';
+		$colorGreen = '';
+		$colorYellow = '';
+		$colorGray = '';
+	}
+
 
 	// Start JSON output here
 	if ($printJson) print("{ " . PHP_EOL);
@@ -282,10 +342,11 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
+						. '	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not in JSON/machine mode.' . PHP_EOL
 						. '	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
 						. '	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
@@ -304,10 +365,11 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-J] [-M] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-C] [-J] [-M] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-x		- enable debug mode, raise output level' . PHP_EOL
+						. '	-C		- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not in JSON/machine mode.' . PHP_EOL
 						. '	-J		- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
 						. '	-M		- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
@@ -334,7 +396,7 @@ if ($options) {
 				if (is_numeric($oval)) {
 					$defaultMemoryLimit = (int)$oval;
 				} else {
-					print_pre("<<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
+					print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
 				}
 				break;
 
@@ -343,7 +405,7 @@ if ($options) {
 				if (is_numeric($oval)) {
 					$defaultTimeLimit = (int)$oval;
 				} else {
-					print_pre("<<< WARNING >>> Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
+					print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Option '$okey' has not numeric value '$oval'! Skip." . PHP_EOL);
 				}
 				break;
 
@@ -353,7 +415,7 @@ if ($options) {
 				if (!empty($oval)) {
 					$selectedTests = (array)$oval;
 				} else {
-					print_pre("<<< WARNING >>> Option '$okey' has no value! Skip." . PHP_EOL);
+					print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Option '$okey' has no value! Skip." . PHP_EOL);
 				}
 				break;
 
@@ -362,6 +424,8 @@ if ($options) {
 			case 'dont-recalc':
 			case 'x':
 			case 'debug':
+			case 'C':
+			case 'dont-use-colors':
 			case 'J':
 			case 'print-json':
 			case 'M':
@@ -376,7 +440,7 @@ if ($options) {
 				break;
 
 			default:
-				print_pre("<<< WARNING >>> Unknown option '$okey'!" . PHP_EOL);
+				print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Unknown option '$okey'!" . PHP_EOL);
 		}
 
 	}
@@ -385,6 +449,17 @@ if ($options) {
 
 
 } // if sapi == cli
+
+
+// Drop colors here too
+if (!$useColors || $printJson || $printMachine) {
+	$colorReset = '';
+	$colorRed = '';
+	$colorGreen = '';
+	$colorYellow = '';
+	$colorGray = '';
+}
+
 
 if (php_sapi_name() != 'cli') {
 	// Hello, nginx!
@@ -414,47 +489,35 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE);
 // Check XDebug
 $xdebug = (int)ini_get('xdebug.default_enable');
 if ($xdebug) {
-	print_pre('<<< WARNING >>> You need to disable Xdebug extension! It greatly slow things down! And mess with PHP internals.'.PHP_EOL);
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} You need to disable Xdebug extension! It greatly slow things down! And mess with PHP internals.".PHP_EOL);
 }
 
 // Check OpCache
 if (php_sapi_name() != 'cli') {
 	$opcache = (int)ini_get('opcache.enable');
 	if ($opcache) {
-		print_pre('<<< WARNING >>> You may want to disable OpCache extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
+		print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} You may want to disable OpCache extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config.".PHP_EOL);
 	}
 	$apcache = (int)ini_get('apc.enabled');
-	/*if ($apcache) {
-		print_pre('<<< WARNING >>> You may want to disable APC extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
-	}*/
 } else {
 	$opcache = (int)ini_get('opcache.enable_cli');
 	if ($opcache) {
-		print_pre('<<< WARNING >>> You may want to disable Cli OpCache extension! It can greatly affect the results! Run php with param: -dopcache.enable_cli=0'.PHP_EOL);
+		print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} You may want to disable Cli OpCache extension! It can greatly affect the results! Run php with param: -dopcache.enable_cli=0".PHP_EOL);
 	}
 	$apcache = (int)ini_get('apc.enable_cli');
-	/*if ($apcache) {
-		print_pre('<<< WARNING >>> You may want to disable APC extension! It can greatly affect the results! Run php with param: -dapc.enable_cli=0'.PHP_EOL);
-	}*/
 }
 $xcache = (int)ini_get('xcache.cacher');
-/*if ($xcache) {
-	print_pre('<<< WARNING >>> You may want to disable xCache extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
-}*/
 $eaccel = (int)ini_get('eaccelerator.enable');
-/*if ($eaccel) {
-	print_pre('<<< WARNING >>> You may want to disable eEccelerator extension! It can greatly affect the results! Make it via .htaccess, VHost or FPM config'.PHP_EOL);
-}*/
 
 $mbover = (int)ini_get('mbstring.func_overload');
 if ($mbover != 0) {
-	print_pre('<<< WARNING >>> You must disable mbstring string functions overloading! It greatly slow things down! And messes with results.'.PHP_EOL);
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} You must disable mbstring string functions overloading! It greatly slow things down! And messes with results.".PHP_EOL);
 }
 
 $obd_set = (int)!in_array(ini_get('open_basedir'), array('', null));
 if ($obd_set != 0) {
-	print_pre('<<< WARNING >>> You should unset `open_basedir` parameter! It may slow things down!'.PHP_EOL);
-	print_pre("<<< WARNING >>> Parameter `open_basedir` in effect! Script may not able to read system CPU and Memory information. Memory adjustment for tests may not work.\n");
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} You should unset `open_basedir` parameter! It may slow things down!".PHP_EOL);
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Parameter `open_basedir` in effect! Script may not able to read system CPU and Memory information. Memory adjustment for tests may not work.\n");
 }
 
 // Used in hacks/fixes checks
@@ -470,7 +533,7 @@ if ((int)$phpversion[0] == 4 && (int)$phpversion[1] < 3) {
 	$dropDead = true;
 }
 if ($dropDead) {
-	print_pre('<<< ERROR >>> Need PHP 4.3+! Current version is ' . PHP_VERSION .PHP_EOL);
+	print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Need PHP 4.3+! Current version is " . PHP_VERSION .PHP_EOL);
 	if ($printJson) {
 		print("\"messages_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}".PHP_EOL);
@@ -491,11 +554,11 @@ if ($debugMode) {
 
 $set = set_time_limit($defaultTimeLimit);
 if ($set === false) {
-	print_pre("<<< WARNING >>> Execution time limit not droppped to '{$defaultTimeLimit}' seconds!\nScript will have only '{$originTimeLimit}' seconds to run." . PHP_EOL);
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Execution time limit not droppped to '{$defaultTimeLimit}' seconds!\nScript will have only '{$originTimeLimit}' seconds to run." . PHP_EOL);
 }
 $set = ini_set('memory_limit', $defaultMemoryLimit . 'M');
 if ($set === false) {
-	print_pre("<<< WARNING >>> Memory limit not set to '{$defaultMemoryLimit}'!" . PHP_EOL);
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Memory limit not set to '{$defaultMemoryLimit}'!" . PHP_EOL);
 }
 
 /** ------------------------------- Main Constants ------------------------------- */
@@ -727,16 +790,16 @@ function convert_si($size)
  */
 function getPhpMemoryLimitBytes()
 {
-	global $debugMode;
+	global $debugMode, $colorGray, $colorReset;
 	// http://stackoverflow.com/a/10209530
 	$memory_limit = strtolower(ini_get('memory_limit'));
 	if ($debugMode) {
-		print_pre("<<< DEBUG >>> getPhpMemoryLimitBytes(): ini_get memory_limit = '{$memory_limit}'\n");
+		print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} getPhpMemoryLimitBytes(): ini_get memory_limit = '{$memory_limit}'\n");
 	}
 	if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
 		if ($debugMode) {
 			$ve = var_export($matches, true);
-			print_pre("<<< DEBUG >>> getPhpMemoryLimitBytes(): parse via preg_math:\n{$ve}\n");
+			print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} getPhpMemoryLimitBytes(): parse via preg_math:\n{$ve}\n");
 		}
 		if ($matches[2] == 'g') {
 			$memory_limit = intval($matches[1]) * 1024 * 1024 * 1024; // nnnG -> nnn GB
@@ -749,7 +812,7 @@ function getPhpMemoryLimitBytes()
 		}
 	}
 	if ($debugMode) {
-		print_pre("<<< DEBUG >>> getPhpMemoryLimitBytes(): result memory_limit = '{$memory_limit}'\n");
+		print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} getPhpMemoryLimitBytes(): result memory_limit = '{$memory_limit}'\n");
 	}
 	return $memory_limit;
 }
@@ -761,12 +824,12 @@ function getPhpMemoryLimitBytes()
  */
 function getSystemMemInfo()
 {
-	global $debugMode;
+	global $debugMode, $colorGray, $colorReset;
 
 	$meminfo = array();
 	if (! @is_readable("/proc/meminfo")) {
 		if ($debugMode) {
-			print_pre("<<< DEBUG >>> Can't read /proc/meminfo!" . PHP_EOL);
+			print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Can't read /proc/meminfo!" . PHP_EOL);
 		}
 		return $meminfo;
 	}
@@ -794,12 +857,13 @@ function getSystemMemInfo()
  */
 function getSystemMemoryFreeLimitBytes()
 {
-	global $debugMode;
+	global $debugMode, $colorGray, $colorReset;
+
 	$info = getSystemMemInfo();
 
 	if ($debugMode) {
 		$ve = var_export($info, true);
-		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): system memory info:\n{$ve}'\n");
+		print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} getSystemMemoryFreeLimitBytes(): system memory info:\n{$ve}'\n");
 	}
 
 	if (empty($info)) {
@@ -808,13 +872,13 @@ function getSystemMemoryFreeLimitBytes()
 
 	if (isset($info['MemAvailable'])) {
 		if ($debugMode) {
-			print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemAvailable: {$info['MemAvailable']}\n");
+			print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} getSystemMemoryFreeLimitBytes(): return MemAvailable: {$info['MemAvailable']}\n");
 		}
 		return $info['MemAvailable'];
 	}
 	$available = $info['MemFree'] + $info['Cached'] + $info['Buffers'];
 	if ($debugMode) {
-		print_pre("<<< DEBUG >>> getSystemMemoryFreeLimitBytes(): return MemFree + Cached + Buffers: {$available}\n");
+		print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} getSystemMemoryFreeLimitBytes(): return MemFree + Cached + Buffers: {$available}\n");
 	}
 	return $available;
 }
@@ -824,7 +888,8 @@ function getSystemMemoryFreeLimitBytes()
  */
 function getCpuInfo($fireUpCpu = false)
 {
-	global $debugMode;
+	global $debugMode, $colorGray, $colorReset;
+
 	$cpu = array(
 		'model' => '',
 		'vendor' => '',
@@ -838,7 +903,7 @@ function getCpuInfo($fireUpCpu = false)
 
 	if (! @is_readable('/proc/cpuinfo')) {
 		if ($debugMode) {
-			print_pre("<<< DEBUG >>> Can't read /proc/cpuinfo!" . PHP_EOL);
+			print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Can't read /proc/cpuinfo!" . PHP_EOL);
 		}
 		$cpu['model'] = 'Unknown';
 		$cpu['vendor'] = 'Unknown';
@@ -1052,7 +1117,7 @@ if ($cryptAlgoName != 'MD5' && $cryptAlgoName != 'default') {
 	if ($printJson || $printMachine) {
 		print_pre("<<< WARNING >>> Hashing algorithm MD5 not available for crypt() in this PHP build! It should be available in any PHP build." . PHP_EOL);
 	} else {
-		print_pre("$line\n<<< WARNING >>>\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n$line" . PHP_EOL);
+		print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nHashing algorithm MD5 not available for crypt() in this PHP build!\n It should be available in any PHP build.\n$line" . PHP_EOL);
 	}
 }
 
@@ -1063,7 +1128,7 @@ if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
 		if ($printJson || $printMachine) {
 			print_pre("<<< WARNING >>> CPU is in powersaving mode? Set CPU governor to 'performance'! Fire up CPU and recalculate MHz!" . PHP_EOL);
 		} else {
-			print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
+			print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
 		}
 		// TIME WASTED HERE
 		$cpuInfo = getCpuInfo(true);
@@ -1073,7 +1138,7 @@ if ($cpuInfo['mips'] && $cpuInfo['mhz']) {
 		if ($printJson || $printMachine) {
 			print_pre("<<< WARNING >>> CPU is in powersaving mode? Set CPU governor to 'performance'! Fire up CPU and recalculate MHz!" . PHP_EOL);
 		} else {
-			print_pre("$line\n<<< WARNING >>>\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
+			print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nCPU is in powersaving mode? Set CPU governor to 'performance'!\n Fire up CPU and recalculate MHz!\n$line" . PHP_EOL);
 		}
 		// TIME WASTED HERE
 		$cpuInfo = getCpuInfo(true);
@@ -1091,32 +1156,32 @@ if (isset($loopMaxPhpTimes[$pv])) {
 }
 
 if ($debugMode) {
-	print_pre("<<< DEBUG >>> Need time: " .$needTime . "; Max time: " .$maxTime . PHP_EOL);
+	print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Need time: " .$needTime . "; Max time: " .$maxTime . PHP_EOL);
 }
 
 $memoryLimitPhp = getPhpMemoryLimitBytes();
 $memoryLimitSystem = getSystemMemoryFreeLimitBytes();
 if ($debugMode) {
-	print_pre("<<< DEBUG >>> Available memory in system: " . convert($memoryLimitSystem) . PHP_EOL);
-	print_pre("<<< DEBUG >>> Available memory for php  : " . convert($memoryLimitPhp) . PHP_EOL);
+	print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Available memory in system: " . convert($memoryLimitSystem) . PHP_EOL);
+	print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Available memory for php  : " . convert($memoryLimitPhp) . PHP_EOL);
 }
 
 if ($memoryLimitSystem < 0) {
 	// Can't read /proc/meminfo? Drop it.
 	$memoryLimitSystem = $memoryLimitPhp;
 	if ($debugMode) {
-		print_pre("<<< DEBUG >>> Can't read available memory in system. Set it equal to PHP's." . PHP_EOL);
+		print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Can't read available memory in system. Set it equal to PHP's." . PHP_EOL);
 	}
 }
 
 $memoryLimit = min($memoryLimitPhp, $memoryLimitSystem);
 $memoryLimitMb = convert($memoryLimit);
 if ($debugMode) {
-	print_pre("<<< DEBUG >>> Selected memory for php   : " . $memoryLimitMb . PHP_EOL);
+	print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Selected memory for php   : " . $memoryLimitMb . PHP_EOL);
 }
 
 if (!$memoryLimit || $memoryLimit == '0' || (int)$memoryLimit < $testMemoryMin) {
-	print_pre("<<< ERROR >>> Available memory is set too low: ".convert($memoryLimitMb).".\nThis is lower than ".convert($testMemoryMin).".\nAbort execution!" . PHP_EOL);
+	print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Available memory is set too low: ".convert($memoryLimitMb).".\nThis is lower than ".convert($testMemoryMin).".\nAbort execution!" . PHP_EOL);
 	if ($printJson) {
 		print("\"messages_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}" . PHP_EOL);
@@ -1130,13 +1195,13 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
 	// Adjust array tests limits
 	if ($memoryLimit < $testMemoryFull) {
 
-		print_pre("$line\n<<< WARNING >>>\nAvailable memory " . $memoryLimitMb
+		print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nAvailable memory " . $memoryLimitMb
 			. " is less than required to run full set of tests: " . convert($testMemoryFull)
 			. ".\n Recalculate tests parameters to fit in memory limits."
 			. "\n$line" . PHP_EOL);
 		if ($debugMode) {
-			print_pre("<<< DEBUG >>> Original memory limit for php  : " . convert($originMemoryLimit) . PHP_EOL);
-			print_pre("<<< DEBUG >>> Calculated memory limit for php: " . convert($defaultMemoryLimit) . PHP_EOL);
+			print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Original memory limit for php  : " . convert($originMemoryLimit) . PHP_EOL);
+			print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Calculated memory limit for php: " . convert($defaultMemoryLimit) . PHP_EOL);
 		}
 
 		foreach ($testsMemoryLimits as $testName => $limitMb) {
@@ -1149,7 +1214,7 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
 
 				$factor = 1.0 * ($limitBytes - $memoryLimit) / $limitBytes;
 				if ($debugMode) {
-					print_pre("<<< DEBUG >>> Test: {$testName}, need memory: {$limitMb}, memory factor: " . number_format($factor, 6, '.', '') . PHP_EOL);
+					print_pre("{$colorGray}<<< DEBUG >>>{$colorReset} Test: {$testName}, need memory: {$limitMb}, memory factor: " . number_format($factor, 6, '.', '') . PHP_EOL);
 				}
 			
 				// Only if memory not enough, and memory available
@@ -1229,12 +1294,12 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
 
 		$cpuModel = $cpuInfo['model'];
 		if (strpos($cpuModel, 'Atom') !== false || strpos($cpuInfo['model'], 'ARM') !== false) {
-			print_pre("$line\n<<< WARNING >>>\nYour processor '{$cpuModel}' have too low performance!\n$line" . PHP_EOL);
+			print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nYour processor '{$cpuModel}' have too low performance!\n$line" . PHP_EOL);
 			$factor = 1.0/3;
 		}
 
 		if ($factor < 1.0) {
-			print_pre("$line\n<<< WARNING >>>\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\nFactor is: '$factor'\n$line" . PHP_EOL);
+			print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nMax execution time is less than needed for tests!\nWill try to reduce tests time as much as possible.\nFactor is: '$factor'\n$line" . PHP_EOL);
 			foreach ($testsLoopLimits as $tst => $loops) {
 				$testsLoopLimits[$tst] = (int)($loops * $factor);
 			}
@@ -1288,7 +1353,7 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 if (is_file('common.inc')) {
 	include_once 'common.inc';
 } else {
-	print_pre("$line\n<<< ERROR >>>\nMissing file 'common.inc' with common tests!\n$line");
+	print_pre("$line\n{$colorRed}<<< ERROR >>>{$colorReset}\nMissing file 'common.inc' with common tests!\n$line");
 	if ($printJson) {
 		print("\"messages_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}" . PHP_EOL);
@@ -1300,7 +1365,7 @@ if ((int)$phpversion[0] >= 5) {
 	if (is_file('php5.inc')) {
 		include_once 'php5.inc';
 	} else {
-		print_pre("$line\n<<< WARNING >>>\nMissing file 'php5.inc' with try/Exception/catch loop test!\n It matters only for php version 5+.\n$line");
+		print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nMissing file 'php5.inc' with try/Exception/catch loop test!\n It matters only for php version 5+.\n$line");
 	}
 }
 
@@ -1308,7 +1373,7 @@ if ((int)$phpversion[0] >= 7) {
 	if (is_file('php7.inc')) {
 		include_once 'php7.inc';
 	} else {
-		print_pre("$line\n<<< WARNING >>>\nMissing file 'php7.inc' with PHP 7 new features tests!\n It matters only for php version 7+.\n$line");
+		print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nMissing file 'php7.inc' with PHP 7 new features tests!\n It matters only for php version 7+.\n$line");
 	}
 }
 
@@ -1355,48 +1420,48 @@ if ($outputTestsList) {
 
 /** ---------------------------------- Common code -------------------------------------------- */
 
-$has_mbstring = "yes";
+$has_mbstring = "{$colorGreen}yes{$colorReset}";
 if (!function_exists('mb_strlen')) {
-	print_pre("<<< WARNING >>> Extension 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!");
-	$has_mbstring = "no";
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!");
+	$has_mbstring = "{$colorRed}no{$colorReset}";
 }
-$has_json = "yes";
+$has_json = "{$colorGreen}yes{$colorReset}";
 if (!function_exists('json_encode')) {
-	print_pre("<<< WARNING >>> Extension 'json' not loaded or not compiled! JSON tests will produce empty result!");
-	$has_json = "no";
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'json' not loaded or not compiled! JSON tests will produce empty result!");
+	$has_json = "{$colorRed}no{$colorReset}";
 	if ($printJson) {
-		print_pre("<<< ERROR >>> Extension 'json' is mandatory for JSON output!");
+		print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Extension 'json' is mandatory for JSON output!");
 		print("\"messages_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}" . PHP_EOL);
 		exit(-1);
 	}
 }
-$has_pcre = "yes";
+$has_pcre = "{$colorGreen}yes{$colorReset}";
 if (!function_exists('preg_match')) {
-	print_pre("<<< WARNING >>> Extension 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
-	$has_pcre = "no";
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
+	$has_pcre = "{$colorRed}no{$colorReset}";
 }
-$has_opcache = "no";
+$has_opcache = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('Zend OPcache')) {
-	$has_opcache = "yes";
+	$has_opcache = "{$colorYellow}yes{$colorReset}";
 }
-$has_xcache = "no";
+$has_xcache = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('XCache')) {
-	$has_xcache = "yes";
+	$has_xcache = "{$colorYellow}yes{$colorReset}";
 }
-$has_apc = "no";
+$has_apc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('apc')) {
-	$has_apc = "yes";
+	$has_apc = "{$colorYellow}yes{$colorReset}";
 }
-$has_eacc = "no";
+$has_eacc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('eAccelerator')) {
-	$has_eacc = "yes";
+	$has_eacc = "{$colorYellow}yes{$colorReset}";
 }
-$has_xdebug = "no";
+$has_xdebug = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('xdebug')) {
-	print_pre("<<< WARNING >>> Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!\n");
-	print_pre("<<< WARNING >>> Set xdebug.mode in php.ini / VHost or FPM config / php_admin_value or via cmd '-dxdebug.mode=off' option of PHP executable.\n");
-	$has_xdebug = "yes";
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!\n");
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Set xdebug.mode in php.ini / VHost or FPM config / php_admin_value or via cmd '-dxdebug.mode=off' option of PHP executable.\n");
+	$has_xdebug = "{$colorRed}yes{$colorReset}";
 	ini_set("xdebug.mode", "off");
 	ini_set("xdebug.default_enable", 0);
 	ini_set("xdebug.remote_autostart", 0);
@@ -1405,17 +1470,17 @@ if (extension_loaded('xdebug')) {
 }
 $xdbg_mode = ini_get("xdebug.mode");
 
-$has_dom = "no";
+$has_dom = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('dom')) {
-	$has_dom = "yes";
+	$has_dom = "{$colorGreen}yes{$colorReset}";
 }
-$has_simplexml = "no";
+$has_simplexml = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('simplexml')) {
-	$has_simplexml = "yes";
+	$has_simplexml = "{$colorGreen}yes{$colorReset}";
 }
-$has_intl = "no";
+$has_intl = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('intl')) {
-	$has_intl = "yes";
+	$has_intl = "{$colorGreen}yes{$colorReset}";
 }
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
@@ -1430,6 +1495,7 @@ function print_results_common()
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
+	global $colorGreen, $colorReset, $colorRed;
 
 	if (php_sapi_name() != 'cli') echo "<pre>";
 	echo "\n$line\n|"
@@ -1454,11 +1520,11 @@ function print_results_common()
 		. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-		. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring;\n"
-		. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == 'yes' ? '; version: ' . PCRE_VERSION : '') . "\n"
+		. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
+		. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == "{$colorGreen}yes{$colorReset}" ? '; version: ' . PCRE_VERSION : '') . "\n"
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
-		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == 'yes' ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
+		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
 		. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
@@ -1466,8 +1532,8 @@ function print_results_common()
 		. str_pad("eaccelerator", $padInfo, ' ', STR_PAD_LEFT) . " : $has_eacc; enabled: {$eaccel}\n"
 		. str_pad("xdebug", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xdebug, enabled: {$xdebug}, mode: '{$xdbg_mode}'\n"
 		. str_pad("PHP parameters", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-		. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? 'yes' : 'no')."\n"
-		. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : {$mbover}\n"
+		. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? "{$colorGreen}yes{$colorReset}" : "{$colorRed}no{$colorReset}")."\n"
+		. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : " . ($mbover ? "{$colorRed}{$mbover}{$colorReset}\n" : "{$colorGreen}{$mbover}{$colorReset}\n")
 		. "$line\n" . $flushStr;
 	flush();
 
