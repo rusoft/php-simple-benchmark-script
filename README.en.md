@@ -36,10 +36,11 @@ You need to put these files in one directory: `bench.php`, `common.inc`, `php5.i
 
 Command:
 ```
-Usage: bench.php [-h|--help] [-x|--debug] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name1 ...]
+Usage: bench.php [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name1 ...]
 
 	-h|--help		- print this help and exit
 	-x|--debug		- enable debug mode, raise output level
+	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not in JSON/machine mode.
 	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.
 	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.
 	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low
@@ -59,8 +60,9 @@ env PHP_MEMORY_LIMIT=64 PHP_TIME_LIMIT=30 php bench.php
 
 Available variables:
 
-- PHP_TIME_LIMIT=<Секунды>
+- PHP_TIME_LIMIT=<Seconds>
 - PHP_DEBUG_MODE=0/1
+- DONT_USE_COLORS=0/1
 - PRINT_JSON=0/1
 - PRINT_MACHINE=0/1
 - PHP_MEMORY_LIMIT=<Мб>
@@ -88,6 +90,7 @@ Available options:
 
 - time_limit=Секунды
 - debug_mode=0/1
+- dont_use_colors=0/1
 - print_json=0/1
 - print_machine=0/1
 - memory_limit=Мб
@@ -244,3 +247,8 @@ TEST_NAME: SECONDS, OP/SEC, OP/SEC/MHz, MEMORY
 33_phpinfo_generate: 3.6759581565857, 2720.3791702809, 0.75566088063359, 4194304
 TOTAL: 7.0567882061005, 284832.12777484, 79.120035493011
 ```
+
+### In web-browser
+
+Link like: http://sergey.home.lan/bench/bench.php?system_info=1
+![System information](browser.png "System information")
