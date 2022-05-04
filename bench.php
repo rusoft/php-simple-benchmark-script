@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 04, 2022                                                  #
-#  Version     : 1.0.49                                                        #
+#  Version     : 1.0.50                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,10 +18,13 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.49';
+$scriptVersion = '1.0.50';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
+
+// Used in hacks/fixes checks
+$phpversion = explode('.', PHP_VERSION);
 
 $messagesCnt = 0;
 $rawValues4json = false;
@@ -519,9 +522,6 @@ if ($obd_set != 0) {
 	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} You should unset `open_basedir` parameter! It may slow things down!".PHP_EOL);
 	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Parameter `open_basedir` in effect! Script may not able to read system CPU and Memory information. Memory adjustment for tests may not work.\n");
 }
-
-// Used in hacks/fixes checks
-$phpversion = explode('.', PHP_VERSION);
 
 $dropDead = false;
 // No php < 4
