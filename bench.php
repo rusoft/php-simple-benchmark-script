@@ -3,14 +3,14 @@
 ################################################################################
 #                      PHP Benchmark Performance Script                        #
 #                           2010      Code24 BV                                #
-#                           2015-2021 Rusoft                                   #
+#                           2015-2023 Rusoft                                   #
 #                                                                              #
 #  Author      : Alessandro Torrisi                                            #
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : May 04, 2022                                                  #
-#  Version     : 1.0.50                                                        #
+#  Date        : Feb 17, 2023                                                  #
+#  Version     : 1.0.51                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.50';
+$scriptVersion = '1.0.51-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -607,6 +607,7 @@ $loopMaxPhpTimes = array(
 	'7.4' => 89,
 	'8.0' => 83,
 	'8.1' => 82,
+	'8.2' => 79,
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -623,6 +624,7 @@ $dumbTestMaxPhpTimes = array(
 	'7.4' => 0.340,
 	'8.0' => 0.324,
 	'8.1' => 0.323,
+	'8.2' => 0.294,
 );
 // Nice dice roll
 // Should not be longer than 600 seconds

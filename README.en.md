@@ -1,6 +1,6 @@
 # A simple PHP script to test speed
 
-Works with all versions of PHP: from 4.3 to 8.1
+Works with all versions of PHP: from 4.3 to 8.2
 
 ## Dependencies
 
@@ -137,7 +137,7 @@ CPU                 :
               cores : 4
           available : 4
                 MHz : 3600 MHz
-Benchmark version   : 1.0.47
+Benchmark version   : 1.0.51
 PHP version         : 7.4.29-SergeyD/6.1
 PHP time limit      : 0 sec
 Setup time limit    : 600 sec
@@ -214,7 +214,7 @@ Peak PHP memory usage:         :    86.58 Mb
 Command: `php74 -derror_log= -dxdebug.mode=off bench.php -T 01_math -T 33_phpinfo_generate -J`
 ```
 { 
-"php_benchmark_script": "1.0.48-dev",
+"php_benchmark_script": "1.0.51",
 "start": "2022-05-03 22:11:19",
 "server": "Linux/5.4.0-104-lowlatency x86_64",
 "system": "Ubuntu 18.04.6 LTS",
@@ -237,7 +237,7 @@ Command: `php74 -derror_log= -dxdebug.mode=off bench.php -T 01_math -T 33_phpinf
 
 Command: `php74 -derror_log= -dxdebug.mode=off bench.php -T 01_math -T 33_phpinfo_generate -M`
 ```
-PHP_BENCHMARK_SCRIPT: 1.0.48-dev
+PHP_BENCHMARK_SCRIPT: 1.0.51
 START: 2022-05-03 22:11:52
 SERVER: Linux/5.4.0-104-lowlatency x86_64
 SYSTEM: Ubuntu 18.04.6 LTS
