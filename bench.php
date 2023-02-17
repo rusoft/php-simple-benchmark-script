@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.51-dev';
+$scriptVersion = '1.0.51';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
