@@ -41,7 +41,7 @@ How to check it:
 
 ### 0. Files
 
-You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `igbinary.inc`, `msgpack.inc`, `compression-*.inc`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
+You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `igbinary.inc`, `msgpack.inc`, `compression-*.inc`, `php-options.php`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
 
 ### 1. Through the console
 
