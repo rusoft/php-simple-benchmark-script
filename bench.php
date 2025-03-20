@@ -80,16 +80,22 @@ if (extension_loaded('msgpack')) {
 }
 
 if (extension_loaded('zstd')) {
-	@include_once("compression.inc");
+	@include_once("compression-zstd.inc");
 }
 if (extension_loaded('lz4')) {
-	@include_once("compression.inc");
+	@include_once("compression-lz4.inc");
 }
 if (extension_loaded('brotli')) {
-	@include_once("compression.inc");
+	@include_once("compression-brotli.inc");
+}
+if (extension_loaded('snappy')) {
+	@include_once("compression-snappy.inc");
+}
+if (extension_loaded('bz2')) {
+	@include_once("compression-bz2.inc");
 }
 if (extension_loaded('zlib')) {
-	@include_once("compression.inc");
+	@include_once("compression-zlib.inc");
 }
 if (extension_loaded('intl')) {
 	@include_once("intl.inc");
