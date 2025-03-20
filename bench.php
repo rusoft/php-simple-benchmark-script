@@ -18,6 +18,8 @@
 ################################################################################
 */
 
+incude_once("php-options.php");
+
 $scriptVersion = '1.0.58-dev';
 
 // Special string to flush buffers, nginx for example
