@@ -19,6 +19,7 @@
   - zlib
   - bz2
   - zstd
+  - lz4
   - snappy
   - igbinary
   - msgpack
@@ -40,7 +41,7 @@
 
 ### 0. Файлы
 
-Нужно положить в один каталог файлы: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `igbinary.inc`, `msgpack.inc`, `compression.inc`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
+Нужно положить в один каталог файлы: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `igbinary.inc`, `msgpack.inc`, `compression-*.inc`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
 
 ### 1. Через консоль
 
