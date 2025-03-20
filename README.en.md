@@ -1,6 +1,6 @@
 # A simple PHP script to test speed
 
-Works with all versions of PHP: from 4.3 to 8.3
+Works with all versions of PHP: from 4.3 to 8.4
 
 ## Dependencies
 
@@ -18,6 +18,8 @@ Required modules for full php testing:
   - zlib
   - bz2
   - brotli
+  - lz4
+  - snappy
   - zstd
   - igbinary
   - msgpack
@@ -39,7 +41,7 @@ How to check it:
 
 ### 0. Files
 
-You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `igbinary.inc`, `msgpack.inc`, `compression.inc`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
+You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `igbinary.inc`, `msgpack.inc`, `compression-*.inc`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
 
 ### 1. Through the console
 
