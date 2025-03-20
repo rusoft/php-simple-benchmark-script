@@ -1624,9 +1624,6 @@ if (extension_loaded('zlib')) {
 	if(function_exists('gzencode')) {
 		$has_gzip = "{$colorGreen}yes{$colorReset}";
 	}
-	if (!defined('ZLIB_VERSION')) {
-		define('ZLIB_VERSION','-.-.-');
-	}
 }
 $has_bz2 = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('bz2')) {
@@ -1659,6 +1656,7 @@ if ($jsond && !function_exists('jsond_encode')) {
 }
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
+if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.--');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 
@@ -1669,7 +1667,7 @@ function print_results_common()
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
-	global $has_zlib, $has_gzip, $has_bz2, $has_lz4, $has_zstd, $has_brotli;
+	global $has_zlib, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
