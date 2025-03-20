@@ -731,10 +731,11 @@ $testsLoopLimits = array(
 	'33_phpinfo_generate'		=> 10000,
 	'34_gd_qrcode'		=> 1000,
 	'35_imagick_qrcode'		=> 1000,
-	'36_01_zlib_deflate_compress'	=> 5000000,
-	'36_02_zlib_gzip_compress'	=> 5000000,
-	'36_bzip2_compress'	=>  500000,
+	'36_01_zlib_deflate_compress'	=> 500000,
+	'36_02_zlib_gzip_compress'	=> 500000,
+	'36_bzip2_compress'	=>  50000,
 	'36_lz4_compress'	=> 5000000,
+ '36_snappy_compress'	=> 5000000,
 	'36_zstd_compress'	=> 5000000,
 	'36_brotli_compress'	=> 1000000,
 );
@@ -788,6 +789,7 @@ $testsMemoryLimits = array(
 	'36_02_zlib_gzip_compress'		=> 4,
 	'36_bzip2_compress'		=> 4,
 	'36_lz4_compress'		=> 4,
+ '36_snappy_compress'		=> 4,
 	'36_zstd_compress'		=> 4,
 	'36_brotli_compress'		=> 4,
 );
@@ -1632,6 +1634,10 @@ $has_lz4 = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('lz4')) {
 	$has_lz4 = "{$colorGreen}yes{$colorReset}";
 }
+$has_snappy = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('snappy')) {
+	$has_snappy = "{$colorGreen}yes{$colorReset}";
+}
 $has_zstd = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('zstd')) {
 	$has_zstd = "{$colorGreen}yes{$colorReset}";
@@ -1708,6 +1714,7 @@ function print_results_common()
 		. str_pad("gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
 		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
 		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4\n"
+   . str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
 		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd\n"
 		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
