@@ -14,7 +14,7 @@ function test_36_01_zlib_deflate_compress()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['36_zlib_compress'];
+	$count = $testsLoopLimits['36_01_zlib_deflate_compress'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = gzdeflate($stringTest, 1);
@@ -31,7 +31,7 @@ function test_36_02_zlib_gzip_compress()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['36_gzip_compress'];
+	$count = $testsLoopLimits['36_02_zlib_gzip_compress'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = gzencode($stringTest, 1);
