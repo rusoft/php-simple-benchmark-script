@@ -18,7 +18,7 @@
 ################################################################################
 */
 
-incude_once("php-options.php");
+include_once("php-options.php");
 
 $scriptVersion = '1.0.58-dev';
 
