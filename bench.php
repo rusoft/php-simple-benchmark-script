@@ -737,7 +737,7 @@ $testsLoopLimits = array(
 	'36_02_zlib_gzip_compress'	=> 500000,
 	'36_bzip2_compress'	=>  50000,
 	'36_lz4_compress'	=> 5000000,
- '36_snappy_compress'	=> 5000000,
+  '36_snappy_compress'	=> 5000000,
 	'36_zstd_compress'	=> 5000000,
 	'36_brotli_compress'	=> 1000000,
 );
@@ -791,7 +791,7 @@ $testsMemoryLimits = array(
 	'36_02_zlib_gzip_compress'		=> 4,
 	'36_bzip2_compress'		=> 4,
 	'36_lz4_compress'		=> 4,
- '36_snappy_compress'		=> 4,
+  '36_snappy_compress'		=> 4,
 	'36_zstd_compress'		=> 4,
 	'36_brotli_compress'		=> 4,
 );
@@ -1496,6 +1496,13 @@ if ((int)$phpversion[0] >= 7) {
 	}
 }
 
+if ((int)$phpversion[0] >= 8) {
+	if (is_file('php8.inc')) {
+		include_once 'php8.inc';
+	} else {
+		print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nMissing file 'php8.inc' with PHP 8 new features tests!\n It matters only for php version 8+.\n$line");
+	}
+}
 
 $functions = get_defined_functions();
 sort($functions['user']);
