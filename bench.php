@@ -803,7 +803,7 @@ $testsMemoryLimits = array(
 /** ---------------------------------- Common functions -------------------------------------------- */
 
 /**
- * Gt pretty OS release name, if available
+ * Get pretty OS release name, if available
  */
 function get_current_os()
 {
