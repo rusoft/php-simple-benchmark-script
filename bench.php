@@ -740,6 +740,8 @@ $testsLoopLimits = array(
   '36_snappy_compress'	=> 5000000,
 	'36_zstd_compress'	=> 5000000,
 	'36_brotli_compress'	=> 1000000,
+	'37_01_php8_str_ccontains' => 100000,
+	'37_02_php8_str_ccontains_simulate' => 100000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -794,6 +796,8 @@ $testsMemoryLimits = array(
   '36_snappy_compress'		=> 4,
 	'36_zstd_compress'		=> 4,
 	'36_brotli_compress'		=> 4,
+	'37_01_php8_str_ccontains' => 4,
+	'37_02_php8_str_ccontains_simulate' => 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
