@@ -1,7 +1,7 @@
 <?php
 /**
  * php safe options - php8 only functions or syntax
- * Php 4.4+
+ * Php 8.0+
  */
 
 /** ---------------------------------- Tests functions -------------------------------------------- */
