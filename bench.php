@@ -3,14 +3,14 @@
 ################################################################################
 #                      PHP Benchmark Performance Script                        #
 #                           2010      Code24 BV                                #
-#                           2015-2023 Rusoft                                   #
+#                           2015-2025 Rusoft                                   #
 #                                                                              #
 #  Author      : Alessandro Torrisi                                            #
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Feb 17, 2023                                                  #
-#  Version     : 1.0.51                                                        #
+#  Date        : Mar 22, 2025                                                  #
+#  Version     : 1.0.58                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -18,7 +18,9 @@
 ################################################################################
 */
 
-$scriptVersion = '1.0.51';
+include_once("php-options.php");
+
+$scriptVersion = '1.0.58-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -66,6 +68,48 @@ if (php_sapi_name() == 'cli') {
 }
 
 /** ------------------------------- Main Defaults ------------------------------- */
+
+$has_igb = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('igbinary')) {
+	$has_igb = "{$colorGreen}yes{$colorReset}";
+	@include("igbinary.inc");
+}
+
+$has_msg = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('msgpack')) {
+	$has_msg = "{$colorGreen}yes{$colorReset}";
+	@include("msgpack.inc");
+}
+
+if (extension_loaded('zstd')) {
+	@include_once("compression-zstd.inc");
+}
+if (extension_loaded('lz4')) {
+	@include_once("compression-lz4.inc");
+}
+if (extension_loaded('brotli')) {
+	@include_once("compression-brotli.inc");
+}
+if (extension_loaded('snappy')) {
+	@include_once("compression-snappy.inc");
+}
+if (extension_loaded('bz2')) {
+	@include_once("compression-bz2.inc");
+}
+if (extension_loaded('zlib')) {
+	@include_once("compression-zlib.inc");
+}
+if (extension_loaded('intl')) {
+	@include_once("intl.inc");
+}
+if (extension_loaded('gd')) {
+	@include_once("php-gd-imagick-common.inc");
+	@include_once("php-gd.inc");
+}
+if (extension_loaded('imagick')) {
+	@include_once("php-gd-imagick-common.inc");
+	@include_once("php-imagick.inc");
+}
 
 $originMemoryLimit = @ini_get('memory_limit');
 $originTimeLimit = @ini_get('max_execution_time');
@@ -222,6 +266,19 @@ function print_norm($msg) {
 	}
 	flush();
 	$messagesCnt++;
+}
+
+
+if (!function_exists('gethostname')) {
+	// 5.3.0+ only
+	function gethostname() {
+		on_start();
+		$last_str = system(`hostname -f`, $errcode);
+		if ($last_str !== false) {
+			return $last_str;
+		}
+		return '';
+	}
 }
 
 
@@ -608,6 +665,8 @@ $loopMaxPhpTimes = array(
 	'8.0' => 83,
 	'8.1' => 82,
 	'8.2' => 79,
+	'8.3' => 77,
+	'8.4' => 77
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -625,6 +684,8 @@ $dumbTestMaxPhpTimes = array(
 	'8.0' => 0.324,
 	'8.1' => 0.323,
 	'8.2' => 0.294,
+	'8.3' => 0.784,
+	'8.4' => 0.759
 );
 // Nice dice roll
 // Should not be longer than 600 seconds
@@ -644,6 +705,10 @@ $testsLoopLimits = array(
 	'10_json_decode'	=> 1300000,
 	'11_serialize'		=> 1300000,
 	'12_unserialize'	=> 1300000,
+	'11_igb_serialize'		=> 1300000,
+	'12_igb_unserialize'	=> 1300000,
+	'11_msgpack_pack'		=> 1300000,
+	'12_msgpack_unpack'	=> 1300000,
 	'13_array_loop'		=> 250,
 	'14_array_loop'		=> 250,
 	'15_clean_loops'	=> 200000000,
@@ -666,6 +731,17 @@ $testsLoopLimits = array(
 	'31_intl_message_format'	=> 200000,
 	'32_intl_calendar'			=> 300000,
 	'33_phpinfo_generate'		=> 10000,
+	'34_gd_qrcode'		=> 1000,
+	'35_imagick_qrcode'		=> 1000,
+	'36_01_zlib_deflate_compress'	=> 500000,
+	'36_02_zlib_gzip_compress'	=> 500000,
+	'36_bzip2_compress'	=>  50000,
+	'36_lz4_compress'	=> 5000000,
+  '36_snappy_compress'	=> 5000000,
+	'36_zstd_compress'	=> 5000000,
+	'36_brotli_compress'	=> 1000000,
+	'37_01_php8_str_ccontains' => 100000,
+	'37_02_php8_str_ccontains_simulate' => 100000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -685,6 +761,8 @@ $testsMemoryLimits = array(
 	'10_json_decode'	=> 4,
 	'11_serialize'		=> 4,
 	'12_unserialize'	=> 4,
+	'11_igb_serialize'		=> 4,
+	'12_igb_unserialize'	=> 4,
 	// php-5.3
 	'13_array_loop'		=> 54,
 	'14_array_loop'		=> 62,
@@ -709,12 +787,23 @@ $testsMemoryLimits = array(
 	'31_intl_message_format'	=> 14,
 	'32_intl_calendar'			=> 14,
 	'33_phpinfo_generate'		=> 14,
+	'34_gd_qrcode'		=> 14,
+	'35_imagick_qrcode'		=> 8,
+	'36_01_zlib_deflate_compress'		=> 4,
+	'36_02_zlib_gzip_compress'		=> 4,
+	'36_bzip2_compress'		=> 4,
+	'36_lz4_compress'		=> 4,
+  '36_snappy_compress'		=> 4,
+	'36_zstd_compress'		=> 4,
+	'36_brotli_compress'		=> 4,
+	'37_01_php8_str_ccontains' => 4,
+	'37_02_php8_str_ccontains_simulate' => 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
 
 /**
- * Gt pretty OS release name, if available
+ * Get pretty OS release name, if available
  */
 function get_current_os()
 {
@@ -988,7 +1077,7 @@ function getCpuInfo($fireUpCpu = false)
 	// Raspberry Pi or other ARM board etc.
 	$cpuData = array();
 	if (@is_executable('/usr/bin/lscpu')) {
-		$cpuData = explode("\n", shell_exec('/usr/bin/lscpu'));
+		$cpuData = explode("\n", shell_exec('/usr/bin/lscpu 2>&1'));
 	}
 	foreach ($cpuData as $line) {
 		$line = explode(':', $line, 2);
@@ -1240,7 +1329,7 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
 		}
 
 	}
-
+	if ($debugMode) print_pre("recalculate limits: " . $recalculateLimits);
 	if ($recalculateLimits) {
 
 		if (isset($dumbTestMaxPhpTimes[$pv])) {
@@ -1284,7 +1373,8 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
 			if ($dumbTestTime > $dumbTestTimeMax) {
 				$factor *= 1.0 * $dumbTestTimeMax / $dumbTestTime;
 			}
-		} else {
+		} 
+		if ($debugMode) {
 			// TIME WASTED HERE
 			$dumbTestTime = dumb_test_Functions();
 			//	Debug
@@ -1362,7 +1452,38 @@ if (is_file('common.inc')) {
 	}
 	exit(1);
 }
-
+/*
+if (is_file('php-gd.inc')) {
+	if (extension_loaded('gd')) {
+		include_once 'php-gd.inc';
+	} else {
+		print_pre("${line}\n{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'gd' not loaded or not compiled! Image manipulation tests will be skipped!\n$line");
+	}
+} else {
+	print_pre("$line\n{$colorRed}<<< ERROR >>>{$colorReset}\nMissing file 'php-gd.inc' with common tests!\n$line");
+	if ($printJson) {
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}" . PHP_EOL);
+	}
+	exit(1);
+}
+*/
+/*
+if (is_file('php-imagick.inc')) {
+	if (extension_loaded('imagick')) {
+		include_once 'php-imagick.inc';
+	} else {
+		print_pre("${line}\n{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'imagick' not loaded or not compiled! Image manipulation tests will be skipped!\n$line");
+	}
+} else {
+	print_pre("$line\n{$colorRed}<<< ERROR >>>{$colorReset}\nMissing file 'php-imagick.inc' with common tests!\n$line");
+	if ($printJson) {
+		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"end\":true\n}" . PHP_EOL);
+	}
+	exit(1);
+}
+*/
 if ((int)$phpversion[0] >= 5) {
 	if (is_file('php5.inc')) {
 		include_once 'php5.inc';
@@ -1379,6 +1500,13 @@ if ((int)$phpversion[0] >= 7) {
 	}
 }
 
+if ((int)$phpversion[0] >= 8) {
+	if (is_file('php8.inc')) {
+		include_once 'php8.inc';
+	} else {
+		print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nMissing file 'php8.inc' with PHP 8 new features tests!\n It matters only for php version 8+.\n$line");
+	}
+}
 
 $functions = get_defined_functions();
 sort($functions['user']);
@@ -1459,6 +1587,22 @@ $has_eacc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('eAccelerator')) {
 	$has_eacc = "{$colorYellow}yes{$colorReset}";
 }
+$has_gd = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('gd')) {
+	$has_gd = "{$colorGreen}yes{$colorReset}";
+	$info = gd_info();
+	if(!defined("GD_VERSION")) define("GD_VERSION",$info["GD Version"]);
+} else {
+	define("GD_VERSION","-.-.-");
+}
+$has_imagick = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('imagick')) {
+	$has_imagick = "{$colorGreen}yes{$colorReset}";
+	$imv = Imagick::getVersion();
+	define("IMG_VERSION", $imv["versionString"]);
+} else {
+	define("IMG_VERSION", "-.-.-");
+}
 $has_xdebug = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('xdebug')) {
 	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'xdebug' loaded! It will affect results and slow things greatly! Even if not enabled!\n");
@@ -1484,10 +1628,49 @@ $has_intl = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('intl')) {
 	$has_intl = "{$colorGreen}yes{$colorReset}";
 }
+$has_zlib = "{$colorYellow}no{$colorReset}";
+$has_gzip = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('zlib')) {
+	$has_zlib = "{$colorGreen}yes{$colorReset}";
+	if(function_exists('gzencode')) {
+		$has_gzip = "{$colorGreen}yes{$colorReset}";
+	}
+}
+$has_bz2 = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('bz2')) {
+	$has_bz2 = "{$colorGreen}yes{$colorReset}";
+}
+$has_lz4 = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('lz4')) {
+	$has_lz4 = "{$colorGreen}yes{$colorReset}";
+}
+$has_snappy = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('snappy')) {
+	$has_snappy = "{$colorGreen}yes{$colorReset}";
+}
+$has_zstd = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('zstd')) {
+	$has_zstd = "{$colorGreen}yes{$colorReset}";
+}
+$has_brotli = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('brotli')) {
+	$has_brotli = "{$colorGreen}yes{$colorReset}";
+}
+
+$has_jsond = "{$colorYellow}no{$colorReset}";
+$has_jsond_as_json = "{$colorYellow}no{$colorReset}";
+if ($jsond = extension_loaded('jsond')) {
+	$has_jsond = "{$colorGreen}yes{$colorReset}";
+}
+if ($jsond && !function_exists('jsond_encode')) {
+	$has_jsond_as_json = "{$colorGreen}yes{$colorReset}";
+}
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
+if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.--');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
+if (!defined('LIBZSTD_VERSION_STRING')) define('LIBZSTD_VERSION_STRING', '-.-.-');
 
 function print_results_common()
 {
@@ -1495,6 +1678,8 @@ function print_results_common()
 
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
+	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
+	global $has_zlib, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
@@ -1504,7 +1689,8 @@ function print_results_common()
 		. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
 		. "|\n$line\n"
 		. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
-		. str_pad("Server", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+		. str_pad("Server name", $padInfo) . " : " . gethostname() . "\n"
+		. str_pad("Server system", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
 		. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
 		. str_pad("System", $padInfo) . " : " . get_current_os() . "\n"
 		. str_pad("CPU", $padInfo) . " :\n"
@@ -1527,6 +1713,22 @@ function print_results_common()
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
+		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
+		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
+		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
+		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"
+		. str_pad("jsond", $padInfo, ' ', STR_PAD_LEFT) . " : $has_jsond\n"
+		. str_pad("jsond as json >>", $padInfo, ' ', STR_PAD_LEFT) . " : $has_jsond_as_json\n"
+		. str_pad("-compression->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("zlib", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zlib, version: ".ZLIB_VERSION."\n"
+		. str_pad("gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
+		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
+		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4\n"
+   . str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
+		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version:".LIBZSTD_VERSION_STRING."\n"
+		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
 		. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"
@@ -1575,7 +1777,13 @@ function print_results_common()
 				: ''
 			);
 
+		echo "$line\n";
+		echo str_pad("End", $padLabel) . " : " . date("Y-m-d H:i:s") . "\n";
+
 	} // show only system info?
+	else {
+		echo str_pad("End", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n";
+	}
 
 	if (php_sapi_name() != 'cli')
 		echo "</pre>\n";
@@ -1592,7 +1800,8 @@ function print_results_machine()
 	echo ""
 		. "PHP_BENCHMARK_SCRIPT: $scriptVersion\n"
 		. "START: " . date("Y-m-d H:i:s") . "\n"
-		. "SERVER: " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
+		. "SERVER_name: " . gethostname() . "\n"
+		. "SERVER_sys: " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
 		. "SYSTEM: " . get_current_os() . "\n"
 		. "PHP_VERSION: " . PHP_VERSION . "\n"
 		;
@@ -1627,6 +1836,8 @@ function print_results_machine()
 		flush();
 
 	}
+
+	echo "END: " . date("Y-m-d H:i:s") . "\n";
 }
 
 function print_results_json()
@@ -1639,7 +1850,8 @@ function print_results_json()
 	echo ""
 		. "\"php_benchmark_script\": \"$scriptVersion\",\n"
 		. "\"start\": \"" . date("Y-m-d H:i:s") . "\",\n"
-		. "\"server\": \"" . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\",\n"
+		. "\"server_name\": \"" . gethostname() . "\",\n"
+		. "\"server_sys\": \"" . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\",\n"
 		. "\"system\": \"" . get_current_os() . "\",\n"
 		. "\"php_version\": \"" . PHP_VERSION . "\",\n"
 		;
@@ -1679,7 +1891,7 @@ function print_results_json()
 		echo $resultSecFmt . ", \"op\/sec\":" . $resultOps . ", \"op\/sec\/MHz\":" . $resultOpMhz . " },\n";
 	}
 	print("\"messages_count\": {$messagesCnt},\n");
-	print("\"end\":true\n}" . PHP_EOL);
+	print("\"end\":\"".date("Y-m-d H:i:s")."\"\n}" . PHP_EOL);
 	flush();
 }
 
