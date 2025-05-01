@@ -1,6 +1,6 @@
 # A simple PHP script to test speed
 
-Works with all versions of PHP: from 4.3 to 8.2
+Works with all versions of PHP: from 4.3 to 8.4
 
 ## Dependencies
 
@@ -12,6 +12,17 @@ Required modules for full php testing:
 - dom
 - simplexml
 - intl
+- optional:
+  - gd
+  - imagick
+  - zlib
+  - bz2
+  - brotli
+  - lz4
+  - snappy
+  - zstd
+  - igbinary
+  - msgpack
 
 Usually they are already installed or "compiled" in php.
 
@@ -30,7 +41,7 @@ How to check it:
 
 ### 0. Files
 
-You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `test.xml`.
+You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `php8.inc`, `igbinary.inc`, `intl.inc`, `msgpack.inc`, `compression-*.inc`, `php-options.php`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
 
 ### 1. Through the console
 
@@ -137,7 +148,7 @@ CPU                 :
               cores : 4
           available : 4
                 MHz : 3600 MHz
-Benchmark version   : 1.0.51
+Benchmark version   : 1.0.57
 PHP version         : 7.4.29-SergeyD/6.1
 PHP time limit      : 0 sec
 Setup time limit    : 600 sec
@@ -152,6 +163,20 @@ Crypt hash algo     : MD5
           simplexml : yes; libxml version: 2.9.4
                 dom : yes
                intl : yes; icu version: 66.1
+        -optional->
+                 gd : yes: version: 2.2.5
+            imagick : yes: version: ImageMagick 6.9.7-4 Q16 x86_64 20170114 http://www.imagemagick.org
+     -alternative->
+           igbinary : yes
+            msgpack : yes
+              jsond : no
+   jsond as json >> : no
+     -compression->
+               zlib : yes
+                bz2 : yes
+                lz4 : yes
+               zstd : yes
+             brotli : yes
        -affecting->
             opcache : yes; enabled: 0
              xcache : no; enabled: 0
@@ -176,6 +201,12 @@ TEST NAME                      :      SECONDS |       OP/SEC |      OP/SEC/MHz |
 08_2_crypt                     :    8.698 sec |   1.15 kOp/s |   0.30  Ops/MHz |      4 Mb
 09_json_encode                 :    2.322 sec | 559.91 kOp/s | 147.78  Ops/MHz |      4 Mb
 10_json_decode                 :    3.556 sec | 365.54 kOp/s |  96.48  Ops/MHz |      4 Mb
+11_igb_serialize               :    2.894 sec | 449.19 kOp/s | 124.78  Ops/MHz |      3 Mb
+11_msgpack_pack                :    2.054 sec | 633.01 kOp/s | 175.84  Ops/MHz |      3 Mb
+11_serialize                   :    3.727 sec | 348.79 kOp/s |  96.89  Ops/MHz |      3 Mb
+12_igb_unserialize             :    2.123 sec | 612.31 kOp/s | 170.09  Ops/MHz |      3 Mb
+12_msgpack_unpack              :    2.657 sec | 489.30 kOp/s | 135.92  Ops/MHz |      3 Mb
+12_unserialize                 :    3.226 sec | 402.91 kOp/s | 111.92  Ops/MHz |      3 Mb
 11_serialize                   :    1.551 sec | 838.30 kOp/s | 221.25  Ops/MHz |      4 Mb
 12_unserialize                 :    1.677 sec | 774.97 kOp/s | 204.54  Ops/MHz |      4 Mb
 13_array_fill                  :    3.740 sec |  24.07 MOp/s |   6.35 kOps/MHz |     24 Mb
@@ -203,6 +234,14 @@ TEST NAME                      :      SECONDS |       OP/SEC |      OP/SEC/MHz |
 31_intl_message_format         :    4.236 sec |  47.22 kOp/s |  12.46  Ops/MHz |      4 Mb
 32_intl_calendar               :    0.844 sec | 355.34 kOp/s |  93.79  Ops/MHz |      4 Mb
 33_phpinfo_generate            :    1.440 sec |   6.95 kOp/s |   1.83  Ops/MHz |      4 Mb
+34_gd_qrcode                   :    0.923 sec |   1.08 kOp/s |   0.30  Ops/MHz |      4 Mb
+35_imagick_qrcode              :    2.839 sec | 352.18  Op/s |   0.10  Ops/MHz |      4 Mb
+36_brotli_compress             :    5.012 sec | 199.50 kOp/s |  51.47  Ops/MHz |      3 Mb
+36_bzip2_compress              :   22.065 sec |  22.66 kOp/s |   5.85  Ops/MHz |      3 Mb
+36_gzip_compress               :   52.977 sec |  94.38 kOp/s |  24.35  Ops/MHz |      3 Mb
+36_lz4_compress                :    0.378 sec |   1.32 MOp/s | 341.52  Ops/MHz |      3 Mb
+36_zlib_compress               :   51.905 sec |  96.33 kOp/s |  24.85  Ops/MHz |      3 Mb
+36_zstd_compress               :   27.937 sec | 178.98 kOp/s |  46.17  Ops/MHz |      3 Mb
 -------------------------------------------------------------------------------------------
 Total time:                    :   81.337 sec |  13.73 MOp/s |   3.62 kOps/MHz |
 Current PHP memory usage:      :        4 Mb
