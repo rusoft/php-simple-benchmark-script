@@ -1,3 +1,18 @@
+# Need mod_env mod_rewrite mod_php458
+#https://stackoverflow.com/a/49031283/29314471
+<IfModule mod_php4.c>
+  SetEnv PHP_IS_ENABLED yes
+</IfModule>
+<IfModule mod_php5.c>
+  SetEnv PHP_IS_ENABLED yes
+</IfModule>
+<IfModule mod_php7.c>
+  SetEnv PHP_IS_ENABLED yes
+</IfModule>
+<IfModule mod_php8.c>
+  SetEnv PHP_IS_ENABLED yes
+</IfModule>
+<If "reqenv('PHP_IS_ENABLED')=='yes'||reqenv('REDIRECT_PHP_IS_ENABLED')=='yes'">
 php_flag display_errors 0
 php_flag implicit_flush 1
 
@@ -19,3 +34,4 @@ php_value mbstring.internal_encoding UTF-8
 php_value mbstring.func_overload 0
 
 php_value date.timezone "Europe/Moscow"
+</If>
