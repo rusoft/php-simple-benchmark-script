@@ -13,7 +13,7 @@
 #  Version     : 1.0.58-dev                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
-#  Website     : https://git.rusoft.ru/open-source/php-simple-benchmark-script #
+#  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
 #                                                                              #
 ################################################################################
 */
