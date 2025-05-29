@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2025-05-29, v1.0.59
+
+ * Added support of module uuid
+
 @ 2025-03-20, v1.0.58
 
  * Добавлена поддержка php 8.3 и 8.4
