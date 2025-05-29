@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Mar 22, 2025                                                  #
-#  Version     : 1.0.58-dev                                                        #
+#  Date        : May 29, 2025                                                  #
+#  Version     : 1.0.59-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.58-dev';
+$scriptVersion = '1.0.59-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -101,6 +101,12 @@ if (extension_loaded('zlib')) {
 }
 if (extension_loaded('intl')) {
 	@include_once("intl.inc");
+}
+if (file_exists('UUID.php') && PHP_VERSION >= '5.0.0') {
+	@include_once("php-uuid.inc");
+}
+if (extension_loaded('uuid')) {
+	@include_once("mod-uuid.inc");
 }
 if (extension_loaded('gd')) {
 	@include_once("php-gd-imagick-common.inc");
@@ -272,8 +278,9 @@ function print_norm($msg) {
 if (!function_exists('gethostname')) {
 	// 5.3.0+ only
 	function gethostname() {
-		on_start();
+		ob_start();
 		$last_str = system(`hostname -f`, $errcode);
+		ob_end_clean();
 		if ($last_str !== false) {
 			return $last_str;
 		}
@@ -406,7 +413,7 @@ if ($options) {
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
-						. '	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not in JSON/machine mode.' . PHP_EOL
+						. '	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not use it in JSON/machine mode.' . PHP_EOL
 						. '	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
 						. '	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
@@ -429,7 +436,7 @@ if ($options) {
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-x		- enable debug mode, raise output level' . PHP_EOL
-						. '	-C		- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not in JSON/machine mode.' . PHP_EOL
+						. '	-C		- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not use it in JSON/machine mode.' . PHP_EOL
 						. '	-J		- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
 						. '	-M		- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
@@ -742,6 +749,8 @@ $testsLoopLimits = array(
 	'36_brotli_compress'	=> 1000000,
 	'37_01_php8_str_ccontains' => 100000,
 	'37_02_php8_str_ccontains_simulate' => 100000,
+	'38_01_php_uuid'	=> 1000000,
+	'38_02_mod_uuid'	=> 1000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -798,6 +807,8 @@ $testsMemoryLimits = array(
 	'36_brotli_compress'		=> 4,
 	'37_01_php8_str_ccontains' => 4,
 	'37_02_php8_str_ccontains_simulate' => 4,
+	'38_01_php_uuid'		=> 4,
+	'38_02_mod_uuid'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1657,6 +1668,11 @@ if (extension_loaded('brotli')) {
 	$has_brotli = "{$colorGreen}yes{$colorReset}";
 }
 
+$has_uuid = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('uuid')) {
+	$has_uuid = "{$colorGreen}yes{$colorReset}";
+}
+
 $has_jsond = "{$colorYellow}no{$colorReset}";
 $has_jsond_as_json = "{$colorYellow}no{$colorReset}";
 if ($jsond = extension_loaded('jsond')) {
@@ -1679,7 +1695,7 @@ function print_results_common()
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
-	global $has_zlib, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
+	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
@@ -1726,9 +1742,10 @@ function print_results_common()
 		. str_pad("gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
 		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
 		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4\n"
-   . str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
+		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
 		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version:".LIBZSTD_VERSION_STRING."\n"
 		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli\n"
+		. str_pad("uuid", $padInfo, ' ', STR_PAD_LEFT) . " : $has_uuid\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
 		. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"

@@ -23,6 +23,7 @@
   - snappy
   - igbinary
   - msgpack
+  - uuid
 
 Обычно они уже установлены или "вкомпилированны" в php.
 

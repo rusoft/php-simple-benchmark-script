@@ -23,6 +23,7 @@ Required modules for full php testing:
   - zstd
   - igbinary
   - msgpack
+  - uuid
 
 Usually they are already installed or "compiled" in php.
 
