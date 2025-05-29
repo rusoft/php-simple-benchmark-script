@@ -42,7 +42,7 @@ How to check it:
 
 ### 0. Files
 
-You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `php8.inc`, `igbinary.inc`, `intl.inc`, `msgpack.inc`, `compression-*.inc`, `php-options.php`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`.
+You need to put these files in one directory: `bench.php`, `common.inc`, `php5.inc`, `php7.inc`, `php8.inc`, `igbinary.inc`, `intl.inc`, `msgpack.inc`, `compression-*.inc`, `php-options.php`, `php-gd-imagick-common.inc`, `php-gd.inc`, `php-imagick.inc`, `test.xml`, `UUID.php`.
 
 ### 1. Through the console
 
