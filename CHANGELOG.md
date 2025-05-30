@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2025-05-30, v1.0.60
+
+ * Added ability to skip tests by name pattern
+
 @ 2025-05-29, v1.0.59
 
  * Added support of module uuid
