@@ -146,7 +146,8 @@ $outputTestsList = 0;
 
 $showOnlySystemInfo = 0;
 
-$selectedTests = array();
+$selectedTests = array();// exact names
+$skipTests = array();// patterns to match names
 
 
 /* ----------------- Fetch environ or GET params */
@@ -230,6 +231,13 @@ if (!empty($_GET['run_tests'])) {
 	$selectedTests = explode(',', $_GET['run_tests']);
 }
 
+if ($r = getenv('SKIP_TESTS')) {
+	$skipTests = explode(',', $r);
+}
+if (!empty($_GET['skip_tests'])) {
+	$skipTests = explode(',', $_GET['skip_tests']);
+}
+
 
 
 /* common functions */
@@ -306,6 +314,7 @@ $shortopts .= "I";
 $shortopts .= "m:";       // Обязательное значение
 $shortopts .= "t:";       // Обязательное значение
 $shortopts .= "T:";       // Обязательное значение
+$shortopts .= "S:";       // Обязательное значение
 
 $longopts = array(
 	"help",
@@ -320,6 +329,7 @@ $longopts = array(
 	"memory-limit:",      // Обязательное значение
 	"time-limit:",        // Обязательное значение
 	"run-test:",          // Обязательное значение
+	"skip-test:",          // Обязательное значение
 );
 
 $hasLongOpts = true;
@@ -409,7 +419,7 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name] [-S|--skip-test=pattern]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
@@ -423,6 +433,7 @@ if ($options) {
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T|--run-test <name>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
+						. '	-S|--skip-test <pattern>	- skip selected tests, test names pattern to match name from --list-tests output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
 						. PHP_EOL
@@ -446,6 +457,7 @@ if ($options) {
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T <name>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
+						. '	-S <pattern>	- skip selected tests, test names pattern to match name from -L output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
 						. PHP_EOL
@@ -481,6 +493,17 @@ if ($options) {
 				// Multiple values are joined into array
 				if (!empty($oval)) {
 					$selectedTests = (array)$oval;
+				} else {
+					print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Option '$okey' has no value! Skip." . PHP_EOL);
+				}
+				break;
+
+
+			case 'S':
+			case 'skip-test':
+				// Multiple values are joined into array
+				if (!empty($oval)) {
+					$skipTests = (array)$oval;
 				} else {
 					print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Option '$okey' has no value! Skip." . PHP_EOL);
 				}
@@ -744,7 +767,7 @@ $testsLoopLimits = array(
 	'36_02_zlib_gzip_compress'	=> 500000,
 	'36_bzip2_compress'	=>  50000,
 	'36_lz4_compress'	=> 5000000,
-  '36_snappy_compress'	=> 5000000,
+	'36_snappy_compress'	=> 5000000,
 	'36_zstd_compress'	=> 5000000,
 	'36_brotli_compress'	=> 1000000,
 	'37_01_php8_str_ccontains' => 100000,
@@ -802,7 +825,7 @@ $testsMemoryLimits = array(
 	'36_02_zlib_gzip_compress'		=> 4,
 	'36_bzip2_compress'		=> 4,
 	'36_lz4_compress'		=> 4,
-  '36_snappy_compress'		=> 4,
+	'36_snappy_compress'		=> 4,
 	'36_zstd_compress'		=> 4,
 	'36_brotli_compress'		=> 4,
 	'37_01_php8_str_ccontains' => 4,
@@ -1463,38 +1486,6 @@ if (is_file('common.inc')) {
 	}
 	exit(1);
 }
-/*
-if (is_file('php-gd.inc')) {
-	if (extension_loaded('gd')) {
-		include_once 'php-gd.inc';
-	} else {
-		print_pre("${line}\n{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'gd' not loaded or not compiled! Image manipulation tests will be skipped!\n$line");
-	}
-} else {
-	print_pre("$line\n{$colorRed}<<< ERROR >>>{$colorReset}\nMissing file 'php-gd.inc' with common tests!\n$line");
-	if ($printJson) {
-		print("\"messages_count\": {$messagesCnt},\n");
-		print("\"end\":true\n}" . PHP_EOL);
-	}
-	exit(1);
-}
-*/
-/*
-if (is_file('php-imagick.inc')) {
-	if (extension_loaded('imagick')) {
-		include_once 'php-imagick.inc';
-	} else {
-		print_pre("${line}\n{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'imagick' not loaded or not compiled! Image manipulation tests will be skipped!\n$line");
-	}
-} else {
-	print_pre("$line\n{$colorRed}<<< ERROR >>>{$colorReset}\nMissing file 'php-imagick.inc' with common tests!\n$line");
-	if ($printJson) {
-		print("\"messages_count\": {$messagesCnt},\n");
-		print("\"end\":true\n}" . PHP_EOL);
-	}
-	exit(1);
-}
-*/
 if ((int)$phpversion[0] >= 5) {
 	if (is_file('php5.inc')) {
 		include_once 'php5.inc';
@@ -1520,8 +1511,33 @@ if ((int)$phpversion[0] >= 8) {
 }
 
 $functions = get_defined_functions();
-sort($functions['user']);
+$availableFunctions =$functions['user'];
+sort($availableFunctions);
 
+// fiter out tests
+function filter_out_name_by_pattern($key)
+{
+    global $skipTests, $debugMode, $availableFunctions;
+    $var = $availableFunctions[$key];
+    $ret = 1;
+    foreach ($skipTests as $pattern){
+	// simple test - str in name
+	$c=strpos($var,$pattern);
+	if ($debugMode) {
+		$d=var_export($c,true);
+		print("Search '$pattern' inside '$var':$d\n");
+	}
+	if ($c!==false) {
+		$ret = 0;
+		break;
+	};
+    }
+    //nothing found - not skipping
+    if ($debugMode) print("Will return $ret\n");
+    if (!$ret) unset($availableFunctions[$key]);
+    return $ret;
+}
+if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
 /** ------------------------------- Early checks ------------------------------- */
 
 if ($outputTestsList) {
@@ -1530,7 +1546,7 @@ if ($outputTestsList) {
 			print("<pre>");
 		}
 		print("\nAvailable tests:\n");
-		foreach ($functions['user'] as $user) {
+		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
 				print($testName . PHP_EOL);
@@ -1542,7 +1558,7 @@ if ($outputTestsList) {
 	} else {
 		print("tests: [".PHP_EOL);
 		$a = array();
-		foreach ($functions['user'] as $user) {
+		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
 				$a[] = $testName;
@@ -1692,6 +1708,7 @@ function print_results_common()
 {
 	$total = 0;
 
+	global $availableFunctions;
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
@@ -1765,7 +1782,7 @@ function print_results_common()
 			. "$line\n" . $flushStr;
 		flush();
 
-		foreach ($functions['user'] as $user) {
+		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
 				if ($runOnlySelectedTests) {
@@ -1811,6 +1828,7 @@ function print_results_machine()
 {
 	$total = 0;
 
+	global $availableFunctions;
 	global $scriptVersion, $showOnlySystemInfo, $rawValues4json;
 	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 
@@ -1831,7 +1849,7 @@ function print_results_machine()
 
 		$rawValues4json = true;
 
-		foreach ($functions['user'] as $user) {
+		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
 				if ($runOnlySelectedTests) {
@@ -1861,6 +1879,7 @@ function print_results_json()
 {
 	$total = 0;
 
+	global $availableFunctions;
 	global $scriptVersion, $showOnlySystemInfo, $rawValues4json, $messagesCnt;
 	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 
@@ -1883,7 +1902,7 @@ function print_results_json()
 		$rawValues4json = true;
 
 		echo "  \"rows\": [\n";
-		foreach ($functions['user'] as $user) {
+		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
 				if ($runOnlySelectedTests) {
