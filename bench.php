@@ -790,10 +790,10 @@ $testsLoopLimits = array(
 	'37_02_php8_str_ccontains_simulate' => 100000,
 	'38_01_php_uuid'	=> 1000000,
 	'38_02_mod_uuid'	=> 1000000,
-	'39_01_kvstorage_memory'	=> 1000000,
-	'39_02_kvstorage_xcache'	=> 1000000,
-	'39_03_kvstorage_apcu'	=> 1000000,
-	'39_04_kvstorage_shmop'	=> 1000000,
+	'39_01_kvstorage_memory'	=> 500000,
+	'39_02_kvstorage_xcache'	=> 500000,
+	'39_03_kvstorage_apcu'	=> 500000,
+	'39_04_kvstorage_shmop'	=> 500000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -852,10 +852,10 @@ $testsMemoryLimits = array(
 	'37_02_php8_str_ccontains_simulate' => 4,
 	'38_01_php_uuid'		=> 4,
 	'38_02_mod_uuid'		=> 4,
-	'39_01_kvstorage_memory'		=> 4,
-	'39_02_kvstorage_xcache'		=> 47,
-	'39_03_kvstorage_apcu'		=> 93,
-	'39_04_kvstorage_shmop'		=> 4,
+	'39_01_kvstorage_memory'		=> 3,
+	'39_02_kvstorage_xcache'		=> 2r,
+	'39_03_kvstorage_apcu'		=> 47,
+	'39_04_kvstorage_shmop'		=> 70,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1662,6 +1662,10 @@ $has_apcu = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('apcu')) {
 	$has_apcu = "{$colorGreen}yes{$colorReset}";
 }
+$has_shmop = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('shmop')) {
+	$has_shmop = "{$colorGreen}yes{$colorReset}";
+}
 $has_eacc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('eAccelerator')) {
 	$has_eacc = "{$colorYellow}yes{$colorReset}";
@@ -1765,7 +1769,7 @@ function print_results_common()
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
-	global $has_apcu, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $has_apcu, $has_shmop, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
 
@@ -1802,6 +1806,7 @@ function print_results_common()
 		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
 		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
 		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
+		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop;\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
 		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"
