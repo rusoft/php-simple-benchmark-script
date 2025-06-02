@@ -24,6 +24,8 @@
   - igbinary
   - msgpack
   - uuid
+  - memcache
+  - redis
 
 Обычно они уже установлены или "вкомпилированны" в php.
 
