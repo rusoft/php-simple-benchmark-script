@@ -24,6 +24,8 @@ Required modules for full php testing:
   - igbinary
   - msgpack
   - uuid
+  - memcache
+  - redis
 
 Usually they are already installed or "compiled" in php.
 
