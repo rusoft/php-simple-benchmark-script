@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 29, 2025                                                  #
-#  Version     : 1.0.60-dev                                                    #
+#  Version     : 1.0.61-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.60-dev';
+$scriptVersion = '1.0.61-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -104,6 +104,9 @@ if (extension_loaded('intl')) {
 }
 if (file_exists('UUID.php') && PHP_VERSION >= '5.0.0') {
 	@include_once("php-uuid.inc");
+}
+if (file_exists('kvstorage-mem.inc') && PHP_VERSION >= '5.0.0') {
+	@include_once("kv-memory.inc");
 }
 if (extension_loaded('uuid')) {
 	@include_once("mod-uuid.inc");
@@ -432,7 +435,7 @@ if ($options) {
 						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T|--run-test <name>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
+						. '	-T|--run-test <pattern>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
 						. '	-S|--skip-test <pattern>	- skip selected tests, test names pattern to match name from --list-tests output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
@@ -456,7 +459,7 @@ if ($options) {
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T <name>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
+						. '	-T <pattern>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
 						. '	-S <pattern>	- skip selected tests, test names pattern to match name from -L output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
@@ -774,6 +777,7 @@ $testsLoopLimits = array(
 	'37_02_php8_str_ccontains_simulate' => 100000,
 	'38_01_php_uuid'	=> 1000000,
 	'38_02_mod_uuid'	=> 1000000,
+	'39_01_kvstorage_memory'	=> 1000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -832,6 +836,7 @@ $testsMemoryLimits = array(
 	'37_02_php8_str_ccontains_simulate' => 4,
 	'38_01_php_uuid'		=> 4,
 	'38_02_mod_uuid'		=> 4,
+	'39_01_kvstorage_memory'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1514,6 +1519,29 @@ $functions = get_defined_functions();
 $availableFunctions =$functions['user'];
 sort($availableFunctions);
 
+// fiter in tests
+function filter_in_name_by_pattern($key)
+{
+    global $runTests, $debugMode, $availableFunctions;
+    $var = $availableFunctions[$key];
+    $ret = 0;
+    foreach ($runTests as $pattern){
+	// simple test - str in name
+	$c=strpos($var,$pattern);
+	if ($debugMode) {
+		$d=var_export($c,true);
+		print("Search '$pattern' inside '$var':$d\n");
+	}
+	if ($c!==false) {
+		$ret = 0;
+		break;
+	};
+    }
+    //nothing found - skipping
+    if ($debugMode) print("Will return $ret\n");
+    if (!$ret) unset($availableFunctions[$key]);
+    return $ret;
+}
 // fiter out tests
 function filter_out_name_by_pattern($key)
 {
@@ -1537,6 +1565,7 @@ function filter_out_name_by_pattern($key)
     if (!$ret) unset($availableFunctions[$key]);
     return $ret;
 }
+if ($runTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
 if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
 /** ------------------------------- Early checks ------------------------------- */
 
