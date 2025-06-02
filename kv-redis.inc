@@ -11,7 +11,7 @@
 /**
  * @since 5.0
  */
-function test_39_05_kvstorage_redis()
+function test_39_06_kvstorage_redis()
 {
 	global $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -24,7 +24,7 @@ function test_39_05_kvstorage_redis()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['39_05_kvstorage_redis'];
+	$count = $testsLoopLimits['39_06_kvstorage_redis'];
 	$time_start = get_microtime();
 
 	for ($i = 0; $i < $count; $i++) {

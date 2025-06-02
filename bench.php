@@ -589,14 +589,19 @@ if (php_sapi_name() != 'cli') {
 $tz = ini_get('date.timezone');
 if (!$tz) ini_set('date.timezone', 'Europe/Moscow');
 
-ini_set('display_errors', 0);
 @ini_set('error_log', null);
 ini_set('implicit_flush', 1);
 ini_set('output_buffering', 0);
 ob_implicit_flush(1);
 
-// Disable explicit error reporting
-error_reporting(E_ERROR | E_WARNING | E_PARSE);
+if ($debugMode){
+    ini_set('display_errors', 1);
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+} else {
+    ini_set('display_errors', 0);
+    // Disable explicit error reporting
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+}
 
 // Check XDebug
 $xdebug = (int)ini_get('xdebug.default_enable');
@@ -864,8 +869,8 @@ $testsMemoryLimits = array(
 	'39_02_kvstorage_xcache'		=> 2,
 	'39_03_kvstorage_apcu'		=> 47,
 	'39_04_kvstorage_shmop'		=> 70,
-	'39_05_kvstorage_memcache'		=> 4,
-	'39_06_kvstorage_redis'		=> 4,
+	'39_05_kvstorage_memcache'		=> 47,
+	'39_06_kvstorage_redis'		=> 47,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */

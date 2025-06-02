@@ -11,8 +11,8 @@ class KVStorageMemcache
         $this->available=true;
 	if (!class_exists('Memcache'))
 	    $this->available=false;
-	include('memcache.inc');
-	$this->object=get_memcached_object();
+	if (!function_exists('get_memcache_object')) include('memcache.inc');
+	$this->object=get_memcache_object();
     }
 
     public function set($key, $value, $timeout=60){

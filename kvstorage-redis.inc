@@ -11,12 +11,12 @@ class KVStorageRedis
         $this->available=true;
 	if (!class_exists('Redis'))
 	    $this->available=false;
-	include('redis.inc');
+	if (!function_exists('get_redis_object')) include('redis.inc');
 	$this->object=get_redis_object();
     }
 
     public function set($key, $value, $timeout=60){
-	return $this->object->set($key, $value,0, $timeout);
+	return $this->object->set($key, $value, $timeout);
     }
 
     public function get($key, $default=null){

@@ -11,7 +11,7 @@
 /**
  * @since 5.0
  */
-function test_39_04_kvstorage_memcache()
+function test_39_05_kvstorage_memcache()
 {
 	global $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -24,7 +24,7 @@ function test_39_04_kvstorage_memcache()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['39_04_kvstorage_memcache'];
+	$count = $testsLoopLimits['39_05_kvstorage_memcache'];
 	$time_start = get_microtime();
 
 	for ($i = 0; $i < $count; $i++) {

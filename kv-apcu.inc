@@ -14,6 +14,7 @@
 function test_39_03_kvstorage_apcu()
 {
 	global $testsLoopLimits, $totalOps, $emptyResult;
+	global $debugMode;
 
 	if (!is_file('kvstorage-apcu.inc')){
 		return $emptyResult;
@@ -26,6 +27,11 @@ function test_39_03_kvstorage_apcu()
 
 	$count = $testsLoopLimits['39_03_kvstorage_apcu'];
 	$time_start = get_microtime();
+
+	if ($debugMode) {
+		var_dump($count);
+		var_dump($kvstorage);
+	}
 
 	for ($i = 0; $i < $count; $i++) {
 		$num = $i / 100.;
