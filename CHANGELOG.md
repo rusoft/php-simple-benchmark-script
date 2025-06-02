@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2025-06-02, v1.0.61
+
+ * Added simple key-value tests
+
 @ 2025-05-30, v1.0.60
 
  * Added ability to skip tests by name pattern
