@@ -3,6 +3,7 @@
 @ 2025-06-02, v1.0.61
 
  * Added simple key-value tests
+ * Test selected-run by pattern now not exact name
 
 @ 2025-05-30, v1.0.60
 
