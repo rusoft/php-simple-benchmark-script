@@ -3,31 +3,31 @@
  * Php 5.2+
  */
 
-class KVStorageXcache
+class KVStorageApcu
 {
     public $available = false;
     public function __construct(){
         $this->available=true;
-	if (!function_exists('xcache_set'))
+	if (!function_exists('apcu_store'))
 	    $this->available=false;
-	if (!function_exists('xcache_get'))
+	if (!function_exists('apcu_fetch'))
 	    $this->available=false;
-	if (!function_exists('xcache_unset'))
+	if (!function_exists('apcu_delete'))
 	    $this->available=false;
     }
 
     public function set($key, $value, $timeout=60){
-	return xcache_set($key, $value, $timeout);
+	return apcu_store($key, $value, $timeout);
     }
 
     public function get($key, $default=null){
-	    return xcache_isset($key)
-		? xcache_get($key)
+	    return apcu_exists($key)
+		? apcu_fetch($key)
 		: $default;
     }
 
     public function del($key){
-	return xcache_unset($key);
+	return apcu_delete($key);
     }
 }
 $kvstorage=new KVStorageXcache();
