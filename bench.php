@@ -105,9 +105,16 @@ if (extension_loaded('intl')) {
 if (file_exists('UUID.php') && PHP_VERSION >= '5.0.0') {
 	@include_once("php-uuid.inc");
 }
-if (file_exists('kvstorage-mem.inc') && PHP_VERSION >= '5.0.0') {
+if ( PHP_VERSION >= '5.0.0') {
+
+if (file_exists('kvstorage-mem.inc')) {
 	@include_once("kv-memory.inc");
 }
+if (file_exists('kvstorage-xcache.inc') && extension_loaded('xCache')) {
+	@include_once("kv-xcache.inc");
+}
+}// php>=5.0
+
 if (extension_loaded('uuid')) {
 	@include_once("mod-uuid.inc");
 }
@@ -778,6 +785,7 @@ $testsLoopLimits = array(
 	'38_01_php_uuid'	=> 1000000,
 	'38_02_mod_uuid'	=> 1000000,
 	'39_01_kvstorage_memory'	=> 1000000,
+	'39_02_kvstorage_xcache'	=> 1000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -837,6 +845,7 @@ $testsMemoryLimits = array(
 	'38_01_php_uuid'		=> 4,
 	'38_02_mod_uuid'		=> 4,
 	'39_01_kvstorage_memory'		=> 4,
+	'39_02_kvstorage_xcache'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1522,10 +1531,10 @@ sort($availableFunctions);
 // fiter in tests
 function filter_in_name_by_pattern($key)
 {
-    global $runTests, $debugMode, $availableFunctions;
+    global $selectedTests, $debugMode, $availableFunctions;
     $var = $availableFunctions[$key];
     $ret = 0;
-    foreach ($runTests as $pattern){
+    foreach ($selectedTests as $pattern){
 	// simple test - str in name
 	$c=strpos($var,$pattern);
 	if ($debugMode) {
@@ -1533,7 +1542,7 @@ function filter_in_name_by_pattern($key)
 		print("Search '$pattern' inside '$var':$d\n");
 	}
 	if ($c!==false) {
-		$ret = 0;
+		$ret = 1;
 		break;
 	};
     }
@@ -1565,7 +1574,7 @@ function filter_out_name_by_pattern($key)
     if (!$ret) unset($availableFunctions[$key]);
     return $ret;
 }
-if ($runTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
+if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
 if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
 /** ------------------------------- Early checks ------------------------------- */
 
@@ -1617,7 +1626,7 @@ if (!function_exists('json_encode')) {
 	$has_json = "{$colorRed}no{$colorReset}";
 	if ($printJson) {
 		print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Extension 'json' is mandatory for JSON output!");
-		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"messag0es_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}" . PHP_EOL);
 		exit(-1);
 	}
@@ -1631,7 +1640,7 @@ $has_opcache = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('Zend OPcache')) {
 	$has_opcache = "{$colorYellow}yes{$colorReset}";
 }
-$has_xcache = "{$colorGreen}no{$colorReset}";
+$has_xcache = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('XCache')) {
 	$has_xcache = "{$colorYellow}yes{$colorReset}";
 }
@@ -1814,11 +1823,11 @@ function print_results_common()
 		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
-				if ($runOnlySelectedTests) {
+				/*if ($runOnlySelectedTests) {
 					if (!in_array($testName, $selectedTests)) {
 						continue;
 					}
-				}
+				}*/
 				echo str_pad($testName, $padLabel) . " :";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 				$total += $resultSec;
