@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : May 29, 2025                                                  #
-#  Version     : 1.0.60-dev                                                    #
+#  Version     : 1.0.61-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.60-dev';
+$scriptVersion = '1.0.61-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -105,6 +105,28 @@ if (extension_loaded('intl')) {
 if (file_exists('UUID.php') && PHP_VERSION >= '5.0.0') {
 	@include_once("php-uuid.inc");
 }
+if ( PHP_VERSION >= '5.0.0') {
+
+if (file_exists('kvstorage-mem.inc')) {
+	@include_once("kv-memory.inc");
+}
+if (file_exists('kvstorage-xcache.inc') && extension_loaded('xCache')) {
+	@include_once("kv-xcache.inc");
+}
+if (file_exists('kvstorage-apcu.inc') && extension_loaded('apcu')) {
+	@include_once("kv-apcu.inc");
+}
+if (file_exists('kvstorage-shmop.inc') && extension_loaded('shmop')) {
+	@include_once("kv-shmop.inc");
+}
+if (file_exists('kvstorage-memcache.inc') && extension_loaded('memcache')) {
+	@include_once("kv-memcache.inc");
+}
+if (file_exists('kvstorage-redis.inc') && extension_loaded('redis')) {
+	@include_once("kv-redis.inc");
+}
+}// php>=5.0
+
 if (extension_loaded('uuid')) {
 	@include_once("mod-uuid.inc");
 }
@@ -432,7 +454,7 @@ if ($options) {
 						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T|--run-test <name>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
+						. '	-T|--run-test <pattern>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
 						. '	-S|--skip-test <pattern>	- skip selected tests, test names pattern to match name from --list-tests output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m=64 -t=30' . PHP_EOL
@@ -456,7 +478,7 @@ if ($options) {
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
-						. '	-T <name>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
+						. '	-T <pattern>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
 						. '	-S <pattern>	- skip selected tests, test names pattern to match name from -L output, can be defined multiple times' . PHP_EOL
 						. PHP_EOL
 						. 'Example: php ' . basename(__FILE__) . ' -m 64 -t 30' . PHP_EOL
@@ -567,14 +589,19 @@ if (php_sapi_name() != 'cli') {
 $tz = ini_get('date.timezone');
 if (!$tz) ini_set('date.timezone', 'Europe/Moscow');
 
-ini_set('display_errors', 0);
 @ini_set('error_log', null);
 ini_set('implicit_flush', 1);
 ini_set('output_buffering', 0);
 ob_implicit_flush(1);
 
-// Disable explicit error reporting
-error_reporting(E_ERROR | E_WARNING | E_PARSE);
+if ($debugMode){
+    ini_set('display_errors', 1);
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+} else {
+    ini_set('display_errors', 0);
+    // Disable explicit error reporting
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+}
 
 // Check XDebug
 $xdebug = (int)ini_get('xdebug.default_enable');
@@ -774,6 +801,12 @@ $testsLoopLimits = array(
 	'37_02_php8_str_ccontains_simulate' => 100000,
 	'38_01_php_uuid'	=> 1000000,
 	'38_02_mod_uuid'	=> 1000000,
+	'39_01_kvstorage_memory'	=> 500000,
+	'39_02_kvstorage_xcache'	=> 500000,
+	'39_03_kvstorage_apcu'	=> 500000,
+	'39_04_kvstorage_shmop'	=> 500000,
+	'39_05_kvstorage_memcache'	=> 500000,
+	'39_06_kvstorage_redis'	=> 500000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -832,6 +865,12 @@ $testsMemoryLimits = array(
 	'37_02_php8_str_ccontains_simulate' => 4,
 	'38_01_php_uuid'		=> 4,
 	'38_02_mod_uuid'		=> 4,
+	'39_01_kvstorage_memory'		=> 3,
+	'39_02_kvstorage_xcache'		=> 2,
+	'39_03_kvstorage_apcu'		=> 47,
+	'39_04_kvstorage_shmop'		=> 70,
+	'39_05_kvstorage_memcache'		=> 47,
+	'39_06_kvstorage_redis'		=> 47,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1514,6 +1553,29 @@ $functions = get_defined_functions();
 $availableFunctions =$functions['user'];
 sort($availableFunctions);
 
+// fiter in tests
+function filter_in_name_by_pattern($key)
+{
+    global $selectedTests, $debugMode, $availableFunctions;
+    $var = $availableFunctions[$key];
+    $ret = 0;
+    foreach ($selectedTests as $pattern){
+	// simple test - str in name
+	$c=strpos($var,$pattern);
+	if ($debugMode) {
+		$d=var_export($c,true);
+		print("Search '$pattern' inside '$var':$d\n");
+	}
+	if ($c!==false) {
+		$ret = 1;
+		break;
+	};
+    }
+    //nothing found - skipping
+    if ($debugMode) print("Will return $ret\n");
+    if (!$ret) unset($availableFunctions[$key]);
+    return $ret;
+}
 // fiter out tests
 function filter_out_name_by_pattern($key)
 {
@@ -1537,6 +1599,7 @@ function filter_out_name_by_pattern($key)
     if (!$ret) unset($availableFunctions[$key]);
     return $ret;
 }
+if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
 if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
 /** ------------------------------- Early checks ------------------------------- */
 
@@ -1588,7 +1651,7 @@ if (!function_exists('json_encode')) {
 	$has_json = "{$colorRed}no{$colorReset}";
 	if ($printJson) {
 		print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Extension 'json' is mandatory for JSON output!");
-		print("\"messages_count\": {$messagesCnt},\n");
+		print("\"messag0es_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}" . PHP_EOL);
 		exit(-1);
 	}
@@ -1602,13 +1665,37 @@ $has_opcache = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('Zend OPcache')) {
 	$has_opcache = "{$colorYellow}yes{$colorReset}";
 }
-$has_xcache = "{$colorGreen}no{$colorReset}";
+$has_xcache = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('XCache')) {
 	$has_xcache = "{$colorYellow}yes{$colorReset}";
 }
 $has_apc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('apc')) {
 	$has_apc = "{$colorYellow}yes{$colorReset}";
+}
+$has_apcu = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('apcu')) {
+	$has_apcu = "{$colorGreen}yes{$colorReset}";
+}
+$has_shmop = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('shmop')) {
+	$has_shmop = "{$colorGreen}yes{$colorReset}";
+}
+$has_memcache = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('memcache')) {
+	$has_memcache = "{$colorGreen}yes{$colorReset}";
+	include_once('memcache.inc');
+	$v=get_memcached_version();
+	if ($v) define('MEMCACHE_VERSION',$v);
+	else define('MEMCACHE_VERSION','-.-.-');
+}
+$has_redis = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('memcache')) {
+	$has_redis = "{$colorGreen}yes{$colorReset}";
+	include_once('redis.inc');
+	$v=get_redis_version();
+	if ($v) define('REDIS_VERSION',$v);
+	else define('REDIS_VERSION','-.-.-');
 }
 $has_eacc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('eAccelerator')) {
@@ -1713,7 +1800,7 @@ function print_results_common()
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
-	global $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
 
@@ -1749,6 +1836,10 @@ function print_results_common()
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
 		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
+		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
+		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop;\n"
+		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
+		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
 		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"
@@ -1785,11 +1876,11 @@ function print_results_common()
 		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
-				if ($runOnlySelectedTests) {
+				/*if ($runOnlySelectedTests) {
 					if (!in_array($testName, $selectedTests)) {
 						continue;
 					}
-				}
+				}*/
 				echo str_pad($testName, $padLabel) . " :";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 				$total += $resultSec;
