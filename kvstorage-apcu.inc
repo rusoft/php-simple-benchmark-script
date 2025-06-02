@@ -30,4 +30,4 @@ class KVStorageApcu
 	return apcu_delete($key);
     }
 }
-$kvstorage=new KVStorageXcache();
+$kvstorage=new KVStorageApcu();

@@ -119,6 +119,12 @@ if (file_exists('kvstorage-apcu.inc') && extension_loaded('apcu')) {
 if (file_exists('kvstorage-shmop.inc') && extension_loaded('shmop')) {
 	@include_once("kv-shmop.inc");
 }
+if (file_exists('kvstorage-memcache.inc') && extension_loaded('memcache')) {
+	@include_once("kv-memcache.inc");
+}
+if (file_exists('kvstorage-redis.inc') && extension_loaded('redis')) {
+	@include_once("kv-redis.inc");
+}
 }// php>=5.0
 
 if (extension_loaded('uuid')) {
@@ -794,6 +800,8 @@ $testsLoopLimits = array(
 	'39_02_kvstorage_xcache'	=> 500000,
 	'39_03_kvstorage_apcu'	=> 500000,
 	'39_04_kvstorage_shmop'	=> 500000,
+	'39_05_kvstorage_memcache'	=> 500000,
+	'39_06_kvstorage_redis'	=> 500000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -853,9 +861,11 @@ $testsMemoryLimits = array(
 	'38_01_php_uuid'		=> 4,
 	'38_02_mod_uuid'		=> 4,
 	'39_01_kvstorage_memory'		=> 3,
-	'39_02_kvstorage_xcache'		=> 2r,
+	'39_02_kvstorage_xcache'		=> 2,
 	'39_03_kvstorage_apcu'		=> 47,
 	'39_04_kvstorage_shmop'		=> 70,
+	'39_05_kvstorage_memcache'		=> 4,
+	'39_06_kvstorage_redis'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1666,6 +1676,22 @@ $has_shmop = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('shmop')) {
 	$has_shmop = "{$colorGreen}yes{$colorReset}";
 }
+$has_memcache = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('memcache')) {
+	$has_memcache = "{$colorGreen}yes{$colorReset}";
+	include_once('memcache.inc');
+	$v=get_memcached_version();
+	if ($v) define('MEMCACHE_VERSION',$v);
+	else define('MEMCACHE_VERSION','-.-.-');
+}
+$has_redis = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('memcache')) {
+	$has_redis = "{$colorGreen}yes{$colorReset}";
+	include_once('redis.inc');
+	$v=get_redis_version();
+	if ($v) define('REDIS_VERSION',$v);
+	else define('REDIS_VERSION','-.-.-');
+}
 $has_eacc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('eAccelerator')) {
 	$has_eacc = "{$colorYellow}yes{$colorReset}";
@@ -1769,7 +1795,7 @@ function print_results_common()
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
-	global $has_apcu, $has_shmop, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
 
@@ -1807,6 +1833,8 @@ function print_results_common()
 		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
 		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
 		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop;\n"
+		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
+		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
 		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"
