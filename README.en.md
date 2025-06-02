@@ -62,6 +62,7 @@ Usage: bench.php [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-jso
 	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)
 	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)
 	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times
+	-S|--skip-test <pattern>	- skip selected test, test names pattern from --list-tests output, can be defined multiple times
 ```
 Example: `php bench.php -m=64 -t=30`
 
@@ -82,6 +83,7 @@ Available variables:
 - LIST_TESTS=0/1
 - SYSTEM_INFO=0/1
 - RUN_TESTS=test1,test2,...
+- SKIP_TESTS=test1,test2,...
 
 #### Extras (Utilities in Linux)
 
@@ -110,6 +112,7 @@ Available options:
 - list_tests=0/1
 - system_info=0/1
 - run_tests=test1,test2,...
+- skip_tests=test1,test2,...
 
 ### Accounting for hosting options
 
