@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 4, 2025                                                   #
-#  Version     : 1.0.62                                                        #
+#  Version     : 1.0.63-dev                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.62';
+$scriptVersion = '1.0.63-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -138,6 +138,11 @@ if (extension_loaded('uuid')) {
 if (extension_loaded('gd')) {
 	@include_once("php-gd-imagick-common.inc");
 	@include_once("php-gd.inc");
+	@include_once("mod-gd-empty-gif.inc");
+	@include_once("mod-gd-empty-png.inc");
+	@include_once("mod-gd-empty-jpg.inc");
+	@include_once("mod-gd-empty-webp.inc");
+	@include_once("mod-gd-empty-avif.inc");
 }
 if (extension_loaded('imagick')) {
 	@include_once("php-gd-imagick-common.inc");
@@ -815,6 +820,11 @@ $testsLoopLimits = array(
 	'39_07_kvs_sqlite3_generic_file'	=> 500000,
 	'39_08_kvs_sqlite3_devshm_file'	=> 500000,
 	'39_09_kvs_sqlite3_memory_file'	=> 500000,
+	'40_01_gd_save_fill_empty_gif'	=> 10000,
+	'40_02_gd_save_fill_empty_png'	=> 10000,
+	'40_03_gd_save_fill_empty_jpg'	=> 10000,
+	'40_04_gd_save_fill_empty_webp'	=> 10000,
+	'40_05_gd_save_fill_empty_avif'	=> 10000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -882,6 +892,11 @@ $testsMemoryLimits = array(
 	'39_07_kvs_sqlite3_generic_file'		=> 4,
 	'39_08_kvs_sqlite3_devshm_file'		=> 4,
 	'39_09_kvs_sqlite3_memory_file'		=> 4,
+	'40_01_gd_save_fill_empty_gif'		=> 4,
+	'40_02_gd_save_fill_empty_png'		=> 4,
+	'40_03_gd_save_fill_empty_jpg'		=> 4,
+	'40_04_gd_save_fill_empty_webp'		=> 4,
+	'40_05_gd_save_fill_empty_avif'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1721,6 +1736,26 @@ if (extension_loaded('eAccelerator')) {
 	$has_eacc = "{$colorYellow}yes{$colorReset}";
 }
 $has_gd = "{$colorYellow}no{$colorReset}";
+$has_gdgif = "{$colorYellow}no{$colorReset}";
+$has_gdpng = "{$colorYellow}no{$colorReset}";
+$has_gdjpg = "{$colorYellow}no{$colorReset}";
+$has_gdwebp = "{$colorYellow}no{$colorReset}";
+$has_gdavif = "{$colorYellow}no{$colorReset}";
+if (function_exists('imagegif')) {
+	$has_gdgif = "{$colorGreen}yes{$colorReset}";
+}
+if (function_exists('imagepng')) {
+	$has_gdpng = "{$colorGreen}yes{$colorReset}";
+}
+if (function_exists('imagejpeg')) {
+	$has_gdjpg = "{$colorGreen}yes{$colorReset}";
+}
+if (function_exists('imagewebp')) {
+	$has_gdwebp = "{$colorGreen}yes{$colorReset}";
+}
+if (function_exists('imageavif')) {
+	$has_gdavif = "{$colorGreen}yes{$colorReset}";
+}
 if (extension_loaded('gd')) {
 	$has_gd = "{$colorGreen}yes{$colorReset}";
 	$info = gd_info();
@@ -1808,6 +1843,7 @@ if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
 if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.--');
 if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.--');
 if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.--');
+if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.--');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 if (!defined('LIBZSTD_VERSION_STRING')) define('LIBZSTD_VERSION_STRING', '-.-.-');
@@ -1819,7 +1855,8 @@ function print_results_common()
 	global $availableFunctions;
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
-	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
+	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
+	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
@@ -1856,6 +1893,11 @@ function print_results_common()
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
+		. str_pad("\t- GIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdgif"."\n"
+		. str_pad("\t- PNG", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdpng"."\n"
+		. str_pad("\t- JPG", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdjpg"."\n"
+		. str_pad("\t- WEBP", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdwebp"."\n"
+		. str_pad("\t- AVIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdavif"."\n"
 		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
 		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
 		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop;\n"
