@@ -42,4 +42,4 @@ class KVStorageShmop
 	return $ret;
     }
 }
-$kvstorage=new KVStorageXcache();
+$kvstorage=new KVStorageShmop();

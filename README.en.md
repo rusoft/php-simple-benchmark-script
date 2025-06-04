@@ -26,6 +26,7 @@ Required modules for full php testing:
   - uuid
   - memcache
   - redis
+  - sqlite3
 
 Usually they are already installed or "compiled" in php.
 

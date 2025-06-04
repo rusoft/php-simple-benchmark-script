@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 2, 2025                                                  #
-#  Version     : 1.0.61                                                    #
+#  Version     : 1.0.62-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.61';
+$scriptVersion = '1.0.62-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -124,6 +124,11 @@ if (file_exists('kvstorage-memcache.inc') && extension_loaded('memcache')) {
 }
 if (file_exists('kvstorage-redis.inc') && extension_loaded('redis')) {
 	@include_once("kv-redis.inc");
+}
+if (file_exists('kvstorage-sqlite3.inc') && extension_loaded('sqlite3')) {
+	@include_once("kv-sqlite3-generic-file.inc");
+	@include_once("kv-sqlite3-devshm-file.inc");
+	@include_once("kv-sqlite3-memory-file.inc");
 }
 }// php>=5.0
 
@@ -807,6 +812,9 @@ $testsLoopLimits = array(
 	'39_04_kvstorage_shmop'	=> 500000,
 	'39_05_kvstorage_memcache'	=> 500000,
 	'39_06_kvstorage_redis'	=> 500000,
+	'39_07_kvs_sqlite3_generic_file'	=> 500000,
+	'39_08_kvs_sqlite3_devshm_file'	=> 500000,
+	'39_09_kvs_sqlite3_memory_file'	=> 500000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -871,6 +879,9 @@ $testsMemoryLimits = array(
 	'39_04_kvstorage_shmop'		=> 70,
 	'39_05_kvstorage_memcache'		=> 47,
 	'39_06_kvstorage_redis'		=> 47,
+	'39_07_kvs_sqlite3_generic_file'		=> 4,
+	'39_08_kvs_sqlite3_devshm_file'		=> 4,
+	'39_09_kvs_sqlite3_memory_file'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1697,6 +1708,14 @@ if (extension_loaded('memcache')) {
 	if ($v) define('REDIS_VERSION',$v);
 	else define('REDIS_VERSION','-.-.-');
 }
+$has_sqlite3 = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('sqlite3')) {
+	$has_sqlite3 = "{$colorGreen}yes{$colorReset}";
+	include_once('sqlite3.inc');
+	$v=get_sqlite3_version();
+	if ($v) define('SQLITE3_VERSION',$v);
+	else define('SQLITE3_VERSION','-.-.-');
+}
 $has_eacc = "{$colorGreen}no{$colorReset}";
 if (extension_loaded('eAccelerator')) {
 	$has_eacc = "{$colorYellow}yes{$colorReset}";
@@ -1787,6 +1806,8 @@ if ($jsond && !function_exists('jsond_encode')) {
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
 if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.--');
+if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.--');
+if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.--');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 if (!defined('LIBZSTD_VERSION_STRING')) define('LIBZSTD_VERSION_STRING', '-.-.-');
@@ -1800,7 +1821,7 @@ function print_results_common()
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
-	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
 
@@ -1840,6 +1861,7 @@ function print_results_common()
 		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop;\n"
 		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
 		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"
+		. str_pad("sqlite3", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sqlite3, version: ".SQLITE3_VERSION.";\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
 		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"
@@ -1851,7 +1873,7 @@ function print_results_common()
 		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
 		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4\n"
 		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
-		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version:".LIBZSTD_VERSION_STRING."\n"
+		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version: ".LIBZSTD_VERSION_STRING."\n"
 		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli\n"
 		. str_pad("uuid", $padInfo, ' ', STR_PAD_LEFT) . " : $has_uuid\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
