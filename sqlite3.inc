@@ -7,8 +7,8 @@
 
 function get_sqlite3_object()
 {
-    global $sqlite3_dbpath, $debugMode;
-    if ($debugMode0) var_dump($sqlite3_dbpath);
+    global $sqlite3_dbpath=':memory:', $debugMode;
+    if ($debugMode) var_dump($sqlite3_dbpath);
     static $s=null;
     if ($s!==null){$s->close(); $s=null;}
     if ($s===null)
