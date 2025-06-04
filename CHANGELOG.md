@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2025-06-04, v1.0.63
+
+ * Added simple gd tests saving various formats of images: gif, png, jpg, webp, avif
+
 @ 2025-06-04, v1.0.62
 
  * Added simple key-value tests: sqlite3
