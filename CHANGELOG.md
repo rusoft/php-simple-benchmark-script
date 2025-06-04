@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2025-06-04, v1.0.62
+
+ * Added simple key-value tests: sqlite3
+
 @ 2025-06-02, v1.0.61
 
  * Added simple key-value tests:memory and xcache, apcu, shmop, memcache, redis
