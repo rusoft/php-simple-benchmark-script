@@ -22,6 +22,7 @@ class KVStorageShmop
 
     public function set($key, $value, $timeout=60){
 	$id=shmop_open($key, "a", 0, 0);
+	if ($id===false) return false;
 	$ret=shmop_write($id, $value, 0);
 	shmop_close($id);
 	return $ret;
@@ -29,6 +30,7 @@ class KVStorageShmop
 
     public function get($key, $default=null){
 	$id=shmop_open($key, "a", 0, 0);
+	if ($id===false) return false;
 	$size=shmop_size($id);
 	$ret=shmop_read($id,0,$size);
 	shmop_close($id);
@@ -37,6 +39,7 @@ class KVStorageShmop
 
     public function del($key){
 	$id=shmop_open($key, "a", 0, 0);
+	if ($id===false) return false;
 	$ret=shmop_delete($id);
 	shmop_close($id);
 	return $ret;

@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 4, 2025                                                   #
-#  Version     : 1.0.63                                                        #
+#  Version     : 1.0.64-dev                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.63';
+$scriptVersion = '1.0.64-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -102,6 +102,9 @@ if (extension_loaded('zlib')) {
 if (extension_loaded('intl')) {
 	@include_once("intl.inc");
 }
+if (extension_loaded('ctype')) {
+	@include_once("mod-ctype-isdigit.inc");
+}
 if (file_exists('UUID.php') && PHP_VERSION >= '5.0.0') {
 	@include_once("php-uuid.inc");
 }
@@ -125,12 +128,19 @@ if (file_exists('kvstorage-memcache.inc') && extension_loaded('memcache')) {
 if (file_exists('kvstorage-redis.inc') && extension_loaded('redis')) {
 	@include_once("kv-redis.inc");
 }
+}// php>=5.0
+if ( PHP_VERSION >= '5.3.0') {
 if (file_exists('kvstorage-sqlite3.inc') && extension_loaded('sqlite3')) {
 	@include_once("kv-sqlite3-generic-file.inc");
 	@include_once("kv-sqlite3-devshm-file.inc");
 	@include_once("kv-sqlite3-memory-file.inc");
 }
-}// php>=5.0
+}// php>=5.3
+if ( PHP_VERSION >= '7.2.0') {
+if (file_exists('mod-sodium.inc') && extension_loaded('sodium')) {
+	@include_once("mod-sodium.inc");
+}
+}// php>=5.3
 
 if (extension_loaded('uuid')) {
 	@include_once("mod-uuid.inc");
@@ -715,25 +725,25 @@ $regexPattern = '/[\s,]+/';
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3800;
+$loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 324,
-	'5.2' => 248,
-	'5.3' => 211,
-	'5.4' => 199,
-	'5.5' => 200,
-	'5.6' => 204,
-	'7.0' => 106,
-	'7.1' => 104,
-	'7.2' => 98,
-	'7.3' => 89,
-	'7.4' => 89,
-	'8.0' => 83,
-	'8.1' => 82,
-	'8.2' => 79,
-	'8.3' => 77,
-	'8.4' => 77
+	'4.4' => 1456,
+	'5.2' => 839,
+	'5.3' => 1235,
+	'5.4' => 1510,
+	'5.5' => 802,
+	'5.6' => 1337,
+	'7.0' => 672,
+	'7.1' => 669,
+	'7.2' => 662,
+	'7.3' => 586,
+	'7.4' => 659,
+	'8.0' => 676,
+	'8.1' => 450,
+	'8.2' => 427,
+	'8.3' => 582,
+	'8.4' => 736
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -807,8 +817,8 @@ $testsLoopLimits = array(
 	'36_snappy_compress'	=> 5000000,
 	'36_zstd_compress'	=> 5000000,
 	'36_brotli_compress'	=> 1000000,
-	'37_01_php8_str_ccontains' => 100000,
-	'37_02_php8_str_ccontains_simulate' => 100000,
+	'37_01_php8_str_contains' => 100000,
+	'37_02_php8_str_contains_emulate' => 100000,
 	'38_01_php_uuid'	=> 1000000,
 	'38_02_mod_uuid'	=> 1000000,
 	'39_01_kvstorage_memory'	=> 500000,
@@ -825,6 +835,9 @@ $testsLoopLimits = array(
 	'40_03_gd_save_fill_empty_jpg'	=> 10000,
 	'40_04_gd_save_fill_empty_webp'	=> 10000,
 	'40_05_gd_save_fill_empty_avif'	=> 10000,
+	'41_01_sodium_string_num_int'	=> 10000000,
+	'41_02_sodium_string_num_float'	=> 10000000,
+	'42_ctype_isdigit'	=> 10000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -879,8 +892,8 @@ $testsMemoryLimits = array(
 	'36_snappy_compress'		=> 4,
 	'36_zstd_compress'		=> 4,
 	'36_brotli_compress'		=> 4,
-	'37_01_php8_str_ccontains' => 4,
-	'37_02_php8_str_ccontains_simulate' => 4,
+	'37_01_php8_str_contains' => 4,
+	'37_02_php8_str_contains_simulate' => 4,
 	'38_01_php_uuid'		=> 4,
 	'38_02_mod_uuid'		=> 4,
 	'39_01_kvstorage_memory'		=> 3,
@@ -897,6 +910,9 @@ $testsMemoryLimits = array(
 	'40_03_gd_save_fill_empty_jpg'		=> 4,
 	'40_04_gd_save_fill_empty_webp'		=> 4,
 	'40_05_gd_save_fill_empty_avif'		=> 4,
+	'41_01_sodium_string_num_int'		=> 4,
+	'41_02_sodium_string_num_float'		=> 4,
+	'42_ctype_isdigit'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1707,6 +1723,10 @@ $has_shmop = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('shmop')) {
 	$has_shmop = "{$colorGreen}yes{$colorReset}";
 }
+$has_sodium = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('sodium')) {
+	$has_sodium = "{$colorGreen}yes{$colorReset}";
+}
 $has_memcache = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('memcache')) {
 	$has_memcache = "{$colorGreen}yes{$colorReset}";
@@ -1796,6 +1816,10 @@ $has_intl = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('intl')) {
 	$has_intl = "{$colorGreen}yes{$colorReset}";
 }
+$has_ctype = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('ctype')) {
+	$has_ctype = "{$colorGreen}yes{$colorReset}";
+}
 $has_zlib = "{$colorYellow}no{$colorReset}";
 $has_gzip = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('zlib')) {
@@ -1845,6 +1869,7 @@ if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.--');
 if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.--');
 if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.--');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
+if (!defined('SODIUM_LIBRARY_VERSION')) define('SODIUM_LIBRARY_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 if (!defined('LIBZSTD_VERSION_STRING')) define('LIBZSTD_VERSION_STRING', '-.-.-');
 
@@ -1856,9 +1881,9 @@ function print_results_common()
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
-	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json;
+	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
-	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
 
@@ -1890,6 +1915,7 @@ function print_results_common()
 		. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == "{$colorGreen}yes{$colorReset}" ? '; version: ' . PCRE_VERSION : '') . "\n"
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
+		. str_pad("ctype", $padInfo, ' ', STR_PAD_LEFT) . " : $has_ctype\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
@@ -1904,6 +1930,7 @@ function print_results_common()
 		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
 		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"
 		. str_pad("sqlite3", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sqlite3, version: ".SQLITE3_VERSION.";\n"
+		. str_pad("sodium", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sodium, version: ".SODIUM_LIBRARY_VERSION.";\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
 		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"

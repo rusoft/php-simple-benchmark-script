@@ -1,7 +1,7 @@
 <?php
 /**
  * mod-sqlite3
- * Php 5.2+
+ * Php 5.3+
  */
 
 class KVStorageSqlite3

@@ -27,11 +27,11 @@ function test_37_01_php8_Str_Contains()
 	return format_result_test(get_microtime() - $time_start, $count , $memory);
 }
 
-function test_37_02_php8_Str_Contains_Simulate()
+function test_37_02_php8_Str_Contains_emulate()
 {
 	global $testsLoopLimits, $totalOps;
 
-	$count = $testsLoopLimits['37_02_php8_str_contains_simulate'];
+	$count = $testsLoopLimits['37_02_php8_str_contains_emulate'];
 	$time_start = get_microtime();
   $s = "Foobar";
   $n = "Foo";
