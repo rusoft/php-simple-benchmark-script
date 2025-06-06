@@ -1,5 +1,10 @@
 # ChangeLog
 
+@ 2025-06-06, v1.0.64
+
+ * Added simple tests for sodium
+ * Added simple test for ctype
+
 @ 2025-06-04, v1.0.63
 
  * Added simple gd tests saving various formats of images: gif, png, jpg, webp, avif
