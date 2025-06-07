@@ -1,5 +1,10 @@
 # ChangeLog
 
+@ 2025-06-07, v1.0.65
+
+ * Added simple test for session
+ * Added simple test for iconv
+
 @ 2025-06-06, v1.0.64
 
  * Added simple tests for sodium

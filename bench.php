@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Jun 6, 2025                                                   #
-#  Version     : 1.0.64                                                        #
+#  Date        : Jun 7, 2025                                                   #
+#  Version     : 1.0.65                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.64';
+$scriptVersion = '1.0.65';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -104,6 +104,12 @@ if (extension_loaded('intl')) {
 }
 if (extension_loaded('ctype')) {
 	@include_once("mod-ctype-isdigit.inc");
+}
+if (extension_loaded('iconv')) {
+	@include_once("mod-iconv.inc");
+}
+if (extension_loaded('session')) {
+	@include_once("mod-session.inc");
 }
 if (file_exists('UUID.php') && PHP_VERSION >= '5.0.0') {
 	@include_once("php-uuid.inc");
@@ -728,7 +734,7 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 1456,
+	'4.4' => 2099,
 	'5.2' => 839,
 	'5.3' => 1235,
 	'5.4' => 1510,
@@ -743,7 +749,7 @@ $loopMaxPhpTimes = array(
 	'8.1' => 450,
 	'8.2' => 427,
 	'8.3' => 582,
-	'8.4' => 736
+	'8.4' => 529
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -838,6 +844,8 @@ $testsLoopLimits = array(
 	'41_01_sodium_string_num_int'	=> 10000000,
 	'41_02_sodium_string_num_float'	=> 10000000,
 	'42_ctype_isdigit'	=> 10000000,
+	'43_iconv_translit'	=> 10000000,
+	'44_session_time'	=> 100000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -913,6 +921,8 @@ $testsMemoryLimits = array(
 	'41_01_sodium_string_num_int'		=> 4,
 	'41_02_sodium_string_num_float'		=> 4,
 	'42_ctype_isdigit'		=> 4,
+	'43_iconv_translit'		=> 4,
+	'44_session_time'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1820,6 +1830,14 @@ $has_ctype = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('ctype')) {
 	$has_ctype = "{$colorGreen}yes{$colorReset}";
 }
+$has_iconv = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('iconv')) {
+	$has_iconv = "{$colorGreen}yes{$colorReset}";
+}
+$has_session = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('session')) {
+	$has_session = "{$colorGreen}yes{$colorReset}";
+}
 $has_zlib = "{$colorYellow}no{$colorReset}";
 $has_gzip = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('zlib')) {
@@ -1864,10 +1882,10 @@ if ($jsond && !function_exists('jsond_encode')) {
 }
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
-if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.--');
-if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.--');
-if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.--');
-if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.--');
+if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.-.-');
+if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.-.-');
+if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.-.-');
+if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.-.-');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('SODIUM_LIBRARY_VERSION')) define('SODIUM_LIBRARY_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
@@ -1881,7 +1899,7 @@ function print_results_common()
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
-	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype;
+	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype, $has_iconv, $has_session;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
@@ -1916,6 +1934,8 @@ function print_results_common()
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 		. str_pad("ctype", $padInfo, ' ', STR_PAD_LEFT) . " : $has_ctype\n"
+		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv\n"
+		. str_pad("session", $padInfo, ' ', STR_PAD_LEFT) . " : $has_session\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
@@ -1926,7 +1946,7 @@ function print_results_common()
 		. str_pad("\t- AVIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdavif"."\n"
 		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
 		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
-		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop;\n"
+		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop\n"
 		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
 		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"
 		. str_pad("sqlite3", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sqlite3, version: ".SQLITE3_VERSION.";\n"
