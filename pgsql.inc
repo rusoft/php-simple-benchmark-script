@@ -36,6 +36,7 @@ function get_pgsql_version()
 {
     $c = get_pgsql_conn();
     if ($c){
+	if (PHP_VERSION<'5.0')return '-.-.-';
         $info = pg_version($c);
 //	print_r($info);
 	if (isset($info["server"]))

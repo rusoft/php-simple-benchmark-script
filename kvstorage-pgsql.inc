@@ -38,6 +38,7 @@ class KVStoragePgsql
 
     public function version(){
 	if (!$this->available) return '-.-.-';
+	if (PHP_VERSION<'5.0') return '-.-.-';
 	$v=pg_version($this->conn);
 	if($v) return $v['server'];
     }
