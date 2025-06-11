@@ -27,6 +27,8 @@ Required modules for full php testing:
   - memcache
   - redis
   - sqlite3
+  - mysql/mysqli
+  - pgsql
 
 Usually they are already installed or "compiled" in php.
 

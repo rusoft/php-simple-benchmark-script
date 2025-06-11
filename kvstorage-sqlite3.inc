@@ -59,7 +59,7 @@ class KVStorageSqlite3
 
     public function del($key){
 	if (!$this->available) return 0;
-	$this->db->exec("DELETE {$this->tableName} WHERE key=$key;");
+	$this->db->exec("DELETE FROM {$this->tableName} WHERE key=$key;");
 	return $this->db->changes();
     }
 

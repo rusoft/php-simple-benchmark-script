@@ -39,7 +39,7 @@ function test_47_kvs_pgsql()
 	$time_start = get_microtime();
 
 	for ($i = 0; $i < $count; $i++) {
-		$num = $i / 100.;
+		$num = number_format($i / 100., 2, '.', '');
 		$kvstorage->set($i, $num);
 		$v=$kvstorage->get($i);
 		$kvstorage->del($i);
