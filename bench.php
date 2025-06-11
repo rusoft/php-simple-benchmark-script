@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 7, 2025                                                   #
-#  Version     : 1.0.66-dev                                                        #
+#  Version     : 1.0.66                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.66-dev';
+$scriptVersion = '1.0.66';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -1933,6 +1933,7 @@ if ($jsond && !function_exists('jsond_encode')) {
 }
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
+if (!defined('ICONV_VERSION')) define('ICONV_VERSION', '-.--');
 if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.-.-');
 if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.-.-');
 if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.-.-');
@@ -1987,7 +1988,7 @@ function print_results_common()
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 		. str_pad("ctype", $padInfo, ' ', STR_PAD_LEFT) . " : $has_ctype\n"
-		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv\n"
+		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv; version: ".ICONV_VERSION."\n"
 		. str_pad("session", $padInfo, ' ', STR_PAD_LEFT) . " : $has_session\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"

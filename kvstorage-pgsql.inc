@@ -1,7 +1,7 @@
 <?php
 /**
  * mod-pgsql
- * Php 4.0+
+ * Php 5.0+
  */
 
 class KVStoragePgsql

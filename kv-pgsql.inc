@@ -1,7 +1,7 @@
 <?php
 /**
  * php safe options - only tests mod pgsql
- * Php 4.0+
+ * Php 5.0+
  */
 
 /** ---------------------------------- Tests functions -------------------------------------------- */
