@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2025-06-13, v1.0.67
+
+ * Add optiion to make raw values in output
+
 @ 2025-06-13, v1.0.66
 
  * Added simple tests for mysql,mysqli,pgsql
