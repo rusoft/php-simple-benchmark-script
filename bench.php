@@ -9,8 +9,8 @@
 #  Company     : Code24 BV, The Netherlands                                    #
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
-#  Date        : Jun 7, 2025                                                   #
-#  Version     : 1.0.66                                                        #
+#  Date        : Jun 13, 2025                                                   #
+#  Version     : 1.0.67-dev                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.66';
+$scriptVersion = '1.0.67-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -197,6 +197,8 @@ $debugMode = 0;
 
 $printJson = 0;
 
+$printRaw = 0;
+
 $printMachine = 0;
 
 $recalculateLimits = 1;
@@ -237,8 +239,14 @@ if (isset($_GET['debug_mode']) && $x = (int)$_GET['debug_mode']) {
 if ($x = (int)getenv('PRINT_JSON')) {
 	$printJson = $x;
 }
+if ($x = (int)getenv('PRINT_RAW')) {
+	$printRaw = $x;
+}
 if (isset($_GET['print_json']) && $x = (int)$_GET['print_json']) {
 	$printJson = $x;
+}
+if (isset($_GET['print_raw']) && $x = (int)$_GET['print_raw']) {
+	$printRaw = $x;
 }
 if ($printJson) $printMachine = 0;
 
@@ -368,6 +376,7 @@ $shortopts .= "x";
 $shortopts .= "d";
 $shortopts .= "C";
 $shortopts .= "J";
+$shortopts .= "R";
 $shortopts .= "M";
 $shortopts .= "D";
 $shortopts .= "L";
@@ -382,6 +391,7 @@ $longopts = array(
 	"debug",
 	"dont-use-colors",
 	"print-json",
+	"print-raw",
 	"print-machine",
 	"dont-recalc",
 	"dumb-test-print",
@@ -428,6 +438,11 @@ if ($options) {
 			case 'print-json':
 				$printJson = 1;
 				$printMachine = 0;
+				break;
+
+			case 'R':
+			case 'print-raw':
+				$printRaw = 1;
 				break;
 
 			case 'M':
@@ -480,12 +495,13 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name] [-S|--skip-test=pattern]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-R|--print-raw] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name] [-S|--skip-test=pattern]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
-						. '	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not use it in JSON/machine mode.' . PHP_EOL
+						. '	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not using it in JSON/machine mode.' . PHP_EOL
 						. '	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
+						. '	-R|--print-raw	- enable printing only raw values, no human readable forms, useful for automated tests.' . PHP_EOL
 						. '	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
@@ -504,12 +520,13 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-C] [-J] [-M] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-C] [-J] [-R] [-M] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-x		- enable debug mode, raise output level' . PHP_EOL
-						. '	-C		- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not use it in JSON/machine mode.' . PHP_EOL
+						. '	-C		- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not using it in JSON/machine mode.' . PHP_EOL
 						. '	-J		- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
+						. '	-R		- enable printing only raw values, no human readable forms, useful for automated tests.' . PHP_EOL
 						. '	-M		- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
@@ -579,6 +596,8 @@ if ($options) {
 			case 'dont-use-colors':
 			case 'J':
 			case 'print-json':
+			case 'R':
+			case 'print-raw':
 			case 'M':
 			case 'print-machine':
 			case 'D':
@@ -1562,8 +1581,13 @@ if (!$outputTestsList && !$showOnlySystemInfo) {
  */
 function format_result_test($diffSeconds, $opCount, $memory = 0)
 {
-	global $cpuInfo, $rawValues4json;
+	global $cpuInfo, $rawValues4json, $printRaw;
 	if ($diffSeconds) {
+		if ($printRaw) {
+			return array($diffSeconds,  number_format($diffSeconds, 3, '.', ''),
+				$opCount, 0, $memory
+			);
+		} 
 		$ops = $opCount / $diffSeconds;
 		$ops_v = convert_si($ops);
 		$ops_u = prefix_si($ops);
@@ -1587,6 +1611,9 @@ function format_result_test($diffSeconds, $opCount, $memory = 0)
 		);
 	} else {
 		if ($rawValues4json) {
+			return array(0, 0, 0, 0, 0);
+		}
+		if ($printRaw) {
 			return array(0, 0, 0, 0, 0);
 		}
 		return array(0, '0.000', 'x.xx ', 'x.xx ', 0);
@@ -1947,12 +1974,14 @@ if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('SODIUM_LIBRARY_VERSION')) define('SODIUM_LIBRARY_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 if (!defined('LIBZSTD_VERSION_STRING')) define('LIBZSTD_VERSION_STRING', '-.-.-');
+if (!defined('BROTLI_VERSION_TEXT')) define('BROTLI_VERSION_TEXT', '-.-.-');
 
 function print_results_common()
 {
 	$total = 0;
 
 	global $availableFunctions;
+	global $printRaw;
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
@@ -2039,7 +2068,12 @@ function print_results_common()
 
 	if (!$showOnlySystemInfo) {
 
-		echo str_pad('TEST NAME', $padLabel) . " :"
+		if ($printRaw)
+			echo str_pad('TEST NAME', $padLabel) . " :"
+			. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OPS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY b', 10, ' ', STR_PAD_LEFT) . "\n"
+			. "$line\n" . $flushStr;
+		else
+			echo str_pad('TEST NAME', $padLabel) . " :"
 			. str_pad('SECONDS', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC', 9 + 4, ' ', STR_PAD_LEFT) . " |" . str_pad('OP/SEC/MHz', 9 + 7, ' ', STR_PAD_LEFT) . " |" . str_pad('MEMORY', 10, ' ', STR_PAD_LEFT) . "\n"
 			. "$line\n" . $flushStr;
 		flush();
@@ -2055,7 +2089,10 @@ function print_results_common()
 				echo str_pad($testName, $padLabel) . " :";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
 				$total += $resultSec;
-				echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+				if ($printRaw)
+					echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+				else
+					echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
 				echo $flushStr;
 				flush();
 			}
@@ -2064,14 +2101,19 @@ function print_results_common()
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
 
 		echo "$line\n"
-			. str_pad("Total:", $padLabel) . " :";
-		echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
-		echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
+		. str_pad("Total:", $padLabel) . " :";
+		if ($printRaw) {
+			echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . " |" . "\n";
+			echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(mymemory_usage(), 12, ' ', STR_PAD_LEFT) . "\n";
+		} else {
+			echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . "\n";
+			echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(convert(mymemory_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
 			// php-4 don't have peak_usage function
 			. (function_exists('memory_get_peak_usage')
 				? str_pad("Peak PHP memory usage:", $padLabel) . " :" . str_pad(convert(memory_get_peak_usage()), 12, ' ', STR_PAD_LEFT) . "\n"
 				: ''
 			);
+		}
 
 		echo "$line\n";
 		echo str_pad("End", $padLabel) . " : " . date("Y-m-d H:i:s") . "\n";
