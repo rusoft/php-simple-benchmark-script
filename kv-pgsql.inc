@@ -1,6 +1,6 @@
 <?php
 /**
- * php safe options - only tests array/class interfaces
+ * php safe options - only tests mod pgsql
  * Php 5.0+
  */
 
@@ -9,22 +9,33 @@
 // ------------------------- INTL tests -----------------------
 
 /**
- * @since 5.0
+ * @since 4.0
  */
-function test_39_04_kvstorage_shmop()
+function test_47_kvs_pgsql()
 {
 	global $testsLoopLimits, $totalOps, $emptyResult;
+	global $sqlite3_dbpath, $debugMode;
 
-	if (!is_file('kvstorage-shmop.inc')){
+	if (!is_file('kvstorage-pgsql.inc')){
+		print("storage no file");
+		return $emptyResult;
+	}
+	if (!function_exists('pg_query')){
+		ptint("no func");
 		return $emptyResult;
 	}
 
-	include_once('kvstorage-shmop.inc');
+	include_once('kvstorage-pgsql.inc');
+	$kvstorage=new KVStoragePgsql();
+	$kvstorage->open();
+	$kvstorage->drop();
+	$kvstorage->create();
 	if (!$kvstorage->available){
+		print("storage noavail");
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['39_04_kvstorage_shmop'];
+	$count = $testsLoopLimits['47_kvs_pgsql'];
 	$time_start = get_microtime();
 
 	for ($i = 0; $i < $count; $i++) {
@@ -33,6 +44,7 @@ function test_39_04_kvstorage_shmop()
 		$v=$kvstorage->get($i);
 		$kvstorage->del($i);
 	}
+	$kvstorage->close();
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }

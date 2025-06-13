@@ -1,7 +1,7 @@
 <?php
 /**
- * php safe options - only tests mod sqlite3
- * Php 5.3+
+ * php safe options - only tests mod mysqli
+ * Php 4.0+
  */
 
 /** ---------------------------------- Tests functions -------------------------------------------- */
@@ -9,37 +9,38 @@
 // ------------------------- INTL tests -----------------------
 
 /**
- * @since 5.0
+ * @since 4.0
  */
-function test_39_08_kvs_sqlite3_devshm_file()
+function test_46_02_kvs_mysqli_innodb()
 {
 	global $testsLoopLimits, $totalOps, $emptyResult;
 	global $sqlite3_dbpath, $debugMode;
 
-	if (!is_file('kvstorage-sqlite3.inc')){
+	if (!is_file('kvstorage-mysqli.inc')){
 		print("storage no file");
 		return $emptyResult;
 	}
-	if (!class_exists('SQLite3')){
-		ptint("no class");
+	if (!function_exists('mysqli_query')){
+		ptint("no func");
 		return $emptyResult;
 	}
 
-	if (is_dir('/dev/shm')) $sqlite3_dbpath='/dev/shm/kvstorage.sqlite3';
-	if ($debugMode) print("now db path is: $sqlite3_dbpath");
-	include_once('kvstorage-sqlite3.inc');
-	$kvstorage=new KVStorageSqlite3();
-	$kvstorage->open($sqlite3_dbpath);
+	include_once('kvstorage-mysqli.inc');
+	$kvstorage=new KVStorageMysqli();
+	$kvstorage->engineName='INNOdb';
+	$kvstorage->open();
+	$kvstorage->drop();
+	$kvstorage->create();
 	if (!$kvstorage->available){
 		print("storage noavail");
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['39_08_kvs_sqlite3_devshm_file'];
+	$count = $testsLoopLimits['46_02_kvs_mysqli_innodb'];
 	$time_start = get_microtime();
 
-	for ($i = 0; $i < $count; $i++) {
-		$num = number_format($i / 100., 2, '.', '');
+	for ($i = 1; $i < $count; $i++) {
+		$num =number_format( $i / 100., 2, '.', '');
 		$kvstorage->set($i, $num);
 		$v=$kvstorage->get($i);
 		$kvstorage->del($i);

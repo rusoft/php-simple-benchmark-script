@@ -39,10 +39,10 @@ function test_39_09_kvs_sqlite3_memory_file()
 	$time_start = get_microtime();
 
 	for ($i = 0; $i < $count; $i++) {
-		$num = $i / 100.;
+		$num = number_format( $i / 100., 2, '.', '');
 		$kvstorage->set($i, $num);
 		$v=$kvstorage->get($i);
-		if ($v===$num) $kvstorage->del($i);
+		$kvstorage->del($i);
 	}
 	$kvstorage->close();
 	$totalOps += $count;

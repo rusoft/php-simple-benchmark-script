@@ -27,6 +27,8 @@
   - memcache
   - redis
   - sqlite3
+  - mysql/mysqli
+  - pgsql
 
 Обычно они уже установлены или "вкомпилированны" в php.
 

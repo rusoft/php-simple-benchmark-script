@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 7, 2025                                                   #
-#  Version     : 1.0.65                                                        #
+#  Version     : 1.0.66                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.65';
+$scriptVersion = '1.0.66';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -133,6 +133,19 @@ if (file_exists('kvstorage-memcache.inc') && extension_loaded('memcache')) {
 }
 if (file_exists('kvstorage-redis.inc') && extension_loaded('redis')) {
 	@include_once("kv-redis.inc");
+}
+if (file_exists('kvstorage-pgsql.inc') && extension_loaded('pgsql')) {
+	@include_once("kv-pgsql.inc");
+}
+if (file_exists('kvstorage-mysql.inc') && extension_loaded('mysql')) {
+	@include_once("kv-mysql-myisam.inc");
+	@include_once("kv-mysql-innodb.inc");
+	@include_once("kv-mysql-memory.inc");
+}
+if (file_exists('kvstorage-mysqli.inc') && extension_loaded('mysqli')) {
+	@include_once("kv-mysqli-myisam.inc");
+	@include_once("kv-mysqli-innodb.inc");
+	@include_once("kv-mysqli-memory.inc");
 }
 }// php>=5.0
 if ( PHP_VERSION >= '5.3.0') {
@@ -734,22 +747,22 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 2099,
-	'5.2' => 839,
-	'5.3' => 1235,
-	'5.4' => 1510,
-	'5.5' => 802,
-	'5.6' => 1337,
-	'7.0' => 672,
-	'7.1' => 669,
-	'7.2' => 662,
-	'7.3' => 586,
-	'7.4' => 659,
-	'8.0' => 676,
-	'8.1' => 450,
-	'8.2' => 427,
-	'8.3' => 582,
-	'8.4' => 529
+	'4.4' => 1117,
+	'5.2' => 1210,
+	'5.3' => 2259,
+	'5.4' => 4155,
+	'5.5' => 4588,
+	'5.6' => 4481,
+	'7.0' => 3224,
+	'7.1' => 3288,
+	'7.2' => 2974,
+	'7.3' => 3451,
+	'7.4' => 3065,
+	'8.0' => 3198,
+	'8.1' => 4099,
+	'8.2' => 2971,
+	'8.3' => 3001,
+	'8.4' => 4535
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -792,6 +805,7 @@ $testsLoopLimits = array(
 	'12_igb_unserialize'	=> 1300000,
 	'11_msgpack_pack'		=> 1300000,
 	'12_msgpack_unpack'	=> 1300000,
+	'13_array_fill'		=> 250,
 	'13_array_loop'		=> 250,
 	'14_array_loop'		=> 250,
 	'15_clean_loops'	=> 200000000,
@@ -819,10 +833,10 @@ $testsLoopLimits = array(
 	'36_01_zlib_deflate_compress'	=> 500000,
 	'36_02_zlib_gzip_compress'	=> 500000,
 	'36_bzip2_compress'	=>  50000,
-	'36_lz4_compress'	=> 5000000,
-	'36_snappy_compress'	=> 5000000,
-	'36_zstd_compress'	=> 5000000,
-	'36_brotli_compress'	=> 1000000,
+	'36_lz4_compress'	=> 500000,
+	'36_snappy_compress'	=> 500000,
+	'36_zstd_compress'	=> 500000,
+	'36_brotli_compress'	=> 100000,
 	'37_01_php8_str_contains' => 100000,
 	'37_02_php8_str_contains_emulate' => 100000,
 	'38_01_php_uuid'	=> 1000000,
@@ -846,6 +860,13 @@ $testsLoopLimits = array(
 	'42_ctype_isdigit'	=> 10000000,
 	'43_iconv_translit'	=> 10000000,
 	'44_session_time'	=> 100000,
+	'45_01_kvs_mysql_myisam'	=> 1000000,
+	'45_02_kvs_mysql_innodb'	=> 1000000,
+	'45_03_kvs_mysql_memory'	=> 1000000,
+	'46_01_kvs_mysqli_myisam'	=> 1000000,
+	'46_02_kvs_mysqli_innodb'	=> 1000000,
+	'46_03_kvs_mysqli_memory'	=> 1000000,
+	'47_kvs_pgsql'	=> 100000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -868,7 +889,8 @@ $testsMemoryLimits = array(
 	'11_igb_serialize'		=> 4,
 	'12_igb_unserialize'	=> 4,
 	// php-5.3
-	'13_array_loop'		=> 54,
+	'13_array_fill'		=> 55,
+	'13_array_loop'		=> 61,
 	'14_array_loop'		=> 62,
 	// opcache, php-7.4
 	'15_clean_loops'	=> 14,
@@ -923,6 +945,13 @@ $testsMemoryLimits = array(
 	'42_ctype_isdigit'		=> 4,
 	'43_iconv_translit'		=> 4,
 	'44_session_time'		=> 4,
+	'45_01_kvs_mysql_myisam'		=> 4,
+	'45_02_kvs_mysql_innodb'		=> 4,
+	'45_03_kvs_mysql_memory'		=> 4,
+	'46_01_kvs_mysqli_myisam'		=> 4,
+	'46_02_kvs_mysqli_innodb'		=> 4,
+	'46_03_kvs_mysqli_memory'		=> 4,
+	'47_kvs_pgsql'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1753,6 +1782,30 @@ if (extension_loaded('memcache')) {
 	if ($v) define('REDIS_VERSION',$v);
 	else define('REDIS_VERSION','-.-.-');
 }
+$has_mysql = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('mysql')) {
+	$has_mysql = "{$colorGreen}yes{$colorReset}";
+	include_once('mysql.inc');
+	$v=get_mysql_version();
+	if ($v) define('MYSQL_VERSION',$v);
+	else define('MYSQL_VERSION','-.-.-');
+}
+$has_pgsql = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('pgsql')) {
+	$has_pgsql = "{$colorGreen}yes{$colorReset}";
+	include_once('pgsql.inc');
+	$v=get_pgsql_version();
+	if ($v) define('PGSQL_VERSION',$v);
+	else define('PGSQL_VERSION','-.-.-');
+}
+$has_mysqli = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('mysqli')) {
+	$has_mysqli = "{$colorGreen}yes{$colorReset}";
+	include_once('mysqli.inc');
+	$v=get_mysqli_version();
+	if ($v) define('MYSQLI_VERSION',$v);
+	else define('MYSQLI_VERSION','-.-.-');
+}
 $has_sqlite3 = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('sqlite3')) {
 	$has_sqlite3 = "{$colorGreen}yes{$colorReset}";
@@ -1882,10 +1935,14 @@ if ($jsond && !function_exists('jsond_encode')) {
 }
 
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
+if (!defined('ICONV_VERSION')) define('ICONV_VERSION', '-.--');
 if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.-.-');
 if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.-.-');
 if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.-.-');
 if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.-.-');
+if (!defined('MYSQL_VERSION')) define('MYSQL_VERSION', '-.-.-');
+if (!defined('PGSQL_VERSION')) define('PGSQL_VERSION', '-.-.-');
+if (!defined('MYSQLI_VERSION')) define('MYSQLI_VERSION', '-.-.-');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('SODIUM_LIBRARY_VERSION')) define('SODIUM_LIBRARY_VERSION', '-.-.-');
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
@@ -1901,7 +1958,7 @@ function print_results_common()
 	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
 	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype, $has_iconv, $has_session;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
-	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
+	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed;
 
@@ -1934,7 +1991,7 @@ function print_results_common()
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 		. str_pad("ctype", $padInfo, ' ', STR_PAD_LEFT) . " : $has_ctype\n"
-		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv\n"
+		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv; version: ".ICONV_VERSION."\n"
 		. str_pad("session", $padInfo, ' ', STR_PAD_LEFT) . " : $has_session\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
@@ -1944,11 +2001,14 @@ function print_results_common()
 		. str_pad("\t- JPG", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdjpg"."\n"
 		. str_pad("\t- WEBP", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdwebp"."\n"
 		. str_pad("\t- AVIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdavif"."\n"
-		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION."\n"
-		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
+		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION.";\n"
+		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu\n"
 		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop\n"
 		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
 		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"
+		. str_pad("mysql", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mysql, version: ".MYSQL_VERSION.";\n"
+		. str_pad("pgsql", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pgsql, version: ".PGSQL_VERSION.";\n"
+		. str_pad("mysqli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mysqli, version: ".MYSQLI_VERSION.";\n"
 		. str_pad("sqlite3", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sqlite3, version: ".SQLITE3_VERSION.";\n"
 		. str_pad("sodium", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sodium, version: ".SODIUM_LIBRARY_VERSION.";\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
@@ -1962,7 +2022,7 @@ function print_results_common()
 		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
 		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4\n"
 		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
-		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version: ".LIBZSTD_VERSION_STRING."\n"
+		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version: ".LIBZSTD_VERSION_STRING.";\n"
 		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli\n"
 		. str_pad("uuid", $padInfo, ' ', STR_PAD_LEFT) . " : $has_uuid\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
