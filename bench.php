@@ -747,22 +747,22 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine
 $loopMaxPhpTimes = array(
-	'4.4' => 2099,
-	'5.2' => 839,
-	'5.3' => 1235,
-	'5.4' => 1510,
-	'5.5' => 802,
-	'5.6' => 1337,
-	'7.0' => 672,
-	'7.1' => 669,
-	'7.2' => 662,
-	'7.3' => 586,
-	'7.4' => 659,
-	'8.0' => 676,
-	'8.1' => 450,
-	'8.2' => 427,
-	'8.3' => 582,
-	'8.4' => 529
+	'4.4' => 1117,
+	'5.2' => 1210,
+	'5.3' => 2259,
+	'5.4' => 4155,
+	'5.5' => 4588,
+	'5.6' => 4481,
+	'7.0' => 3224,
+	'7.1' => 3288,
+	'7.2' => 2974,
+	'7.3' => 3451,
+	'7.4' => 3065,
+	'8.0' => 3198,
+	'8.1' => 4099,
+	'8.2' => 2971,
+	'8.3' => 3001,
+	'8.4' => 4535
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -805,6 +805,7 @@ $testsLoopLimits = array(
 	'12_igb_unserialize'	=> 1300000,
 	'11_msgpack_pack'		=> 1300000,
 	'12_msgpack_unpack'	=> 1300000,
+	'13_array_fill'		=> 250,
 	'13_array_loop'		=> 250,
 	'14_array_loop'		=> 250,
 	'15_clean_loops'	=> 200000000,
@@ -832,10 +833,10 @@ $testsLoopLimits = array(
 	'36_01_zlib_deflate_compress'	=> 500000,
 	'36_02_zlib_gzip_compress'	=> 500000,
 	'36_bzip2_compress'	=>  50000,
-	'36_lz4_compress'	=> 5000000,
-	'36_snappy_compress'	=> 5000000,
-	'36_zstd_compress'	=> 5000000,
-	'36_brotli_compress'	=> 1000000,
+	'36_lz4_compress'	=> 500000,
+	'36_snappy_compress'	=> 500000,
+	'36_zstd_compress'	=> 500000,
+	'36_brotli_compress'	=> 100000,
 	'37_01_php8_str_contains' => 100000,
 	'37_02_php8_str_contains_emulate' => 100000,
 	'38_01_php_uuid'	=> 1000000,
@@ -888,7 +889,8 @@ $testsMemoryLimits = array(
 	'11_igb_serialize'		=> 4,
 	'12_igb_unserialize'	=> 4,
 	// php-5.3
-	'13_array_loop'		=> 54,
+	'13_array_fill'		=> 55,
+	'13_array_loop'		=> 61,
 	'14_array_loop'		=> 62,
 	// opcache, php-7.4
 	'15_clean_loops'	=> 14,
@@ -1939,6 +1941,7 @@ if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.-.-');
 if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.-.-');
 if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.-.-');
 if (!defined('MYSQL_VERSION')) define('MYSQL_VERSION', '-.-.-');
+if (!defined('PGSQL_VERSION')) define('PGSQL_VERSION', '-.-.-');
 if (!defined('MYSQLI_VERSION')) define('MYSQLI_VERSION', '-.-.-');
 if (!defined('LIBXML_DOTTED_VERSION')) define('LIBXML_DOTTED_VERSION', '-.-.-');
 if (!defined('SODIUM_LIBRARY_VERSION')) define('SODIUM_LIBRARY_VERSION', '-.-.-');
@@ -1999,7 +2002,7 @@ function print_results_common()
 		. str_pad("\t- WEBP", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdwebp"."\n"
 		. str_pad("\t- AVIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdavif"."\n"
 		. str_pad("imagick", $padInfo, ' ', STR_PAD_LEFT) . " : $has_imagick: version: ".IMG_VERSION.";\n"
-		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu;\n"
+		. str_pad("apcu", $padInfo, ' ', STR_PAD_LEFT) . " : $has_apcu\n"
 		. str_pad("shmop", $padInfo, ' ', STR_PAD_LEFT) . " : $has_shmop\n"
 		. str_pad("memcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_memcache, version: ".MEMCACHE_VERSION.";\n"
 		. str_pad("redis", $padInfo, ' ', STR_PAD_LEFT) . " : $has_redis, version: ".REDIS_VERSION.";\n"

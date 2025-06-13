@@ -377,7 +377,7 @@ function test_13_Array_Fill()
 {
 	global $testsLoopLimits, $arrayDimensionLimit, $totalOps;
 
-	$arrayTestLoopLimit = $testsLoopLimits['13_array_loop'];
+	$arrayTestLoopLimit = $testsLoopLimits['13_array_fill'];
 	$time_start = get_microtime();
 	$memory = 0;
 	for ($n = 0; $n < $arrayTestLoopLimit; ++$n) {
