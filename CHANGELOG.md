@@ -1,8 +1,8 @@
 # ChangeLog
 
-@ 2025-06-11, v1.0.66
+@ 2025-06-13, v1.0.66
 
- * Added simple test for mysql,mysqli,pgsql
+ * Added simple tests for mysql,mysqli,pgsql
 
 @ 2025-06-07, v1.0.65
 
