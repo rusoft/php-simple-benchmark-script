@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 13, 2025                                                   #
-#  Version     : 1.0.68-dev                                                        #
+#  Version     : 1.0.68                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.69-dev';
+$scriptVersion = '1.0.68';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -764,24 +764,25 @@ $regexPattern = '/[\s,]+/';
 
 // Gathered on this machine
 $loopMaxPhpTimesMHz = 3500;
-// How much time needed for tests on this machine
+// How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
-	'4.4' => 1117,
-	'5.2' => 1210,
-	'5.3' => 2259,
-	'5.4' => 4155,
-	'5.5' => 4588,
-	'5.6' => 4481,
-	'7.0' => 3224,
-	'7.1' => 3288,
-	'7.2' => 2974,
-	'7.3' => 3451,
-	'7.4' => 3065,
-	'8.0' => 3198,
-	'8.1' => 4099,
-	'8.2' => 2971,
-	'8.3' => 3001,
-	'8.4' => 4535
+	'4.4' => 1529,
+	'5.2' => 1206,
+	'5.3' => 666,
+	'5.4' => 632,
+	'5.5' => 639,
+	'5.6' => 620,
+	'7.0' => 325,
+	'7.1' => 314,
+	'7.2' => 308,
+	'7.3' => 289,
+	'7.4' => 247,
+	'8.0' => 296,
+	'8.1' => 268,
+	'8.2' => 251,
+	'8.3' => 194,
+	'8.4' => 193,
+	'8.5' => 205
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
@@ -800,7 +801,8 @@ $dumbTestMaxPhpTimes = array(
 	'8.1' => 0.323,
 	'8.2' => 0.294,
 	'8.3' => 0.784,
-	'8.4' => 0.759
+	'8.4' => 0.759,
+	'8.5' => 0.759
 );
 // Nice dice roll
 // Should not be longer than 600 seconds
