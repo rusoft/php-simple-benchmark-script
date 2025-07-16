@@ -777,12 +777,12 @@ $loopMaxPhpTimes = array(
 	'7.2' => 308,
 	'7.3' => 288,
 	'7.4' => 241,
-	'8.0' => 287,
+	'8.0' => 205,
 	'8.1' => 268,
 	'8.2' => 251,
 	'8.3' => 194,
 	'8.4' => 193,
-	'8.5' => 205
+	'8.5' => 234
 );
 // Simple and fast test times, used to adjust all test times and limits
 $dumbTestMaxPhpTimes = array(
