@@ -776,7 +776,7 @@ $loopMaxPhpTimes = array(
 	'7.1' => 314,
 	'7.2' => 308,
 	'7.3' => 288,
-	'7.4' => 241,
+	'7.4' => 198,
 	'8.0' => 205,
 	'8.1' => 268,
 	'8.2' => 251,
@@ -1977,6 +1977,8 @@ if (!defined('SODIUM_LIBRARY_VERSION')) define('SODIUM_LIBRARY_VERSION', '-.-.-'
 if (!defined('INTL_ICU_VERSION')) define('INTL_ICU_VERSION', '-.-');
 if (!defined('LIBZSTD_VERSION_STRING')) define('LIBZSTD_VERSION_STRING', '-.-.-');
 if (!defined('BROTLI_VERSION_TEXT')) define('BROTLI_VERSION_TEXT', '-.-.-');
+if (!defined('LZ4_VERSION_TEXT')) define('LZ4_VERSION_TEXT', '-.-.-');
+if (!defined('MB_ONIGURUMA_VERSION')) define('MB_ONIGURUMA_VERSION', '-.-.-');
 
 function print_results_common()
 {
@@ -2017,16 +2019,16 @@ function print_results_common()
 		. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
-		. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring\n"
+		. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring, oniguruma version: ".MB_ONIGURUMA_VERSION.";\n"
 		. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == "{$colorGreen}yes{$colorReset}" ? '; version: ' . PCRE_VERSION : '') . "\n"
-		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION."\n"
+		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION.";\n"
 		. str_pad("dom", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dom\n"
 		. str_pad("ctype", $padInfo, ' ', STR_PAD_LEFT) . " : $has_ctype\n"
-		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv; version: ".ICONV_VERSION."\n"
+		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv; version: ".ICONV_VERSION.";\n"
 		. str_pad("session", $padInfo, ' ', STR_PAD_LEFT) . " : $has_session\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION."\n"
+		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION.";\n"
 		. str_pad("\t- GIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdgif"."\n"
 		. str_pad("\t- PNG", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdpng"."\n"
 		. str_pad("\t- JPG", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdjpg"."\n"
@@ -2048,10 +2050,10 @@ function print_results_common()
 		. str_pad("jsond", $padInfo, ' ', STR_PAD_LEFT) . " : $has_jsond\n"
 		. str_pad("jsond as json >>", $padInfo, ' ', STR_PAD_LEFT) . " : $has_jsond_as_json\n"
 		. str_pad("-compression->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
-		. str_pad("zlib", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zlib, version: ".ZLIB_VERSION."\n"
+		. str_pad("zlib", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zlib, version: ".ZLIB_VERSION.";\n"
 		. str_pad("gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
 		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
-		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4\n"
+		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4, version: ".LZ4_VERSION_TEXT.";\n"
 		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
 		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version: ".LIBZSTD_VERSION_STRING.";\n"
 		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli, version: ".BROTLI_VERSION_TEXT.";\n"
