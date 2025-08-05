@@ -766,9 +766,9 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
-	'4.4' => 944,
-	'5.2' => 854,
-	'5.3' => 666,
+	'4.4' => 942,
+	'5.2' => 699,
+	'5.3' => 563,
 	'5.4' => 632,
 	'5.5' => 639,
 	'5.6' => 620,
