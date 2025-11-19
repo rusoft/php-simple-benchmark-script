@@ -6,7 +6,7 @@
 
 /** ---------------------------------- Tests functions -------------------------------------------- */
 
-function test_01_Math()
+function test_01_1_Common_Math()
 {
 	global $testsLoopLimits, $totalOps;
 
@@ -17,12 +17,37 @@ function test_01_Math()
 		}
 	}
 
-	$count = $testsLoopLimits['01_math'];
+	$count = $testsLoopLimits['01_1_common_math'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		foreach ($mathFunctions as $function) {
 			$r = call_user_func_array($function, array($i));
 		}
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function calculate_pi_leibniz($terms) {
+        $pi_approx = 0.0;
+                $sign = 1.0;
+        for ($i= 0; $i < $terms; $i++) {
+                        $denominator = 2.0*$i + 1.0;
+            $pi_approx += $sign / $denominator;
+                        $sign *= -1.0;
+        }
+        return 4.0 * $pi_approx;
+    }
+
+function test_01_2_Leibniz_Pi_Math()
+{
+	global $testsLoopLimits, $totalOps;
+
+	$terms = 10000000;
+	$count = $testsLoopLimits['01_2_leibniz_pi_math'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+			$pi = calculate_pi_leibniz($terms);
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());

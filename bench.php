@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Jun 13, 2025                                                   #
-#  Version     : 1.0.68                                                    #
+#  Version     : 1.0.69-dev                                                    #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.68';
+$scriptVersion = '1.0.69-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -807,7 +807,8 @@ $dumbTestMaxPhpTimes = array(
 // Nice dice roll
 // Should not be longer than 600 seconds
 $testsLoopLimits = array(
-	'01_math'			=> 2000000,
+	'01_1_common_math'			=> 2000000,
+	'01_2_leibniz_pi_math'			=> 20,
 	// That limit gives around 90Mb
 	'02_string_concat'	=> 5000000,
 	'03_1_string_number_concat'	=> 5000000,
