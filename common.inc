@@ -202,23 +202,217 @@ function test_07_Regex()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing()
+function test_08_1_Hashing_crc32()
 {
-	global $stringTest, $testsLoopLimits, $totalOps;
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
-	$stringFunctions = array('crc32', 'md5', 'sha1');
-	foreach ($stringFunctions as $key => $function) {
-		if (!function_exists($function)) {
-			unset($stringFunctions[$key]);
-		}
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('crc32', $algos)){
+		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing'];
+	$count = $testsLoopLimits['08_1_hashing_crc32'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
-		foreach ($stringFunctions as $function) {
-			$r = call_user_func_array($function, array($stringTest));
-		}
+		$r = hash('crc32',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_md4()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('md4', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_md4'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('md4',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_md5()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('md5', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_md5'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('md5',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_sha1()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('sha1', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_sha1'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('sha1',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_sha256()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('sha256', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_sha256'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('sha256',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_sha512()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('sha512', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_sha512'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('sha256',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_xxh32()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('xxh32', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_xxh32'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('xxh32',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_xxh64()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('xxh64', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_xxh64'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('xxh64',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_1_Hashing_xxh128()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('xxh128', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_1_hashing_xxh128'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('xxh128',$stringTest);
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());

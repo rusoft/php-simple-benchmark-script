@@ -9,6 +9,7 @@
 - pcre
 - mbstring
 - json
+- hash
 - dom
 - simplexml
 - intl
