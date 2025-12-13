@@ -1,5 +1,10 @@
 # ChangeLog
 
+@ 2025-12-x, v1.0.69
+
+ * Add test of pi calculation by leibniz formula
+ * Add tests of vrious hash functions: crc32, md4, md5, sha1, sha256, sha512, xxh32, xxh64, xxh128
+
 @ 2025-07-12, v1.0.68
 
  * Add support of php8.5

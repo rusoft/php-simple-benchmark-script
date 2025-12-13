@@ -1,6 +1,6 @@
 <?php
 /**
- * php -mod-memcache test/generic functions
+ * php -mod-redis test/generic functions
  */
 
 /** ---------------------------------- Tests functions -------------------------------------------- */
@@ -13,16 +13,18 @@ function get_redis_object()
 	'database'=>2,
     );
     if (is_file('redis-conn.ini')){
-	$cfg=parse_ini_file('redis-conn.ini');
+		$cfg=parse_ini_file('redis-conn.ini');
     }
     static $r=null;
     if ($r===null)
-        $r = new Redis;
-    if ($r->connect($cfg['host'], $cfg['port'])){
-	$r->swapdb(0, (int)$cfg['database']);
-	return $r;
-    }
-    return false;
+		if (class_exests("Redis")){
+			$r = new Redis;
+			if ($r->connect($cfg['host'], $cfg['port'])){
+				$r->swapdb(0, (int)$cfg['database']);
+				return $r;
+			}
+		}
+	return false;
 }
 
 function get_redis_version()

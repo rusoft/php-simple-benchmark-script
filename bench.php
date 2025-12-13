@@ -817,7 +817,15 @@ $testsLoopLimits = array(
 	'05_string_mb'		=> 130000,
 	'06_string_manip'	=> 1300000,
 	'07_regex'			=> 1300000,
-	'08_1_hashing'		=> 1300000,
+	'08_1_hashing_crc32'		=> 1300000,
+	'08_1_hashing_md4'		=> 1300000,
+	'08_1_hashing_md5'		=> 1300000,
+	'08_1_hashing_sha1'		=> 1300000,
+	'08_1_hashing_sha256'		=> 1300000,
+	'08_1_hashing_sha512'		=> 1300000,
+	'08_1_hashing_xxh32'		=> 1300000,
+	'08_1_hashing_xxh64'		=> 1300000,
+	'08_1_hashing_xxh128'		=> 1300000,
 	'08_2_crypt'		=> 10000,
 	'09_json_encode'	=> 1300000,
 	'10_json_decode'	=> 1300000,
@@ -902,7 +910,15 @@ $testsMemoryLimits = array(
 	'05_string_mb'		=> 4,
 	'06_string_manip'	=> 4,
 	'07_regex'			=> 4,
-	'08_1_hashing'		=> 4,
+	'08_1_hashing_crc32'		=> 4,
+	'08_1_hashing_md4'		=> 4,
+	'08_1_hashing_md5'		=> 4,
+	'08_1_hashing_sha1'		=> 4,
+	'08_1_hashing_sha256'		=> 4,
+	'08_1_hashing_sha512'		=> 4,
+	'08_1_hashing_xxh32'		=> 4,
+	'08_1_hashing_xxh64'		=> 4,
+	'08_1_hashing_xxh128'		=> 4,
 	'08_2_crypt'		=> 4,
 	'09_json_encode'	=> 4,
 	'10_json_decode'	=> 4,
@@ -1955,6 +1971,11 @@ if (extension_loaded('uuid')) {
 	$has_uuid = "{$colorGreen}yes{$colorReset}";
 }
 
+$has_hash = "{$colorYellow}no{$colorReset}";
+if (extension_loaded('hash')) {
+	$has_hash = "{$colorGreen}yes{$colorReset}";
+}
+
 $has_jsond = "{$colorYellow}no{$colorReset}";
 $has_jsond_as_json = "{$colorYellow}no{$colorReset}";
 if ($jsond = extension_loaded('jsond')) {
@@ -1990,7 +2011,7 @@ function print_results_common()
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
-	global $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype, $has_iconv, $has_session;
+	global $has_hash, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype, $has_iconv, $has_session;
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
@@ -2020,6 +2041,7 @@ function print_results_common()
 		. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
+		. str_pad("hash", $padInfo, ' ', STR_PAD_LEFT) . " : $has_hash\n"
 		. str_pad("mbstring", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mbstring, oniguruma version: ".MB_ONIGURUMA_VERSION.";\n"
 		. str_pad("pcre", $padInfo, ' ', STR_PAD_LEFT) . " : $has_pcre" . ($has_pcre == "{$colorGreen}yes{$colorReset}" ? '; version: ' . PCRE_VERSION : '') . "\n"
 		. str_pad("simplexml", $padInfo, ' ', STR_PAD_LEFT) . " : $has_simplexml; libxml version: ".LIBXML_DOTTED_VERSION.";\n"

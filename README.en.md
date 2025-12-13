@@ -9,6 +9,7 @@ Required modules for full php testing:
 - pcre
 - mbstring
 - json
+- hash
 - dom
 - simplexml
 - intl
@@ -36,6 +37,9 @@ How to check it:
 
 - in console: `php -m`
 - or via function `phpinfo()` output
+
+### Minimum required memory
+Is: 4Mb
 
 ### Modules affecting test results
 
