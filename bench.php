@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Dec 13, 2025                                                  #
-#  Version     : 1.0.69                                                        #
+#  Version     : 1.0.70-dev                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.69';
+$scriptVersion = '1.0.70-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -766,13 +766,13 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
-	'4.4' => 942,
-	'5.2' => 699,
-	'5.3' => 563,
-	'5.4' => 632,
-	'5.5' => 639,
-	'5.6' => 620,
-	'7.0' => 325,
+	'4.4' => 330,
+	'5.2' => 230,
+	'5.3' => 200,
+	'5.4' => 232,
+	'5.5' => 210,
+	'5.6' => 206,
+	'7.0' => 112,
 	'7.1' => 314,
 	'7.2' => 308,
 	'7.3' => 288,
@@ -2067,6 +2067,7 @@ function print_results_common()
 		. str_pad("mysqli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_mysqli, version: ".MYSQLI_VERSION.";\n"
 		. str_pad("sqlite3", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sqlite3, version: ".SQLITE3_VERSION.";\n"
 		. str_pad("sodium", $padInfo, ' ', STR_PAD_LEFT) . " : $has_sodium, version: ".SODIUM_LIBRARY_VERSION.";\n"
+		. str_pad("uuid", $padInfo, ' ', STR_PAD_LEFT) . " : $has_uuid\n"
 		. str_pad("-alternative->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("igbinary", $padInfo, ' ', STR_PAD_LEFT) . " : $has_igb\n"
 		. str_pad("msgpack", $padInfo, ' ', STR_PAD_LEFT) . " : $has_msg\n"
@@ -2080,7 +2081,6 @@ function print_results_common()
 		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
 		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version: ".LIBZSTD_VERSION_STRING.";\n"
 		. str_pad("brotli", $padInfo, ' ', STR_PAD_LEFT) . " : $has_brotli, version: ".BROTLI_VERSION_TEXT.";\n"
-		. str_pad("uuid", $padInfo, ' ', STR_PAD_LEFT) . " : $has_uuid\n"
 		. str_pad("-affecting->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("opcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_opcache; enabled: {$opcache}\n"
 		. str_pad("xcache", $padInfo, ' ', STR_PAD_LEFT) . " : $has_xcache; enabled: {$xcache}\n"

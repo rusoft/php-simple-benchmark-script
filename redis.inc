@@ -17,7 +17,7 @@ function get_redis_object()
     }
     static $r=null;
     if ($r===null)
-		if (class_exests("Redis")){
+		if (class_exists("Redis")){
 			$r = new Redis;
 			if ($r->connect($cfg['host'], $cfg['port'])){
 				$r->swapdb(0, (int)$cfg['database']);

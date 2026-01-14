@@ -19,7 +19,11 @@ function get_mysqli_conn()
 //	print_r($cfg);
     }
 //	print_r($cfg);
+	try{
 	$conn = @mysqli_connect($cfg['host'], $cfg['username'], $cfg['password'], $cfg['database'], $cfg['port']);
+	} catch (Exception $e) {
+	$conn = false;
+	}
     return $conn;
 }
 
