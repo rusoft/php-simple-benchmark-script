@@ -26,6 +26,7 @@ class KVStorageMysqli
 	if ($this->conn===null){
 	    include_once('mysqli.inc');
 	    $this->conn=get_mysqli_conn();
+		if (!$this->conn) { $this->available=false; return false;}
 		return true;
 	}
     }
