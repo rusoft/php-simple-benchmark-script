@@ -1726,8 +1726,12 @@ function filter_out_name_by_pattern($key)
     if (!$ret) unset($availableFunctions[$key]);
     return $ret;
 }
+$cntTotalTests = count($availableFunctions);
+if ($debugMode) print("cntTotalTests:".$cntTotalTests.PHP_EOL);
 if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
 if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
+$cntAvailableTests = count($availableFunctions);
+if ($debugMode) print("cntAvailableTests:".$cntAvailableTests.PHP_EOL);
 /** ------------------------------- Early checks ------------------------------- */
 
 if ($outputTestsList) {
@@ -1757,6 +1761,7 @@ if ($outputTestsList) {
 		print(join(',', $a));
 		print("]".PHP_EOL);
 	}
+	
 	
 	if ($printJson) {
 		print("\"messages_count\": {$messagesCnt},\n");
@@ -2007,6 +2012,7 @@ function print_results_common()
 	$total = 0;
 
 	global $availableFunctions;
+	global $cntTotalTests, $cntAvailableTests;
 	global $printRaw;
 	global $line, $padHeader, $cpuInfo, $padInfo, $scriptVersion, $maxTime, $originTimeLimit, $originMemoryLimit, $cryptAlgoName, $memoryLimitMb;
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
@@ -2105,16 +2111,17 @@ function print_results_common()
 			. "$line\n" . $flushStr;
 		flush();
 
+		echo "$line\n". str_pad("Total known tests: ", $padLabel). " : ".$cntTotalTests.PHP_EOL;
+		echo "$line\n". str_pad("Available tests: ", $padLabel)." : ".$cntAvailableTests.PHP_EOL.$flushStr;
+		echo "$line\n";
+		$testN =0;
 		foreach ($availableFunctions as $user) {
 			if (strpos($user, 'test_') === 0) {
 				$testName = str_replace('test_', '', $user);
-				/*if ($runOnlySelectedTests) {
-					if (!in_array($testName, $selectedTests)) {
-						continue;
-					}
-				}*/
-				echo str_pad($testName, $padLabel) . " :";
+
+				echo str_pad($testN ."/".$cntAvailableTests." ". $testName, $padLabel) . " :";
 				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				$testN++;
 				$total += $resultSec;
 				if ($printRaw)
 					echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
@@ -2127,8 +2134,7 @@ function print_results_common()
 
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
 
-		echo "$line\n"
-		. str_pad("Total:", $padLabel) . " :";
+		echo "$line\n". str_pad("Total:", $padLabel) . " :";
 		if ($printRaw) {
 			echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . " |" . "\n";
 			echo str_pad("Current PHP memory usage:", $padLabel) . " :" . str_pad(mymemory_usage(), 12, ' ', STR_PAD_LEFT) . "\n";
