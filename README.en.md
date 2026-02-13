@@ -57,22 +57,24 @@ You need to put these files in one directory: `bench.php`, `common.inc`, `php5.i
 
 Command:
 ```
-Usage: bench.php [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name1 ...]
+Usage: bench.php [-h|--help] [-x|--debug] [-n|--dry-run] [-C|--dont-use-colors] [-J|--print-json] [-R|--print-raw] [-M|--print-machine] [-P|--print-only-total] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name] [-S|--skip-test=pattern]
+        -h|--help               - print this help and exit
+        -x|--debug              - enable debug mode, raise output level
+        -n|--dry-run            - enable dry-run mode, do nothing, just to see output example
+        -C|--dont-use-colors    - disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not using it in JSON/machine mode.
+        -J|--print-json - enable printing only in JSON format, useful for automated tests. disables print-machine.
+        -R|--print-raw  - enable printing only raw values, no human readable forms, useful for automated eests.
+        -M|--print-machine      - enable printing only in machine parsable format, useful for automated tests. disables print-json.
+        -P|--print-only-total   - enable printing only total time but no intermediate test results.
+        -d|--dont-recalc        - do not recalculate test times / operations count even if memory of execution time limits are low
+        -D|--dumb-test-print    - print dumb test time, for debug purpose
+        -L|--list-tests         - output list of available tests and exit
+        -I|--system-info        - output system info but do not run tests and exit
+        -m|--memory-limit <Mb>  - set memory_limit value in Mb, defaults to 130 (Mb)
+        -t|--time-limit <sec>   - set max_execution_time value in seconds, defaults to 600 (sec)
+        -T|--run-test <pattern> - run selected tests, test names from --list-tests output, can be defined multiple times
+        -S|--skip-test <pattern>        - skip selected tests, test names pattern to match name from --list-tests output, can be defined multiple times```
 
-	-h|--help		- print this help and exit
-	-x|--debug		- enable debug mode, raise output level
-	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not in JSON/machine mode.
-	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.
-	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.
-	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low
-	-D|--dumb-test-print	- print dumb test time, for debug purpose
-	-L|--list-tests		- output list of available tests and exit
-	-I|--system-info	- output system info but do not run tests and exit
-	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)
-	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)
-	-T|--run-test <name>	- run selected test, test names from --list-tests output, can be defined multiple times
-	-S|--skip-test <pattern>	- skip selected test, test names pattern from --list-tests output, can be defined multiple times
-```
 Example: `php bench.php -m=64 -t=30`
 
 The second option for passing values ​​for parameters is environment variables:
