@@ -71,10 +71,12 @@ class KVStorageMysql
     }
 
     public function create(){
+	if (!$this->available) return 0;
 	return mysql_unbuffered_query("CREATE TABLE `{$this->tableName}`(key INTEGER, val CHAR(20)) engine {$this->engineName}; CREATE INDEX skey ON {$this->tableName}(key)", $this->conn);
     }
 
     public function drop(){
+	if (!$this->available) return 0;
 	return mysql_unbuffered_query("DROP TABLE `{$this->tableName}`;", $this->conn);
     }
 }

@@ -84,9 +84,11 @@ Available variables:
 
 - PHP_TIME_LIMIT=<Seconds>
 - PHP_DEBUG_MODE=0/1
+- DRY_RUN=0/1
 - DONT_USE_COLORS=0/1
 - PRINT_JSON=0/1
 - PRINT_MACHINE=0/1
+- PRINT_ONLY_TOTAL=0/1
 - PHP_MEMORY_LIMIT=<Мб>
 - DONT_RECALCULATE_LIMITS=0/1
 - LIST_TESTS=0/1
@@ -113,9 +115,11 @@ Available options:
 
 - time_limit=Секунды
 - debug_mode=0/1
+- dery_run=0/1
 - dont_use_colors=0/1
 - print_json=0/1
 - print_machine=0/1
+- print_only_total=0/1
 - memory_limit=Мб
 - dont_recalculate_limits=0/1
 - list_tests=0/1

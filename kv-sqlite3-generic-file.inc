@@ -17,11 +17,11 @@ function test_39_07_kvs_sqlite3_generic_file()
 	global $sqlite3_dbpath, $debugMode;
 
 	if (!is_file('kvstorage-sqlite3.inc')){
-		print("storage no file");
+		if ($debugMode) print("storage no file");
 		return $emptyResult;
 	}
 	if (!class_exists('SQLite3')){
-		ptint("no class");
+		if ($debugMode) print("no class");
 		return $emptyResult;
 	}
 
@@ -31,7 +31,7 @@ function test_39_07_kvs_sqlite3_generic_file()
 	$kvstorage=new KVStorageSqlite3();
 	$kvstorage->open($sqlite3_dbpath);
 	if (!$kvstorage->available){
-		print("storage noavail");
+		if ($debugMode) print("storage noavail");
 		return $emptyResult;
 	}
 

@@ -75,11 +75,13 @@ class KVStoragePgsql
     }
 
     public function create(){
+	if (!$this->available) return 0;
 	pg_query($this->conn, "CREATE TABLE IF NOT EXISTS {$this->tableName}(k INTEGER, v CHAR(20));");
 	pg_query($this->conn, " CREATE INDEX IF NOT EXISTS skey ON {$this->tableName}(k)");
     }
 
     public function drop(){
+	if (!$this->available) return 0;
 	return pg_query($this->conn, "DROP TABLE IF EXISTS {$this->tableName};");
     }
 }

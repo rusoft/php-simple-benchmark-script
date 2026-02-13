@@ -1,6 +1,13 @@
 # ChangeLog
 
-@ 2025-12-x, v1.0.69
+@ 2026-x-y, v1.0.70
+
+ * Add output of running test number
+ * Print only total time
+ * Hide output fom kv-storage tests into debug-mode, which may ruin json output
+ * Add dry-run mode
+
+@ 2025-12-13, v1.0.69
 
  * Add test of pi calculation by leibniz formula
  * Add tests of vrious hash functions: crc32, md4, md5, sha1, sha256, sha512, xxh32, xxh64, xxh128

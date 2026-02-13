@@ -17,11 +17,11 @@ function test_46_01_kvs_mysqli_myisam()
 	global $sqlite3_dbpath, $debugMode;
 
 	if (!is_file('kvstorage-mysqli.inc')){
-		print("storage no file");
+		if ($debugMode) print("storage no file");
 		return $emptyResult;
 	}
 	if (!function_exists('mysqli_query')){
-		ptint("no func");
+		if ($debugMode) print("no func");
 		return $emptyResult;
 	}
 
@@ -32,7 +32,7 @@ function test_46_01_kvs_mysqli_myisam()
 	$kvstorage->drop();
 	$kvstorage->create();
 	if (!$kvstorage->available){
-		print("storage noavail");
+		if ($debugMode) print("storage noavail");
 		return $emptyResult;
 	}
 

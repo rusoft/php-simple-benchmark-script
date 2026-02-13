@@ -155,11 +155,12 @@ if (file_exists('kvstorage-sqlite3.inc') && extension_loaded('sqlite3')) {
 	@include_once("kv-sqlite3-memory-file.inc");
 }
 }// php>=5.3
+
 if ( PHP_VERSION >= '7.2.0') {
 if (file_exists('mod-sodium.inc') && extension_loaded('sodium')) {
 	@include_once("mod-sodium.inc");
 }
-}// php>=5.3
+}// php>=7.2
 
 if (extension_loaded('uuid')) {
 	@include_once("mod-uuid.inc");
@@ -194,12 +195,15 @@ $defaultMemoryLimit = 130;
 $useColors = 1;
 
 $debugMode = 0;
+$dryRun = 0;
 
 $printJson = 0;
 
 $printRaw = 0;
 
 $printMachine = 0;
+
+$printOnlyTotal = 0;
 
 $recalculateLimits = 1;
 
@@ -236,17 +240,30 @@ if (isset($_GET['debug_mode']) && $x = (int)$_GET['debug_mode']) {
 	$debugMode = $x;
 }
 
+if ($x = (int)getenv('DRY_RUN')) {
+	$dryRun = $x;
+}
+if (isset($_GET['dry_run']) && $x = (int)$_GET['dry_run']) {
+	$dryRun = $x;
+}
+
 if ($x = (int)getenv('PRINT_JSON')) {
 	$printJson = $x;
 }
 if ($x = (int)getenv('PRINT_RAW')) {
 	$printRaw = $x;
 }
+if ($x = (int)getenv('PRINT_ONLY_TOTAL')) {
+	$printOnlyTotal = $x;
+}
 if (isset($_GET['print_json']) && $x = (int)$_GET['print_json']) {
 	$printJson = $x;
 }
 if (isset($_GET['print_raw']) && $x = (int)$_GET['print_raw']) {
 	$printRaw = $x;
+}
+if (isset($_GET['print_only_total']) && $x = (int)$_GET['print_only_total']) {
+	$printOnlyTotal = $x;
 }
 if ($printJson) $printMachine = 0;
 
@@ -373,11 +390,13 @@ if (php_sapi_name() == 'cli') {
 // http://php.net/manual/ru/function.getopt.php example #2
 $shortopts = "h";
 $shortopts .= "x";
+$shortopts .= "n";
 $shortopts .= "d";
 $shortopts .= "C";
 $shortopts .= "J";
 $shortopts .= "R";
 $shortopts .= "M";
+$shortopts .= "P";
 $shortopts .= "D";
 $shortopts .= "L";
 $shortopts .= "I";
@@ -389,10 +408,12 @@ $shortopts .= "S:";       // Обязательное значение
 $longopts = array(
 	"help",
 	"debug",
+	"dry-run",
 	"dont-use-colors",
 	"print-json",
 	"print-raw",
 	"print-machine",
+	"print-only-total",
 	"dont-recalc",
 	"dumb-test-print",
 	"list-tests",
@@ -429,6 +450,11 @@ if ($options) {
 				$debugMode = 1;
 				break;
 
+			case 'n':
+			case 'dry-run':
+				$dryRun = 1;
+				break;
+
 			case 'C':
 			case 'dont-use-colors':
 				$useColors = 0;
@@ -449,6 +475,11 @@ if ($options) {
 			case 'print-machine':
 				$printMachine = 1;
 				$printJson = 0;
+				break;
+
+			case 'P':
+			case 'print-only-total':
+				$printOnlyTotal = 1;
 				break;
 
 			case 'D':
@@ -495,14 +526,16 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-C|--dont-use-colors] [-J|--print-json] [-R|--print-raw] [-M|--print-machine] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name] [-S|--skip-test=pattern]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h|--help] [-x|--debug] [-n|--dry-run] [-C|--dont-use-colors] [-J|--print-json] [-R|--print-raw] [-M|--print-machine] [-P|--print-only-total] [-d|--dont-recalc] [-D|--dumb-test-print] [-L|--list-tests] [-I|--system-info] [-S|--do-not-task-set] [-m|--memory-limit=130] [-t|--time-limit=600] [-T|--run-test=name] [-S|--skip-test=pattern]' . PHP_EOL
 						. PHP_EOL
 						. '	-h|--help		- print this help and exit' . PHP_EOL
 						. '	-x|--debug		- enable debug mode, raise output level' . PHP_EOL
+						. '	-n|--dry-run		- enable dry-run mode, do nothing, just to see output example' . PHP_EOL
 						. '	-C|--dont-use-colors	- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not using it in JSON/machine mode.' . PHP_EOL
 						. '	-J|--print-json	- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
 						. '	-R|--print-raw	- enable printing only raw values, no human readable forms, useful for automated tests.' . PHP_EOL
 						. '	-M|--print-machine	- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
+						. '	-P|--print-only-total	- enable printing only total time but no intermediate test results.' . PHP_EOL
 						. '	-d|--dont-recalc	- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
@@ -520,14 +553,16 @@ if ($options) {
 						PHP_EOL
 						. 'PHP Benchmark Performance Script, version ' . $scriptVersion . PHP_EOL
 						. PHP_EOL
-						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-C] [-J] [-R] [-M] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
+						. 'Usage: ' . basename(__FILE__) . ' [-h] [-x] [-n] [-C] [-J] [-R] [-M] [-P] [-d] [-D] [-L] [-I] [-S] [-m 130] [-t 600] [-T name]' . PHP_EOL
 						. PHP_EOL
 						. '	-h		- print this help and exit' . PHP_EOL
 						. '	-x		- enable debug mode, raise output level' . PHP_EOL
+						. '	-n		- enable dry-run mode, do nothing, just to see output example' . PHP_EOL
 						. '	-C		- disable printing html-span or color sequences for capable terminal: xterm, *-color, *-256color. And not using it in JSON/machine mode.' . PHP_EOL
 						. '	-J		- enable printing only in JSON format, useful for automated tests. disables print-machine.' . PHP_EOL
 						. '	-R		- enable printing only raw values, no human readable forms, useful for automated tests.' . PHP_EOL
 						. '	-M		- enable printing only in machine parsable format, useful for automated tests. disables print-json.' . PHP_EOL
+						. '	-P		- enable printing only total time but no intermediate test results.' . PHP_EOL
 						. '	-d		- do not recalculate test times / operations count even if memory of execution time limits are low' . PHP_EOL
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
@@ -592,6 +627,8 @@ if ($options) {
 			case 'dont-recalc':
 			case 'x':
 			case 'debug':
+			case 'n':
+			case 'dry-run':
 			case 'C':
 			case 'dont-use-colors':
 			case 'J':
@@ -600,6 +637,8 @@ if ($options) {
 			case 'print-raw':
 			case 'M':
 			case 'print-machine':
+			case 'P':
+			case 'print-only-total':
 			case 'D':
 			case 'dumb-test-print':
 			case 'L':
@@ -2021,7 +2060,7 @@ function print_results_common()
 	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
-	global $colorGreen, $colorReset, $colorRed;
+	global $colorGreen, $colorReset, $colorRed, $printOnlyTotal, $dryRun, $emptyResult;
 
 	if (php_sapi_name() != 'cli') echo "<pre>";
 	echo "\n$line\n|"
@@ -2111,26 +2150,33 @@ function print_results_common()
 			. "$line\n" . $flushStr;
 		flush();
 
-		echo "$line\n". str_pad("Total known tests: ", $padLabel). " : ".$cntTotalTests.PHP_EOL;
-		echo "$line\n". str_pad("Available tests: ", $padLabel)." : ".$cntAvailableTests.PHP_EOL.$flushStr;
-		echo "$line\n";
-		$testN =0;
-		foreach ($availableFunctions as $user) {
-			if (strpos($user, 'test_') === 0) {
-				$testName = str_replace('test_', '', $user);
-
-				echo str_pad($testN ."/".$cntAvailableTests." ". $testName, $padLabel) . " :";
-				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
-				$testN++;
-				$total += $resultSec;
-				if ($printRaw)
-					echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
-				else
-					echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
-				echo $flushStr;
-				flush();
-			}
+		if (!$printOnlyTotal){
+			echo "$line\n". str_pad("Total known tests: ", $padLabel). " : ".$cntTotalTests.PHP_EOL;
+			echo "$line\n". str_pad("Available tests: ", $padLabel)." : ".$cntAvailableTests.PHP_EOL.$flushStr;
+			echo "$line\n";
 		}
+			$testN =0;
+			foreach ($availableFunctions as $user) {
+				if (strpos($user, 'test_') === 0) {
+					$testName = str_replace('test_', '', $user);
+
+				if (!$printOnlyTotal){
+					echo str_pad($testN ."/".$cntAvailableTests." ". $testName, $padLabel) . " :";
+				}
+					if (!$dryRun) list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+					else list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $emptyResult;
+					$testN++;
+					$total += $resultSec;
+				if (!$printOnlyTotal){
+					if ($printRaw)
+						echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . " |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+					else
+						echo str_pad($resultSecFmt, 9, ' ', STR_PAD_LEFT) . " sec |" . str_pad($resultOps, 9, ' ', STR_PAD_LEFT) . "Op/s |" . str_pad($resultOpMhz, 9, ' ', STR_PAD_LEFT) . "Ops/MHz |" . str_pad($memory, 10, ' ', STR_PAD_LEFT) . "\n";
+					echo $flushStr;
+					flush();
+				}
+				}
+			}
 
 		list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = format_result_test($total, $totalOps, 0);
 
@@ -2167,7 +2213,8 @@ function print_results_machine()
 
 	global $availableFunctions;
 	global $scriptVersion, $showOnlySystemInfo, $rawValues4json;
-	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
+	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps, $printOnlyTotal, $dryRun;
+	global $emptyResult;
 
 	echo ""
 		. "PHP_BENCHMARK_SCRIPT: $scriptVersion\n"
@@ -2194,10 +2241,15 @@ function print_results_machine()
 						continue;
 					}
 				}
-				echo $testName . ": ";
-				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				if (!$printOnlyTotal){
+					echo $testName . ": ";
+				}
+				if (!$dryRun) list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				else list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $emptyResult;
 				$total += $resultSec;
-				echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . "\n";
+				if (!$printOnlyTotal){
+					echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . "\n";
+				}
 				flush();
 			}
 		}
@@ -2218,7 +2270,8 @@ function print_results_json()
 
 	global $availableFunctions;
 	global $scriptVersion, $showOnlySystemInfo, $rawValues4json, $messagesCnt;
-	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
+	global $functions, $runOnlySelectedTests, $selectedTests, $totalOps, $printOnlyTotal, $dryRun;
+	global $emptyResult;
 
 	echo ""
 		. "\"php_benchmark_script\": \"$scriptVersion\",\n"
@@ -2247,10 +2300,13 @@ function print_results_json()
 						continue;
 					}
 				}
-				echo "    [ \"".$testName . "\", ";
-				list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				if (!$printOnlyTotal)
+					echo "    [ \"".$testName . "\", ";
+				if (!$dryRun) list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $user();
+				else list($resultSec, $resultSecFmt, $resultOps, $resultOpMhz, $memory) = $emptyResult;
 				$total += $resultSec;
-				echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . " ],\n";
+				if (!$printOnlyTotal)
+					echo $resultSecFmt . ", ". $resultOps . ", " . $resultOpMhz . ", " . $memory . " ],\n";
 				flush();
 			}
 		}
