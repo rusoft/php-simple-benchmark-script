@@ -1983,10 +1983,14 @@ if (extension_loaded('session')) {
 }
 $has_zlib = "{$colorYellow}no{$colorReset}";
 $has_gzip = "{$colorYellow}no{$colorReset}";
+$has_deflate = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('zlib')) {
 	$has_zlib = "{$colorGreen}yes{$colorReset}";
 	if(function_exists('gzencode')) {
 		$has_gzip = "{$colorGreen}yes{$colorReset}";
+	}
+	if(function_exists('gzdeflate')) {
+		$has_deflate = "{$colorGreen}yes{$colorReset}";
 	}
 }
 $has_bz2 = "{$colorYellow}no{$colorReset}";
@@ -2057,7 +2061,7 @@ function print_results_common()
 	global $flushStr, $has_apc, $has_pcre, $has_intl, $has_json, $has_simplexml, $has_dom, $has_mbstring, $has_opcache, $has_xcache;
 	global $has_gd, $has_gdgif, $has_gdpng, $has_gdjpg, $has_gdwebp, $has_gdavif;
 	global $has_hash, $has_imagick, $has_igb, $has_msg, $has_jsond, $has_jsond_as_json, $has_ctype, $has_iconv, $has_session;
-	global $has_zlib, $has_uuid, $has_gzip, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
+	global $has_zlib, $has_uuid, $has_gzip, $has_deflate, $has_bz2, $has_lz4, $has_snappy, $has_zstd, $has_brotli;
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed, $printOnlyTotal, $dryRun, $emptyResult;
@@ -2120,7 +2124,8 @@ function print_results_common()
 		. str_pad("jsond as json >>", $padInfo, ' ', STR_PAD_LEFT) . " : $has_jsond_as_json\n"
 		. str_pad("-compression->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("zlib", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zlib, version: ".ZLIB_VERSION.";\n"
-		. str_pad("gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
+		. str_pad("- gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
+		. str_pad("- deflate", $padInfo, ' ', STR_PAD_LEFT) . " : $has_deflate\n"
 		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
 		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4, version: ".LZ4_VERSION_TEXT.";\n"
 		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
