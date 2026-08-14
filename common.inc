@@ -202,7 +202,7 @@ function test_07_Regex()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_crc32()
+function test_08_01_Hashing_crc32()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -217,7 +217,7 @@ function test_08_1_Hashing_crc32()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_crc32'];
+	$count = $testsLoopLimits['08_01_hashing_crc32'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('crc32',$stringTest);
@@ -226,7 +226,7 @@ function test_08_1_Hashing_crc32()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_md4()
+function test_08_02_Hashing_md4()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -241,7 +241,7 @@ function test_08_1_Hashing_md4()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_md4'];
+	$count = $testsLoopLimits['08_02_hashing_md4'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('md4',$stringTest);
@@ -250,7 +250,7 @@ function test_08_1_Hashing_md4()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_md5()
+function test_08_03_Hashing_md5()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -265,7 +265,7 @@ function test_08_1_Hashing_md5()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_md5'];
+	$count = $testsLoopLimits['08_03_hashing_md5'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('md5',$stringTest);
@@ -274,7 +274,7 @@ function test_08_1_Hashing_md5()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_sha1()
+function test_08_04_Hashing_sha1()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -289,7 +289,7 @@ function test_08_1_Hashing_sha1()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_sha1'];
+	$count = $testsLoopLimits['08_04_hashing_sha1'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('sha1',$stringTest);
@@ -298,7 +298,7 @@ function test_08_1_Hashing_sha1()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_sha256()
+function test_08_05_Hashing_sha256()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -313,7 +313,7 @@ function test_08_1_Hashing_sha256()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_sha256'];
+	$count = $testsLoopLimits['08_05_hashing_sha256'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('sha256',$stringTest);
@@ -322,7 +322,7 @@ function test_08_1_Hashing_sha256()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_sha512()
+function test_08_06_Hashing_sha512()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -337,7 +337,7 @@ function test_08_1_Hashing_sha512()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_sha512'];
+	$count = $testsLoopLimits['08_06_hashing_sha512'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('sha256',$stringTest);
@@ -346,7 +346,7 @@ function test_08_1_Hashing_sha512()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_xxh32()
+function test_08_07_Hashing_xxh32()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -361,7 +361,7 @@ function test_08_1_Hashing_xxh32()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_xxh32'];
+	$count = $testsLoopLimits['08_07_hashing_xxh32'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('xxh32',$stringTest);
@@ -370,7 +370,7 @@ function test_08_1_Hashing_xxh32()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_xxh64()
+function test_08_08_Hashing_xxh64()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -385,7 +385,7 @@ function test_08_1_Hashing_xxh64()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_xxh64'];
+	$count = $testsLoopLimits['08_08_hashing_xxh64'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('xxh64',$stringTest);
@@ -394,7 +394,7 @@ function test_08_1_Hashing_xxh64()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_1_Hashing_xxh128()
+function test_08_09_Hashing_xxh128()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -409,7 +409,7 @@ function test_08_1_Hashing_xxh128()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_1_hashing_xxh128'];
+	$count = $testsLoopLimits['08_09_hashing_xxh128'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('xxh128',$stringTest);
@@ -810,3 +810,43 @@ function test_33_PhpInfo_Generate()
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
+
+function clamp_emul($value, $minLimit, $maxLimit) {
+    return max($minLimit, min($maxLimit, $value));
+}
+
+function test_48_01_Php86_Clamp_Emul()
+{
+	global $testsLoopLimits, $totalOps;
+
+	$count = $testsLoopLimits['48_01_php86_clamp_emul'];
+	$min = $count / 2;
+	$max = $count / 3 * 2;
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = clamp_emul($i, $min, $max);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_48_02_Php86_Clamp()
+{
+	global $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('clamp')) {
+		return $emptyResult;
+	}
+
+
+	$count = $testsLoopLimits['48_02_php86_clamp'];
+	$min = $count / 2;
+	$max = $count / 3 * 2;
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = clamp($i, $min, $max);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
