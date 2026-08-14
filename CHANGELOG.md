@@ -6,6 +6,8 @@
  * Print only total time
  * Hide output fom kv-storage tests into debug-mode, which may ruin json output
  * Add dry-run mode
+ * Fix numbers of hases tests
+ * Add php-8.6 support
 
 @ 2025-12-13, v1.0.69
 

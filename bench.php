@@ -373,7 +373,7 @@ if (!function_exists('gethostname')) {
 	// 5.3.0+ only
 	function gethostname() {
 		ob_start();
-		$last_str = system(`hostname -f`, $errcode);
+		$last_str = system('hostname -f', $errcode);
 		ob_end_clean();
 		if ($last_str !== false) {
 			return $last_str;
@@ -805,43 +805,45 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3500;
 // How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
-	'4.4' => 330,
-	'5.2' => 230,
-	'5.3' => 200,
-	'5.4' => 232,
-	'5.5' => 210,
-	'5.6' => 206,
-	'7.0' => 112,
-	'7.1' => 314,
-	'7.2' => 308,
-	'7.3' => 288,
-	'7.4' => 198,
-	'8.0' => 205,
-	'8.1' => 268,
-	'8.2' => 251,
-	'8.3' => 194,
-	'8.4' => 193,
-	'8.5' => 278,
+	'4.4' => 342,
+	'5.2' => 234,
+	'5.3' => 215,
+	'5.4' => 214,
+	'5.5' => 206,
+	'5.6' => 229,
+	'7.0' => 113,
+	'7.1' => 108,
+	'7.2' => 94,
+	'7.3' => 89,
+	'7.4' => 77,
+	'8.0' => 74,
+	'8.1' => 88,
+	'8.2' => 73,
+	'8.3' => 70,
+	'8.4' => 70,
+	'8.5' => 71,
+	'8.6' => 72,
 );
-// Simple and fast test times, used to adjust all test times and limits
+// Simple and fast test times, used to adjust all test times and limits: run phpXY -n bench.php -x -D
 $dumbTestMaxPhpTimes = array(
-	'4.4' => 1.041,
-	'5.2' => 0.771,
-	'5.3' => 0.737,
-	'5.4' => 0.769,
-	'5.5' => 0.770,
-	'5.6' => 0.781,
-	'7.0' => 0.425,
-	'7.1' => 0.425,
-	'7.2' => 0.412,
-	'7.3' => 0.339,
-	'7.4' => 0.340,
-	'8.0' => 0.324,
-	'8.1' => 0.323,
-	'8.2' => 0.294,
-	'8.3' => 0.784,
-	'8.4' => 0.759,
-	'8.5' => 0.759
+	'4.4' => 0.585,
+	'5.2' => 0.355,
+	'5.3' => 0.399,
+	'5.4' => 0.361,
+	'5.5' => 0.364,
+	'5.6' => 0.317,
+	'7.0' => 0.185,
+	'7.1' => 0.196,
+	'7.2' => 0.305,
+	'7.3' => 0.249,
+	'7.4' => 0.139,
+	'8.0' => 0.260,
+	'8.1' => 0.260,
+	'8.2' => 0.226,
+	'8.3' => 0.228,
+	'8.4' => 0.221,
+	'8.5' => 0.238,
+	'8.6' => 0.238,
 );
 // Nice dice roll
 // Should not be longer than 600 seconds
@@ -856,15 +858,15 @@ $testsLoopLimits = array(
 	'05_string_mb'		=> 130000,
 	'06_string_manip'	=> 1300000,
 	'07_regex'			=> 1300000,
-	'08_1_hashing_crc32'		=> 1300000,
-	'08_1_hashing_md4'		=> 1300000,
-	'08_1_hashing_md5'		=> 1300000,
-	'08_1_hashing_sha1'		=> 1300000,
-	'08_1_hashing_sha256'		=> 1300000,
-	'08_1_hashing_sha512'		=> 1300000,
-	'08_1_hashing_xxh32'		=> 1300000,
-	'08_1_hashing_xxh64'		=> 1300000,
-	'08_1_hashing_xxh128'		=> 1300000,
+	'08_01_hashing_crc32'		=> 1300000,
+	'08_02_hashing_md4'		=> 1300000,
+	'08_03_hashing_md5'		=> 1300000,
+	'08_04_hashing_sha1'		=> 1300000,
+	'08_05_hashing_sha256'		=> 1300000,
+	'08_06_hashing_sha512'		=> 1300000,
+	'08_07_hashing_xxh32'		=> 1300000,
+	'08_08_hashing_xxh64'		=> 1300000,
+	'08_09_hashing_xxh128'		=> 1300000,
 	'08_2_crypt'		=> 10000,
 	'09_json_encode'	=> 1300000,
 	'10_json_decode'	=> 1300000,
@@ -936,6 +938,8 @@ $testsLoopLimits = array(
 	'46_02_kvs_mysqli_innodb'	=> 1000000,
 	'46_03_kvs_mysqli_memory'	=> 1000000,
 	'47_kvs_pgsql'	=> 100000,
+	'48_01_php86_clamp_emul'	=> 10000000,
+	'48_02_php86_clamp'	=> 10000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -949,15 +953,15 @@ $testsMemoryLimits = array(
 	'05_string_mb'		=> 4,
 	'06_string_manip'	=> 4,
 	'07_regex'			=> 4,
-	'08_1_hashing_crc32'		=> 4,
-	'08_1_hashing_md4'		=> 4,
-	'08_1_hashing_md5'		=> 4,
-	'08_1_hashing_sha1'		=> 4,
-	'08_1_hashing_sha256'		=> 4,
-	'08_1_hashing_sha512'		=> 4,
-	'08_1_hashing_xxh32'		=> 4,
-	'08_1_hashing_xxh64'		=> 4,
-	'08_1_hashing_xxh128'		=> 4,
+	'08_01_hashing_crc32'		=> 4,
+	'08_02_hashing_md4'		=> 4,
+	'08_03_hashing_md5'		=> 4,
+	'08_04_hashing_sha1'		=> 4,
+	'08_05_hashing_sha256'		=> 4,
+	'08_06_hashing_sha512'		=> 4,
+	'08_07_hashing_xxh32'		=> 4,
+	'08_08_hashing_xxh64'		=> 4,
+	'08_09_hashing_xxh128'		=> 4,
 	'08_2_crypt'		=> 4,
 	'09_json_encode'	=> 4,
 	'10_json_decode'	=> 4,
@@ -1029,6 +1033,8 @@ $testsMemoryLimits = array(
 	'46_02_kvs_mysqli_innodb'		=> 4,
 	'46_03_kvs_mysqli_memory'		=> 4,
 	'47_kvs_pgsql'		=> 4,
+	'48_01_php86_clamp_emul'		=> 4,
+	'48_02_php86_clamp'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1370,7 +1376,7 @@ function dumb_test_Functions()
 
 	$count = 100000;
 	$time_start = get_microtime();
-	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'ord', 'mb_strlen', 'trim', 'md5', 'json_encode');
+	$stringFunctions = array('strtoupper', 'strtolower', 'strlen', 'str_rot13', 'mb_strlen', 'trim', 'md5', 'json_encode');
 	foreach ($stringFunctions as $key => $function) {
 		if (!function_exists($function)) {
 			unset($stringFunctions[$key]);

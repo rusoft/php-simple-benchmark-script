@@ -1,6 +1,6 @@
 # A simple PHP script to test speed
 
-Works with all versions of PHP: from 4.3 to 8.5
+Works with all versions of PHP: from 4.3 to 8.6
 
 ## Dependencies
 
