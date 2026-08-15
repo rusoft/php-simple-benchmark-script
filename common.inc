@@ -850,3 +850,43 @@ function test_48_02_Php86_Clamp()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function test_49_01_Base64_Encode()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('base64_encode')) {
+		return $emptyResult;
+	}
+
+
+	$count = $testsLoopLimits['49_01_base64_encode'];
+	$min = $count / 2;
+	$max = $count / 3 * 2;
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = base64_encode($stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_49_02_Base64_Decode()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('base64_decode')) {
+		return $emptyResult;
+	}
+
+	$encoded = base64_encode($stringTest);
+	$count = $testsLoopLimits['49_02_base64_decode'];
+	$min = $count / 2;
+	$max = $count / 3 * 2;
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = base64_decode($encoded);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
