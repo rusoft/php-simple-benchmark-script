@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2026-x-y, v1.0.71
+
+ * Add base64 test
+
 @ 2026-08-14, v1.0.70
 
  * Add output of running test number
