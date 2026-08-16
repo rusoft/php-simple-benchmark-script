@@ -213,6 +213,8 @@ $outputTestsList = 0;
 
 $showOnlySystemInfo = 0;
 
+$hideOnlySystemInfo = 0;
+
 $selectedTests = array();// exact names
 $skipTests = array();// patterns to match names
 
@@ -310,6 +312,13 @@ if (isset($_GET['system_info']) && (int)$_GET['system_info']) {
 	$showOnlySystemInfo = 1;
 }
 
+if ((int)getenv('HIDE_SYSTEM_INFO')) {
+	$hideOnlySystemInfo = 1;
+}
+if (isset($_GET['hide_system_info']) && (int)$_GET['hide_system_info']) {
+	$hideOnlySystemInfo = 1;
+}
+
 if ($r = getenv('RUN_TESTS')) {
 	$selectedTests = explode(',', $r);
 }
@@ -400,6 +409,7 @@ $shortopts .= "P";
 $shortopts .= "D";
 $shortopts .= "L";
 $shortopts .= "I";
+$shortopts .= "H";
 $shortopts .= "m:";       // Обязательное значение
 $shortopts .= "t:";       // Обязательное значение
 $shortopts .= "T:";       // Обязательное значение
@@ -418,6 +428,7 @@ $longopts = array(
 	"dumb-test-print",
 	"list-tests",
 	"system-info",
+	"hide-system-info",
 	"memory-limit:",      // Обязательное значение
 	"time-limit:",        // Обязательное значение
 	"run-test:",          // Обязательное значение
@@ -497,6 +508,11 @@ if ($options) {
 				$showOnlySystemInfo = 1;
 				break;
 
+			case 'H':
+			case 'hide-system-info':
+				$hideOnlySystemInfo = 1;
+				break;
+
 		} // switch key
 
 	} // for options
@@ -540,6 +556,7 @@ if ($options) {
 						. '	-D|--dumb-test-print	- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L|--list-tests		- output list of available tests and exit' . PHP_EOL
 						. '	-I|--system-info	- output system info but do not run tests and exit' . PHP_EOL
+						. '	-H|--hide-system-info	- do not output system info and run tests and exit' . PHP_EOL
 						. '	-m|--memory-limit <Mb>	- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t|--time-limit <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T|--run-test <pattern>	- run selected tests, test names from --list-tests output, can be defined multiple times' . PHP_EOL
@@ -567,6 +584,7 @@ if ($options) {
 						. '	-D		- print dumb test time, for debug purpose' . PHP_EOL
 						. '	-L		- output list of available tests and exit' . PHP_EOL
 						. '	-I		- output system info but do not run tests and exit' . PHP_EOL
+						. '	-H		- do not output system info and run tests and exit' . PHP_EOL
 						. '	-m <Mb>		- set memory_limit value in Mb, defaults to 130 (Mb)' . PHP_EOL
 						. '	-t <sec>	- set max_execution_time value in seconds, defaults to 600 (sec)' . PHP_EOL
 						. '	-T <pattern>	- run selected tests, test names from -L output, can be defined multiple times' . PHP_EOL
@@ -645,6 +663,8 @@ if ($options) {
 			case 'list-tests':
 			case 'I':
 			case 'system-info':
+			case 'H':
+			case 'hide-system-info':
 				// Done in previous cycle
 				break;
 
@@ -1777,7 +1797,12 @@ function filter_out_name_by_pattern($key)
 }
 $cntTotalTests = count($availableFunctions);
 if ($debugMode) print("cntTotalTests:".$cntTotalTests.PHP_EOL);
-if (PHP_VERSION < "5.0") {
+if (PHP_VERSION < '5.0.0') {
+	print("php 4?");
+	$selectedTests[]='test_';
+#	print("seletedTests:".var_export($selectedTests, true));
+#	print("skipTests:".var_export($skipTests, true));
+#	print("availableFunctions before:".var_export($availableFunctions, true));
 #	print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nTest filtering works only for php 5.0+!\n$line" . PHP_EOL);
 	foreach ($availableFunctions as $key => $value) {
 		filter_in_name_by_pattern($key);
@@ -1785,6 +1810,7 @@ if (PHP_VERSION < "5.0") {
 	foreach ($availableFunctions as $key => $value) {
 		filter_out_name_by_pattern($key);
 	}
+#	print("availableFunctions after:".var_export($availableFunctions, true));
 } else {
 if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
 if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
@@ -1842,7 +1868,7 @@ if (!function_exists('json_encode')) {
 	$has_json = "{$colorRed}no{$colorReset}";
 	if ($printJson) {
 		print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Extension 'json' is mandatory for JSON output!");
-		print("\"messag0es_count\": {$messagesCnt},\n");
+		print("\"messages_count\": {$messagesCnt},\n");
 		print("\"end\":true\n}" . PHP_EOL);
 		exit(-1);
 	}
@@ -2085,12 +2111,14 @@ function print_results_common()
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed, $printOnlyTotal, $dryRun, $emptyResult;
+	global $hideOnlySystemInfo;
 
 	if (php_sapi_name() != 'cli') echo "<pre>";
 	echo "\n$line\n|"
 		. str_pad("PHP BENCHMARK SCRIPT", $padHeader, " ", STR_PAD_BOTH)
-		. "|\n$line\n"
-		. str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
+		. "|\n$line\n";
+		if (!$hideOnlySystemInfo) {
+		echo str_pad("Start", $padInfo) . " : " . date("Y-m-d H:i:s") . "\n"
 		. str_pad("Server name", $padInfo) . " : " . gethostname() . "\n"
 		. str_pad("Server system", $padInfo) . " : " . php_uname('s') . '/' . php_uname('r') . ' ' . php_uname('m') . "\n"
 		. str_pad("Platform", $padInfo) . " : " . PHP_OS . "\n"
@@ -2161,6 +2189,7 @@ function print_results_common()
 		. str_pad("open_basedir", $padInfo, ' ', STR_PAD_LEFT) . " : is empty? ".(!$obd_set ? "{$colorGreen}yes{$colorReset}" : "{$colorRed}no{$colorReset}")."\n"
 		. str_pad("mb.func_overload", $padInfo, ' ', STR_PAD_LEFT) . " : " . ($mbover ? "{$colorRed}{$mbover}{$colorReset}\n" : "{$colorGreen}{$mbover}{$colorReset}\n")
 		. "$line\n" . $flushStr;
+	}
 	flush();
 
 	if (!$showOnlySystemInfo) {
