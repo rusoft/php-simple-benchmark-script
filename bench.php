@@ -822,7 +822,7 @@ $regexPattern = '/[\s,]+/';
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3500;
+$loopMaxPhpTimesMHz = 3600;
 // How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
 	'4.4' => 342,
