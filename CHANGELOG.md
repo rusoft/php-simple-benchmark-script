@@ -3,6 +3,7 @@
 @ 2026-x-y, v1.0.71
 
  * Add base64 test
+ * Add time & microtime tests
 
 @ 2026-08-14, v1.0.70
 

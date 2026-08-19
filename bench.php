@@ -822,7 +822,7 @@ $regexPattern = '/[\s,]+/';
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
 
 // Gathered on this machine
-$loopMaxPhpTimesMHz = 3500;
+$loopMaxPhpTimesMHz = 3600;
 // How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
 	'4.4' => 342,
@@ -962,6 +962,8 @@ $testsLoopLimits = array(
 	'48_02_php86_clamp'	=> 10000000,
 	'49_01_base64_encode'	=> 10000000,
 	'49_02_base64_decode'	=> 10000000,
+	'50_01_time'	=> 10000000,
+	'50_02_microtime'	=> 10000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -1059,6 +1061,8 @@ $testsMemoryLimits = array(
 	'48_02_php86_clamp'		=> 4,
 	'49_01_base64_encode'		=> 4,
 	'49_02_base64_decode'		=> 4,
+	'50_01_time'		=> 4,
+	'50_02_microtime'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1750,6 +1754,22 @@ $availableFunctions =$functions['user'];
 sort($availableFunctions);
 
 // fiter in tests
+function filter_by_pattern($pattern)
+{
+    global $availableFunctions, $debugMode;
+	foreach ($availableFunctions as $key => $var) {
+		// simple test - str in name
+		$c=strpos($var,$pattern);
+		if ($debugMode) {
+			$d=var_export($c,true);
+			print("Search '$pattern' inside '$var':$d\n");
+		}
+		if ($c!==0) {
+			if ($debugMode) print("Search '$pattern' inside '$var':unset\n");
+			unset($availableFunctions[$key]);
+		}
+    }
+}
 function filter_in_name_by_pattern($key)
 {
     global $selectedTests, $debugMode, $availableFunctions;
@@ -1795,14 +1815,16 @@ function filter_out_name_by_pattern($key)
     if (!$ret) unset($availableFunctions[$key]);
     return $ret;
 }
+
+	if ($debugMode) print("availableFunctions before:".var_export($availableFunctions, true));
+filter_by_pattern('test_');
+	if ($debugMode) print("availableFunctions after:".var_export($availableFunctions, true));
 $cntTotalTests = count($availableFunctions);
 if ($debugMode) print("cntTotalTests:".$cntTotalTests.PHP_EOL);
 if (PHP_VERSION < '5.0.0') {
 	print("php 4?");
-	$selectedTests[]='test_';
-#	print("seletedTests:".var_export($selectedTests, true));
-#	print("skipTests:".var_export($skipTests, true));
-#	print("availableFunctions before:".var_export($availableFunctions, true));
+	if ($debugMode) print("seletedTests:".var_export($selectedTests, true));
+	if ($debugMode) print("skipTests:".var_export($skipTests, true));
 #	print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nTest filtering works only for php 5.0+!\n$line" . PHP_EOL);
 	foreach ($availableFunctions as $key => $value) {
 		filter_in_name_by_pattern($key);
@@ -1810,7 +1832,6 @@ if (PHP_VERSION < '5.0.0') {
 	foreach ($availableFunctions as $key => $value) {
 		filter_out_name_by_pattern($key);
 	}
-#	print("availableFunctions after:".var_export($availableFunctions, true));
 } else {
 if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
 if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
