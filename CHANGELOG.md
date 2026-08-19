@@ -1,6 +1,6 @@
 # ChangeLog
 
-@ 2026-x-y, v1.0.71
+@ 2026-08-19, v1.0.71
 
  * Add base64 test
  * Add time & microtime tests
