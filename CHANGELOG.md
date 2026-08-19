@@ -4,6 +4,7 @@
 
  * Add base64 test
  * Add time & microtime tests
+ * Add random tests
 
 @ 2026-08-14, v1.0.70
 

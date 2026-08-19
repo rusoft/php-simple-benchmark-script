@@ -964,6 +964,9 @@ $testsLoopLimits = array(
 	'49_02_base64_decode'	=> 10000000,
 	'50_01_time'	=> 10000000,
 	'50_02_microtime'	=> 10000000,
+	'51_01_random_float'	=> 10000000,
+	'51_01_secure_random_float'	=> 10000000,
+	'51_02_random_int'	=> 10000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -1063,6 +1066,9 @@ $testsMemoryLimits = array(
 	'49_02_base64_decode'		=> 4,
 	'50_01_time'		=> 4,
 	'50_02_microtime'		=> 4,
+	'51_01_random_float'		=> 4,
+	'51_01_secure_random_float'		=> 4,
+	'51_02_random_int'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
