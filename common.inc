@@ -924,3 +924,61 @@ function test_50_02_Microtime()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function getRandomFloat($min, $max) {
+    return $min + mt_rand() / mt_getrandmax() * ($max - $min);
+}
+function getSecureRandomFloat($min, $max) {
+        $maxInt = 1000000000;
+        return $min + (random_int(0, $maxInt) / $maxInt) * ($max - $min);
+}
+function test_51_01_Random_Float()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('mt_rand')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['51_01_random_float'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = getRandomFloat(-$count, $count);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_51_01_Secure_Random_Float()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('random_int')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['51_01_secure_random_float'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = getSecureRandomFloat(-$count, $count);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_51_02_Random_Int()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('mt_rand')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['51_02_random_int'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = mt_rand();
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
