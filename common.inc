@@ -890,3 +890,37 @@ function test_49_02_Base64_Decode()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function test_50_01_Time()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('time')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['50_01_time'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = time();
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_50_02_Microtime()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('microtime')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['50_02_microtime'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = microtime();
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
