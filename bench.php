@@ -10,7 +10,7 @@
 #  Author      : Sergey Dryabzhinsky                                           #
 #  Company     : Rusoft Ltd, Russia                                            #
 #  Date        : Aug 19, 2026                                                  #
-#  Version     : 1.0.71                                                        #
+#  Version     : 1.0.72-dev                                                        #
 #  License     : Creative Commons CC-BY license                                #
 #  Website     : https://github.com/rusoft/php-simple-benchmark-script         #
 #  Website     : https://gitea.rusoft.ru/open-source/php-simple-benchmark-script #
@@ -20,7 +20,7 @@
 
 include_once("php-options.php");
 
-$scriptVersion = '1.0.71';
+$scriptVersion = '1.0.72-dev';
 
 // Special string to flush buffers, nginx for example
 $flushStr = '<!-- '.str_repeat(" ", 8192).' -->';
@@ -967,6 +967,8 @@ $testsLoopLimits = array(
 	'51_01_random_float'	=> 10000000,
 	'51_01_secure_random_float'	=> 10000000,
 	'51_02_random_int'	=> 10000000,
+	'52_01_bin2hex_encode'	=> 10000000,
+	'52_02_bin2hex_decode'	=> 10000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -1069,6 +1071,8 @@ $testsMemoryLimits = array(
 	'51_01_random_float'		=> 4,
 	'51_01_secure_random_float'		=> 4,
 	'51_02_random_int'		=> 4,
+	'52_01_bin2hex_encode'		=> 4,
+	'52_02_bin2hex_decode'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
@@ -1827,8 +1831,8 @@ filter_by_pattern('test_');
 	if ($debugMode) print("availableFunctions after:".var_export($availableFunctions, true));
 $cntTotalTests = count($availableFunctions);
 if ($debugMode) print("cntTotalTests:".$cntTotalTests.PHP_EOL);
-if (PHP_VERSION < '5.0.0') {
-	print("php 4?");
+//if (PHP_VERSION < '5.0.0') {
+//	print("php 4?");
 	if ($debugMode) print("seletedTests:".var_export($selectedTests, true));
 	if ($debugMode) print("skipTests:".var_export($skipTests, true));
 #	print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nTest filtering works only for php 5.0+!\n$line" . PHP_EOL);
@@ -1838,10 +1842,10 @@ if (PHP_VERSION < '5.0.0') {
 	foreach ($availableFunctions as $key => $value) {
 		filter_out_name_by_pattern($key);
 	}
-} else {
-if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
-if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
-}
+//} else {
+//if ($selectedTests) array_filter($availableFunctions, "filter_in_name_by_pattern",ARRAY_FILTER_USE_KEY);
+//if ($skipTests) array_filter($availableFunctions, "filter_out_name_by_pattern",ARRAY_FILTER_USE_KEY);
+//}
 $cntAvailableTests = count($availableFunctions);
 if ($debugMode) print("cntAvailableTests:".$cntAvailableTests.PHP_EOL);
 /** ------------------------------- Early checks ------------------------------- */

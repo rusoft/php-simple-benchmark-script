@@ -1,5 +1,9 @@
 # ChangeLog
 
+@ 2026-08-19, v1.0.72
+
+ * Add bin2hex/hex2bin test
+
 @ 2026-08-19, v1.0.71
 
  * Add base64 test

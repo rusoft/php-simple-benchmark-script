@@ -860,8 +860,6 @@ function test_49_01_Base64_Encode()
 
 
 	$count = $testsLoopLimits['49_01_base64_encode'];
-	$min = $count / 2;
-	$max = $count / 3 * 2;
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = base64_encode($stringTest);
@@ -880,8 +878,6 @@ function test_49_02_Base64_Decode()
 
 	$encoded = base64_encode($stringTest);
 	$count = $testsLoopLimits['49_02_base64_decode'];
-	$min = $count / 2;
-	$max = $count / 3 * 2;
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = base64_decode($encoded);
@@ -977,6 +973,42 @@ function test_51_02_Random_Int()
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = mt_rand();
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_52_01_Bin2hex_Encode()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('bin2hex')) {
+		return $emptyResult;
+	}
+
+
+	$count = $testsLoopLimits['52_01_bin2hex_encode'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = bin2hex($stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_52_02_Bin2hex_Decode()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('hex2bin')) {
+		return $emptyResult;
+	}
+
+	$encoded = bin2hex($stringTest);
+	$count = $testsLoopLimits['52_02_bin2hex_decode'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hex2bin($encoded);
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
