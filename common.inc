@@ -1048,3 +1048,20 @@ function test_53_02_Metaphone()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function test_53_03_Levenshtein()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('levenshtein')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['53_03_levenshtein'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = levenshtein($stringTest, 'lorum ipsum');
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+

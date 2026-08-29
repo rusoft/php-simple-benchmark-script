@@ -971,6 +971,7 @@ $testsLoopLimits = array(
 	'52_02_bin2hex_decode'	=> 10000000,
 	'53_01_soundex'	=> 10000000,
 	'53_02_metaphone'	=> 10000000,
+	'53_03_levenshtein'	=> 10000000,
 );
 // Should not be more than X Mb
 // Different PHP could use different amount of memory
@@ -1077,6 +1078,7 @@ $testsMemoryLimits = array(
 	'52_02_bin2hex_decode'		=> 4,
 	'53_01_soundex'		=> 4,
 	'53_02_metaphone'		=> 4,
+	'53_03_levenshtein'		=> 4,
 );
 
 /** ---------------------------------- Common functions -------------------------------------------- */
