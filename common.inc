@@ -1014,3 +1014,21 @@ function test_52_02_Bin2hex_Decode()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function test_53_01_Soundex()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('soundex')) {
+		return $emptyResult;
+	}
+
+	$encoded = bin2hex($stringTest);
+	$count = $testsLoopLimits['53_01_soundex'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = soundex($encoded);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
