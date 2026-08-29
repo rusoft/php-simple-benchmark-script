@@ -1,8 +1,9 @@
 # ChangeLog
 
-@ 2026-08-19, v1.0.72
+@ 2026-x-y, v1.0.72
 
  * Add bin2hex/hex2bin test
+ * Add soundex test
 
 @ 2026-08-19, v1.0.71
 
