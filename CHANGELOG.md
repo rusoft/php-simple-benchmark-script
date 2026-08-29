@@ -4,6 +4,7 @@
 
  * Add bin2hex/hex2bin test
  * Add soundex test
+ * Add mataphone test
 
 @ 2026-08-19, v1.0.71
 
