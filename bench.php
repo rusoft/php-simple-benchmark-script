@@ -825,24 +825,24 @@ $regexPattern = '/[\s,]+/';
 $loopMaxPhpTimesMHz = 3600;
 // How much time needed for tests on this machine, core func measure `phpXY -n bench.php -t 3600`
 $loopMaxPhpTimes = array(
-	'4.4' => 342,
-	'5.2' => 234,
-	'5.3' => 215,
-	'5.4' => 214,
-	'5.5' => 206,
-	'5.6' => 229,
-	'7.0' => 113,
-	'7.1' => 108,
-	'7.2' => 94,
-	'7.3' => 89,
-	'7.4' => 77,
-	'8.0' => 74,
-	'8.1' => 88,
-	'8.2' => 73,
-	'8.3' => 70,
-	'8.4' => 70,
-	'8.5' => 71,
-	'8.6' => 72,
+	'4.4' => 780,
+	'5.2' => 627,
+	'5.3' => 267,
+	'5.4' => 257,
+	'5.5' => 260,
+	'5.6' => 267,
+	'7.0' => 186,
+	'7.1' => 275,
+	'7.2' => 173,
+	'7.3' => 241,
+	'7.4' => 196,
+	'8.0' => 247,
+	'8.1' => 226,
+	'8.2' => 159,
+	'8.3' => 252,
+	'8.4' => 263,
+	'8.5' => 151,
+	'8.6' => 194,
 );
 // Simple and fast test times, used to adjust all test times and limits: run phpXY -n bench.php -x -D
 $dumbTestMaxPhpTimes = array(
@@ -1833,7 +1833,7 @@ function filter_out_name_by_pattern($key)
 }
 
 	if ($debugMode) print("availableFunctions before:".var_export($availableFunctions, true));
-filter_by_pattern('test_');
+	filter_by_pattern('test_');
 	if ($debugMode) print("availableFunctions after:".var_export($availableFunctions, true));
 $cntTotalTests = count($availableFunctions);
 if ($debugMode) print("cntTotalTests:".$cntTotalTests.PHP_EOL);
@@ -1842,9 +1842,11 @@ if ($debugMode) print("cntTotalTests:".$cntTotalTests.PHP_EOL);
 	if ($debugMode) print("seletedTests:".var_export($selectedTests, true));
 	if ($debugMode) print("skipTests:".var_export($skipTests, true));
 #	print_pre("$line\n{$colorYellow}<<< WARNING >>>{$colorReset}\nTest filtering works only for php 5.0+!\n$line" . PHP_EOL);
+if ($selectedTests)
 	foreach ($availableFunctions as $key => $value) {
 		filter_in_name_by_pattern($key);
 	}
+if ($skipTests)
 	foreach ($availableFunctions as $key => $value) {
 		filter_out_name_by_pattern($key);
 	}
@@ -1896,12 +1898,12 @@ if ($outputTestsList) {
 
 $has_mbstring = "{$colorGreen}yes{$colorReset}";
 if (!function_exists('mb_strlen')) {
-	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'mbstring' not loaded or not compiled! Multi-byte string tests will produce empty result!");
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'mbstring' not loaded or not compiled in! Multi-byte string tests will produce empty result!");
 	$has_mbstring = "{$colorRed}no{$colorReset}";
 }
 $has_json = "{$colorGreen}yes{$colorReset}";
 if (!function_exists('json_encode')) {
-	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'json' not loaded or not compiled! JSON tests will produce empty result!");
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'json' not loaded or not compiled in! JSON tests will produce empty result!");
 	$has_json = "{$colorRed}no{$colorReset}";
 	if ($printJson) {
 		print_pre("{$colorRed}<<< ERROR >>>{$colorReset} Extension 'json' is mandatory for JSON output!");
@@ -1912,7 +1914,7 @@ if (!function_exists('json_encode')) {
 }
 $has_pcre = "{$colorGreen}yes{$colorReset}";
 if (!function_exists('preg_match')) {
-	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'pcre' not loaded or not compiled! Regex tests will procude empty result!");
+	print_pre("{$colorYellow}<<< WARNING >>>{$colorReset} Extension 'pcre' not loaded or not compiled in! Regex tests will procude empty result!");
 	$has_pcre = "{$colorRed}no{$colorReset}";
 }
 $has_opcache = "{$colorGreen}no{$colorReset}";
