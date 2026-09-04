@@ -322,7 +322,7 @@ function test_08_04_Hashing_sha_1()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_05_Hashing_sha2_256()
+function test_08_05_01_Hashing_sha2_256()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -346,7 +346,7 @@ function test_08_05_Hashing_sha2_256()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_06_Hashing_sha2_512()
+function test_08_05_01_Hashing_sha2_512()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -370,7 +370,7 @@ function test_08_06_Hashing_sha2_512()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_05_Hashing_sha3_256()
+function test_08_05_02_Hashing_sha3_256()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -394,7 +394,7 @@ function test_08_05_Hashing_sha3_256()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_06_Hashing_sha3_512()
+function test_08_05_02_Hashing_sha3_512()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -413,6 +413,54 @@ function test_08_06_Hashing_sha3_512()
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('sha3-512',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_06_03_Hashing_ripemd_128()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('ripemd128', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_05_hashing_ripemd_128'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('ripemd128',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_06_03_Hashing_ripemd_256()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('ripemd256', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_06_hashing_ripemd_256'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('ripemd256',$stringTest);
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
