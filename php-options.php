@@ -23,7 +23,9 @@ ini_set("xdebug.mode", "off");
 ini_set("output_buffering", 0);
 ini_set("max_execution_time", 600);
 ini_set("memory_limit", "130M");
+if (PHP_VERSION < "7.4.0"){
 ini_set("mbstring.internal_encoding", "UTF-8");
+}
 ini_set("mbstring.func_overload", 0);
 
 ini_set("date.timezone", "Europe/Moscow");
