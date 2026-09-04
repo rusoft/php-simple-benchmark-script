@@ -817,6 +817,7 @@ $stringConcatLoopRepeat = 5;
 $runOnlySelectedTests = !empty($selectedTests);
 
 $stringTest = "    the quick <b>brown</b> fox jumps <i>over</i> the lazy dog and eat <span>lorem ipsum</span><br/> Valar morghulis  <br/>\n\rабыр\nвалар дохаэрис   <span class='alert alert-danger'>У нас закончились ложки, Нео!</span>      ";
+$stringTestS = "the quick brown fox jumps over";
 $regexPattern = '/[\s,]+/';
 
 /** ---------------------------------- Tests limits - to recalculate -------------------------------------------- */
@@ -879,11 +880,14 @@ $testsLoopLimits = array(
 	'06_string_manip'	=> 1300000,
 	'07_regex'			=> 1300000,
 	'08_01_hashing_crc32'		=> 1300000,
+	'08_02_hashing_md2'		=> 1300000,
 	'08_02_hashing_md4'		=> 1300000,
 	'08_03_hashing_md5'		=> 1300000,
-	'08_04_hashing_sha1'		=> 1300000,
-	'08_05_hashing_sha256'		=> 1300000,
-	'08_06_hashing_sha512'		=> 1300000,
+	'08_04_hashing_sha_1'		=> 1300000,
+	'08_05_hashing_sha2_256'		=> 1300000,
+	'08_06_hashing_sha2_512'		=> 1300000,
+	'08_05_hashing_sha3_256'		=> 1300000,
+	'08_06_hashing_sha3_512'		=> 1300000,
 	'08_07_hashing_xxh32'		=> 1300000,
 	'08_08_hashing_xxh64'		=> 1300000,
 	'08_09_hashing_xxh128'		=> 1300000,
@@ -986,11 +990,14 @@ $testsMemoryLimits = array(
 	'06_string_manip'	=> 4,
 	'07_regex'			=> 4,
 	'08_01_hashing_crc32'		=> 4,
+	'08_02_hashing_md2'		=> 4,
 	'08_02_hashing_md4'		=> 4,
 	'08_03_hashing_md5'		=> 4,
-	'08_04_hashing_sha1'		=> 4,
-	'08_05_hashing_sha256'		=> 4,
-	'08_06_hashing_sha512'		=> 4,
+	'08_04_hashing_sha_1'		=> 4,
+	'08_05_hashing_sha2_256'		=> 4,
+	'08_06_hashing_sha2_512'		=> 4,
+	'08_05_hashing_sha3_256'		=> 4,
+	'08_06_hashing_sha3_512'		=> 4,
 	'08_07_hashing_xxh32'		=> 4,
 	'08_08_hashing_xxh64'		=> 4,
 	'08_09_hashing_xxh128'		=> 4,

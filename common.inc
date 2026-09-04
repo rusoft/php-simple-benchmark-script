@@ -226,6 +226,30 @@ function test_08_01_Hashing_crc32()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function test_08_02_Hashing_md2()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('md2', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_02_hashing_md2'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('md2',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
 function test_08_02_Hashing_md4()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
@@ -274,7 +298,7 @@ function test_08_03_Hashing_md5()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_04_Hashing_sha1()
+function test_08_04_Hashing_sha_1()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -289,7 +313,7 @@ function test_08_04_Hashing_sha1()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_04_hashing_sha1'];
+	$count = $testsLoopLimits['08_04_hashing_sha_1'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('sha1',$stringTest);
@@ -298,7 +322,7 @@ function test_08_04_Hashing_sha1()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_05_Hashing_sha256()
+function test_08_05_Hashing_sha2_256()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -313,7 +337,7 @@ function test_08_05_Hashing_sha256()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_05_hashing_sha256'];
+	$count = $testsLoopLimits['08_05_hashing_sha2_256'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
 		$r = hash('sha256',$stringTest);
@@ -322,7 +346,7 @@ function test_08_05_Hashing_sha256()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
-function test_08_06_Hashing_sha512()
+function test_08_06_Hashing_sha2_512()
 {
 	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
 
@@ -337,10 +361,58 @@ function test_08_06_Hashing_sha512()
 		return $emptyResult;
 	}
 
-	$count = $testsLoopLimits['08_06_hashing_sha512'];
+	$count = $testsLoopLimits['08_06_hashing_sha2_512'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
-		$r = hash('sha256',$stringTest);
+		$r = hash('sha512',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_05_Hashing_sha3_256()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('sha3-256', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_05_hashing_sha3_256'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('sha3-256',$stringTest);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
+function test_08_06_Hashing_sha3_512()
+{
+	global $stringTest, $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!function_exists('hash_algos')) {
+		return $emptyResult;
+	}
+	if (!function_exists('hash')) {
+		return $emptyResult;
+	}
+	$algos = hash_algos();
+	if (! in_array('sha3-512', $algos)){
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['08_06_hashing_sha3_512'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = hash('sha3-512',$stringTest);
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
@@ -1050,7 +1122,7 @@ function test_53_02_Metaphone()
 
 function test_53_03_Levenshtein()
 {
-	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+	global $stringTestS, $emptyResult, $testsLoopLimits, $totalOps;
 
 	if (!function_exists('levenshtein')) {
 		return $emptyResult;
@@ -1059,7 +1131,7 @@ function test_53_03_Levenshtein()
 	$count = $testsLoopLimits['53_03_levenshtein'];
 	$time_start = get_microtime();
 	for ($i = 0; $i < $count; $i++) {
-		$r = levenshtein($stringTest, 'lorum ipsum');
+		$r = levenshtein($stringTest, 'fox');
 	}
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());

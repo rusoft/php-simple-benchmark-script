@@ -6,6 +6,8 @@
  * Add soundex test
  * Add mataphone test
  * Add levenshtein test
+ * Add hashing tests of sha3-256, sha3-512, md2
+ * Fix sha512 use
 
 @ 2026-08-19, v1.0.71
 
