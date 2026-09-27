@@ -1040,6 +1040,23 @@ function test_50_02_Microtime()
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
 
+function test_50_03_Number_format()
+{
+	global $stringTest, $emptyResult, $testsLoopLimits, $totalOps;
+
+	if (!function_exists('number_format')) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['50_03_number_format'];
+	$time_start = get_microtime();
+	for ($i = 0; $i < $count; $i++) {
+		$r = number_format($i, 2, ',', '');
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+
 function getRandomFloat($min, $max) {
     return $min + mt_rand() / mt_getrandmax() * ($max - $min);
 }
