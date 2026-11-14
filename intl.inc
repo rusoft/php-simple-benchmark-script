@@ -87,3 +87,61 @@ function test_32_Intl_Calendar()
 	$totalOps += $count;
 	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
 }
+
+/**
+ * @since: 5.5.0
+ */
+function test_32_Intl_Calendar_Add()
+{
+	global $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!class_exists('IntlCalendar', false)) {
+		return $emptyResult;
+	}
+	if (!class_exists('IntlTimeZone', false)) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['32_intl_calendar_add'];
+	$time_start = get_microtime();
+
+	$cal = IntlCalendar::createInstance('UTC');
+	$cal->clear();
+
+	// Set to 0000-01-01 00:00:00.000
+	$cal->set(0, 0, 1, 0, 0, 0);
+	$cal->set(IntlCalendar::FIELD_MILLISECOND, 0);
+
+	for ($i = 0; $i < $count; $i++) {
+		$cal->add(IntlCalendar::FIELD_SECOND, 1);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
+/**
+ * @since: 5.5.0
+ */
+function test_32_Intl_Calendar_SubAdd()
+{
+	global $testsLoopLimits, $totalOps, $emptyResult;
+
+	if (!class_exists('IntlCalendar', false)) {
+		return $emptyResult;
+	}
+	if (!class_exists('IntlTimeZone', false)) {
+		return $emptyResult;
+	}
+
+	$count = $testsLoopLimits['32_intl_calendar_sub_add'];
+	$time_start = get_microtime();
+
+	$cal = IntlCalendar::createInstance('UTC');
+	$cal->clear();
+	$cal->setTime(0);
+
+	for ($i = 0; $i < $count; $i++) {
+		$cal->add(IntlCalendar::FIELD_SECOND, -1);
+	}
+	$totalOps += $count;
+	return format_result_test(get_microtime() - $time_start, $count, mymemory_usage());
+}
