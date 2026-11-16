@@ -828,17 +828,17 @@ $loopMaxPhpTimesMHz = 3600;
 $loopMaxPhpTimes = array(
 	'4.4' => 780,
 	'5.2' => 627,
-	'5.3' => 267,
-	'5.4' => 257,
-	'5.5' => 260,
-	'5.6' => 267,
-	'7.0' => 186,
-	'7.1' => 275,
-	'7.2' => 173,
-	'7.3' => 241,
-	'7.4' => 196,
-	'8.0' => 247,
-	'8.1' => 226,
+	'5.3' => 297,
+	'5.4' => 322,
+	'5.5' => 322,
+	'5.6' => 320,
+	'7.0' => 250,
+	'7.1' => 301,
+	'7.2' => 183,
+	'7.3' => 155,
+	'7.4' => 204,
+	'8.0' => 163,
+	'8.1' => 177,
 	'8.2' => 159,
 	'8.3' => 252,
 	'8.4' => 263,
@@ -923,7 +923,9 @@ $testsLoopLimits = array(
 	'29_datetime'		=> 500000,
 	'30_intl_number_format'		=> 20000,
 	'31_intl_message_format'	=> 200000,
-	'32_intl_calendar'			=> 300000,
+	'32_intl_calendar'			=> 3000000,
+	'32_intl_calendar_add'			=> 3000000,
+	'32_intl_calendar_sub_add'			=> 3000000,
 	'33_phpinfo_generate'		=> 10000,
 	'34_gd_qrcode'		=> 1000,
 	'35_imagick_qrcode'		=> 1000,
@@ -2134,6 +2136,11 @@ if ($jsond && !function_exists('jsond_encode')) {
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
 if (!defined('ICONV_VERSION')) define('ICONV_VERSION', '-.--');
 if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.-.-');
+if (extension_loaded('bz2')){
+  if (!defined('BZ2_VERSION')) define('BZ2_VERSION', phpversion('bz2'));
+} else {
+  if (!defined('BZ2_VERSION')) define('BZ2_VERSION', '-.-.-');
+}
 if (!defined('MEMCACHE_VERSION')) define('MEMCACHE_VERSION', '-.-.-');
 if (!defined('REDIS_VERSION')) define('REDIS_VERSION', '-.-.-');
 if (!defined('SQLITE3_VERSION')) define('SQLITE3_VERSION', '-.-.-');
@@ -2226,7 +2233,7 @@ function print_results_common()
 		. str_pad("zlib", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zlib, version: ".ZLIB_VERSION.";\n"
 		. str_pad("- gzip", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gzip\n"
 		. str_pad("- deflate", $padInfo, ' ', STR_PAD_LEFT) . " : $has_deflate\n"
-		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2\n"
+		. str_pad("bz2", $padInfo, ' ', STR_PAD_LEFT) . " : $has_bz2; version: ".BZ2_VERSION.";\n"
 		. str_pad("lz4", $padInfo, ' ', STR_PAD_LEFT) . " : $has_lz4, version: ".LZ4_VERSION_TEXT.";\n"
 		. str_pad("snappy", $padInfo, ' ', STR_PAD_LEFT) . " : $has_snappy\n"
 		. str_pad("zstd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_zstd, version: ".LIBZSTD_VERSION_STRING.";\n"

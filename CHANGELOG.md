@@ -9,6 +9,7 @@
  * Add hashing tests of sha3-256, sha3-512, md2, ripemd128, ripemd256
  * Add test for number_format function
  * Fix sha512 use
+ * Add more intl calendar tests
 
 @ 2026-08-19, v1.0.71
 
