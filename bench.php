@@ -2066,8 +2066,12 @@ if (extension_loaded('simplexml')) {
 	$has_simplexml = "{$colorGreen}yes{$colorReset}";
 }
 $has_intl = "{$colorYellow}no{$colorReset}";
+$has_intl_calendar = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('intl')) {
 	$has_intl = "{$colorGreen}yes{$colorReset}";
+	if (class_exists('IntlCalendar')){
+		$has_intl_calendar = "{$colorGreen}yes{$colorReset}";
+	}
 }
 $has_ctype = "{$colorYellow}no{$colorReset}";
 if (extension_loaded('ctype')) {
@@ -2170,7 +2174,7 @@ function print_results_common()
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed, $printOnlyTotal, $dryRun, $emptyResult;
-	global $hideOnlySystemInfo;
+	global $hideOnlySystemInfo, $has_intl_calendar;
 
 	if (php_sapi_name() != 'cli') echo "<pre>";
 	echo "\n$line\n|"
@@ -2206,6 +2210,7 @@ function print_results_common()
 		. str_pad("iconv", $padInfo, ' ', STR_PAD_LEFT) . " : $has_iconv; version: ".ICONV_VERSION.";\n"
 		. str_pad("session", $padInfo, ' ', STR_PAD_LEFT) . " : $has_session\n"
 		. str_pad("intl", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl" . ($has_intl == "{$colorGreen}yes{$colorReset}" ? '; icu version: ' . INTL_ICU_VERSION : '')."\n"
+		. str_pad("intl+calendar", $padInfo, ' ', STR_PAD_LEFT) . " : $has_intl_calendar\n"
 		. str_pad("-optional->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("gd", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gd: version: ". GD_VERSION.";\n"
 		. str_pad("\t- GIF", $padInfo, ' ', STR_PAD_LEFT) . " : $has_gdgif"."\n"
