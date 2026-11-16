@@ -2137,6 +2137,33 @@ if ($jsond && !function_exists('jsond_encode')) {
 	$has_jsond_as_json = "{$colorGreen}yes{$colorReset}";
 }
 
+$has_dynload = "{$colorYellow}no{$colorReset}";
+if (ini_get("enable_dl")){
+	$has_dynload = "{$colorGreen}yes{$colorReset}";
+}
+ob_start();
+phpinfo(8);
+$info = ob_get_clean();
+$ai=explode("\n", $info);
+foreach ($ai as $ind => $line){
+	$l=strtolower($line);
+#	print("\n$ind: $line\n");
+	$pos=strpos($line,'Dynamic Library Support');
+#	print("pos=".var_export($pos, true).PHP_EOL);
+	if ( $pos!==false){
+#print("dynamic found\n");
+		$pos=strpos($line, 'enabled');
+#print("pos=".var_export($pos, true).PHP_EOL);
+		if (strpos($line, 'enabled')===false){
+#print("not enabled\n");
+			$has_dynload = "{$colorRed}no{$colorReset}";
+		} else {
+			$has_dynload = "{$colorGreen}yes{$colorReset}";
+#print("enabled\n");
+		}
+	}
+}
+
 if (!defined('PCRE_VERSION')) define('PCRE_VERSION', '-.--');
 if (!defined('ICONV_VERSION')) define('ICONV_VERSION', '-.--');
 if (!defined('ZLIB_VERSION')) define('ZLIB_VERSION', '-.-.-');
@@ -2174,7 +2201,7 @@ function print_results_common()
 	global $has_apcu, $has_shmop, $has_memcache, $has_redis, $has_mysql, $has_pgsql, $has_mysqli, $has_sodium, $has_sqlite3, $opcache, $has_eacc, $has_xdebug, $xcache, $apcache, $eaccel, $xdebug, $xdbg_mode, $obd_set, $mbover;
 	global $showOnlySystemInfo, $padLabel, $functions, $runOnlySelectedTests, $selectedTests, $totalOps;
 	global $colorGreen, $colorReset, $colorRed, $printOnlyTotal, $dryRun, $emptyResult;
-	global $hideOnlySystemInfo, $has_intl_calendar;
+	global $hideOnlySystemInfo, $has_intl_calendar, $has_dynload;
 
 	if (php_sapi_name() != 'cli') echo "<pre>";
 	echo "\n$line\n|"
@@ -2198,6 +2225,8 @@ function print_results_common()
 		. str_pad("PHP memory limit", $padInfo) . " : " . $originMemoryLimit . "\n"
 		. str_pad("Setup memory limit", $padInfo) . " : " . $memoryLimitMb . "\n"
 		. str_pad("Crypt hash algo", $padInfo) . " : " . $cryptAlgoName . "\n"
+		. str_pad("Dynamic loading support", $padInfo, ' ', STR_PAD_LEFT) . " : $has_dynload\n"
+
 		. str_pad("Loaded modules", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("-useful->", $padInfo, ' ', STR_PAD_LEFT) . "\n"
 		. str_pad("json", $padInfo, ' ', STR_PAD_LEFT) . " : $has_json\n"
